@@ -1,0 +1,243 @@
+\documentclass[acmsmall,nonacm=true,screen=true]{acmart}\settopmatter{printfolios=false,printccs=false,printacmref=false}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Bibliography style
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bibliographystyle{ACM-Reference-Format}
+\citestyle{acmauthoryear}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Macros
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand\todo[1]{\textcolor{red}{TODO: #1}}
+\newcommand\todocite[0]{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Packages
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% URLs
+\newcommand\site[1]{\footnote{\url{#1}}}
+
+% Quotes
+\usepackage{csquotes}
+
+% Font
+%\usepackage{fontspec}
+%\setmonofont{FiraCode-Light}
+
+% Graphics
+\graphicspath{ {images/} }
+\usepackage{colortbl}
+
+% Agda formatting
+\usepackage{agda}
+\input{code}
+
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Title
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{Formal investigation of the expressiveness of the Extended UTxO model}
+\subtitle{Laying the foundations for the formal verification of smart contracts}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Authors
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\author{Orestis Melkonian}
+\orcid{0000-0003-2182-2698}
+\affiliation{
+  \position{MSc Student}
+  \department{Information and Computing Sciences}
+  \institution{Utrecht University}
+  \city{Utrecht}
+  \country{The Netherlands}
+}
+\email{melkon.or@gmail.com}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Abstract
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{abstract}
+This report serves as the proposal of my MSc thesis, supervised by Wouter Swierstra from the
+University of Utrecht and Manuel Chakravarty from IOHK.
+\end{abstract}
+
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+\label{sec:intro}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Distributed ledger technology creates issues
+Reasoning about the behaviour of blockchain ...
+
+
+% Smart contracts create issues
+The advent of smart contracts (programs that run on the blockchain itself) gave
+rise to another source of vulnerabilities. Since these (possibly Turing-complete)
+programs often deal with transactions of significant funds,
+it is of utmost importance that one can reason and ideally provide formal proofs
+about their behaviour in a concurrent/distributed setting.
+
+% Aim of thesis
+\paragraph{Research Question}
+The aim of this thesis is to provide a mechanized formal model of ...,
+in which one can begin to formally investigate the expressiveness
+of the extended UTxo model.
+Moreover, ... compare with account-based ... Ethereum ...
+
+Put concisely, the research question posed is:
+\begin{displayquote}
+	\textit{How much expressiveness do we gain by extending the UTxO model?} \\
+	\textit{Is it as expressive as the account-based model used in Ethereum?}
+\end{displayquote}
+
+\paragraph{Overview}
+Section~\ref{sec:background} will review some basic definitions related to blockchain
+technology and introduce important literature, which will be the main subject of study
+throughout the development of our reasoning framework.
+
+Section~\ref{sec:methodology} 
+
+Section~\ref{sec:results} 
+
+Section~\ref{sec:plan}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Background}
+\label{sec:background}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Distributed Ledger Technology: Blockchain}
+
+\subsection{Smart Contracts}
+
+\subsection{UTxO-based: Bitcoin}
+\paragraph{\textsc{SCRIPT}}
+...
+
+\paragraph{The BitML Calculus}
+Bad documentation ... scarcity of formal models ... bitML ...
+
+\paragraph{Extended UTxO}
+... 
+
+\subsection{Account-based: Ethereum}
+\paragraph{Solidity}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Methodology}
+\label{sec:methodology}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Proof Mechanization}
+Through mechanization ...
+... vs informal mathematics ...
+
+It is exactly this side effect, that will allow us
+to discover edge cases and increase the confidence
+of the model under investigation.
+
+As our proof development vehicle, we choose Agda\todocite ...
+
+\subsection{Agda}
+
+... stay on a highly abstract level ... postulate cryptographic operations etc ...
+
+\paragraph{Limitation}
+... proof automation ala Coq ...
+
+
+
+\subsection{The IOHK approach}
+
+... rigorous methodology ...
+... industry co-existing with academia ...
+... formal verification (Agda/Coq) -> prototype/reference implementation (Haskell) -> production codebase (Haskell) ...
+
+\subsection{Functional first}
+
+... UTxO vs Account ...
+... functional vs imperative ...
+... dataflow vs ?? ...
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Preliminary Results}
+\label{sec:results}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Formal Model I: Extended UTxO}
+\subsubsection{Inherently-typed validity of transactions}
+\subsubsection{Scripts via Denotational Semantics}
+\subsubsection{Address space as module parameter}
+\subsubsection{Weakening Lemma}
+\subsubsection{Example}
+
+\subsection{Formal Model II: BitML Calculus}
+\subsubsection{Contracts in BitML}
+\subsubsection{Small-step Semantics}
+... mention paper bug in [C-Control] ...
+\subsubsection{Configurations modulo permutation}
+\subsubsection{Example}
+
+\subsection{Expected Problems}
+... up to permutation -> quotient types -> homotopy type theory ...
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Planning}
+\label{sec:plan}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Extended UTxO}
+... multi-currency ... 
+
+\subsection{BitML Calculus}
+... symbolic runs ... computational runs ... coherence
+
+\subsection{UTxO-BitML Integration}
+
+\subsection{Featherweight Solidity}
+
+\subsection{Formal Comparison}
+... lots of examples ...
+
+\subsection{Proof Automation}
+
+\subsection{Timetable}
+
+\begin{figure*}
+  \centering
+  \newcommand{\months}[1]{\multicolumn{#1}{c}{\cellcolor{teal}}}
+  \begin{tabular}{lcccccccc}
+    \hline
+    & 2018 & \multicolumn{7}{c}{2019} \\
+    \hline
+    & Dec & Jan & Feb & Mar & Apr & May & Jun & Jul \\
+    \hline
+    \textbf{Theory}         \\
+    Formulate systems       &      \months{1} \\
+    Prove cut elimination   &      \months{3} \\
+    Prove termination       &&&    \months{2} \\
+    Prove deadlock freedom  &&&&   \months{2} \\
+    \textbf{Implementation} \\
+    Formalization in Agda   &      \months{5} \\
+    \textbf{Evaluation}     \\
+    Example contracts       &&&&&  \months{3} \\
+    \textbf{Writeup}        \\
+    Write final thesis      &&&&&& \months{3}
+  \end{tabular}
+  \caption{My workplan.}
+  \label{fig:workplan}
+\end{figure*}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Bibliography
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\nocite{*} % T0D0 remove
+\bibliography{sources}
+
+\end{document}
