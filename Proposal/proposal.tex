@@ -61,8 +61,8 @@
 %% Abstract
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-This report serves as the proposal of my MSc thesis, supervised by Wouter Swierstra from the
-University of Utrecht and Manuel Chakravarty from IOHK.
+This report serves as the proposal of my MSc thesis, supervised by Wouter Swierstra from
+Utrecht University and Manuel Chakravarty from IOHK.
 \end{abstract}
 
 \maketitle
@@ -73,8 +73,11 @@ University of Utrecht and Manuel Chakravarty from IOHK.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Distributed ledger technology creates issues
-Reasoning about the behaviour of blockchain ...
-
+Although blockchain technology has opened a whole array of interesting new applications
+(e.g. secure multi-party computation\cite{mpc}, fair protocol design fair\cite{fair}, zero-knowledge proof systems\cite{zeroproof}), 
+reasoning about the behaviour of such systems is an exceptionally hard task. This is partly due to their concurrent nature, but
+also the fiscal nature of the majority of the applications, which require a much higher degree of rigorousness compared to
+conventional IT applications.
 
 % Smart contracts create issues
 The advent of smart contracts (programs that run on the blockchain itself) gave
@@ -85,27 +88,29 @@ about their behaviour in a concurrent/distributed setting.
 
 % Aim of thesis
 \paragraph{Research Question}
-The aim of this thesis is to provide a mechanized formal model of ...,
-in which one can begin to formally investigate the expressiveness
-of the extended UTxo model.
-Moreover, ... compare with account-based ... Ethereum ...
-
-Put concisely, the research question posed is:
+The aim of this thesis is to provide a mechanized formal model of an abstract distributed ledger equipped with
+smart contracts, in which one can begin to formally investigate the expressiveness of the extended UTxo model.
+Moreover, we hope to lay down firm grounds, onto which one can further conduct a formal comparison with account-based
+models used in Ethereum. Put concisely, the research question posed is:
 \begin{displayquote}
 	\textit{How much expressiveness do we gain by extending the UTxO model?} \\
 	\textit{Is it as expressive as the account-based model used in Ethereum?}
 \end{displayquote}
 
 \paragraph{Overview}
-Section~\ref{sec:background} will review some basic definitions related to blockchain
-technology and introduce important literature, which will be the main subject of study
+% Background
+Section~\ref{sec:background} reviews some basic definitions related to blockchain
+technology and introduces important literature, which will be the main subject of study
 throughout the development of our reasoning framework.
-
-Section~\ref{sec:methodology} 
-
-Section~\ref{sec:results} 
-
-Section~\ref{sec:plan}
+% Methodology
+Section~\ref{sec:methodology} describes the technology we will use to formally reason
+about the problem at hand and some key design decisions we set upfront.
+% Results
+Section~\ref{sec:results} presents the progress made thus far in terms of (mechanized) formal verification,
+as well as problems we have encountered and also expect along the way.
+% Planning
+Section~\ref{sec:plan} discusses next steps for the remainder of the thesis, as well as a rough estimate
+on when these milestones will be completed.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Background}
@@ -134,6 +139,10 @@ Bad documentation ... scarcity of formal models ... bitML ...
 \label{sec:methodology}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\subsection{Scope}
+... no cryptographic/implementation details ...
+... focus on the big picture ...
+
 \subsection{Proof Mechanization}
 Through mechanization ...
 ... vs informal mathematics ...
@@ -150,8 +159,6 @@ As our proof development vehicle, we choose Agda\todocite ...
 
 \paragraph{Limitation}
 ... proof automation ala Coq ...
-
-
 
 \subsection{The IOHK approach}
 
@@ -211,24 +218,40 @@ As our proof development vehicle, we choose Agda\todocite ...
 
 \begin{figure*}
   \centering
-  \newcommand{\months}[1]{\multicolumn{#1}{c}{\cellcolor{teal}}}
+  \newcommand{\months}[1]{\multicolumn{#1}{c}{\cellcolor{teal}} \\}
   \begin{tabular}{lcccccccc}
     \hline
     & 2018 & \multicolumn{7}{c}{2019} \\
     \hline
     & Dec & Jan & Feb & Mar & Apr & May & Jun & Jul \\
     \hline
-    \textbf{Theory}         \\
-    Formulate systems       &      \months{1} \\
-    Prove cut elimination   &      \months{3} \\
-    Prove termination       &&&    \months{2} \\
-    Prove deadlock freedom  &&&&   \months{2} \\
-    \textbf{Implementation} \\
-    Formalization in Agda   &      \months{5} \\
-    \textbf{Evaluation}     \\
-    Example contracts       &&&&&  \months{3} \\
-    \textbf{Writeup}        \\
-    Write final thesis      &&&&&& \months{3}
+
+    \textbf{UTxO} \\
+    Basic abstract model                &      \months{2}
+    Weakening lemma                     &&     \months{1}
+    Extend with data scripts            &&&    \months{1}
+    Multi-currency                      &&&&   \months{1}
+
+    \textbf{BitML} \\
+    Small-step Semantics                &      \months{3}
+    Symbolic Model                      &&&&   \months{1}
+    Computational Model                 &&&&   \months{1}
+    Coherence                           &&&&&  \months{2}
+    Computational Soundness             &&&&&  \months{2}
+
+    \textbf{UTxO-BitML Integration} \\
+    Compiling BitML contracts to UTxO   &&&&   \months{2}
+    
+    \textbf{Solidity} \\
+    Featherweight Model                 &&&&   \months{1}
+    Comparison framework                &&&&&  \months{2}
+    
+    \textbf{Evaluation} \\
+    Example contracts                   &&&&&  \months{3}
+    
+    \textbf{Writeup} \\
+    Write final thesis                  &&&&&& \months{3}
+    
   \end{tabular}
   \caption{My workplan.}
   \label{fig:workplan}
