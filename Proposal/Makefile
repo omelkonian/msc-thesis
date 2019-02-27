@@ -3,9 +3,9 @@ default: all
 all: build
 
 build: code.lagda
-	agda --latex-dir=. --latex code.lagda
+	lhs2TeX --poly -o code.tex code.lagda
 
 clean:
-	rm -f *.agdai *.aux *.log l*.out code.tex
+	rm -f *.aux *.log l*.out code.tex
 
 .PHONY: default all clean
