@@ -4,25 +4,26 @@
 \def\commentbegin{}
 \def\commentend{}
 
-%%%%%%%%%%%%%%%%%%
-%% Inlined code %%
-%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                  UTxO                                      %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Inlined code
 \newcommand{\inlineMaybe}{|Maybe|}
 \newcommand{\inlinePrefix}{|Prefix as bs|}
 \newcommand{\inlineSubset}{|as ⊆ bs|}
+\newcommand{\inlineListCons}{|(l : Ledger) → (t : Tx) → IsValidTx t l → Ledger|}
 
-%%%%%%%%%%%%%%%%%
-%% Code blocks %%
-%%%%%%%%%%%%%%%%%
+%% Code blocks
 \newcommand\UTXObasicTypes{
 \begin{myagda}\begin{code}
 Address : Set
-Address = Nat
+Address = ℕ
 ##
 Value : Set
-Value = Nat
+Value = ℕ
 ##
-BIT : Nat -> Value
+BIT : ℕ -> Value
 BIT v = v
 \end{code}\end{myagda}
 }
@@ -31,15 +32,15 @@ BIT v = v
 \begin{myagda}\begin{code}
 record State : Set where
   field
-    height : Nat
-    ⋮
+    height : ℕ
+    VDOTS
 \end{code}\end{myagda}
 }
 
 \newcommand\UTXOhash{
 \begin{myagda}\begin{code}
 postulate
-  _♯ : ∀ {A : Set} -> A -> Address
+  UNDER ♯ : ∀ {A : Set} -> A -> Address
   ♯-injective : ∀ {A : Set} {x y : A} -> x ♯ ≡ y ♯ -> x ≡ y
 \end{code}\end{myagda}
 }
@@ -49,7 +50,7 @@ postulate
 record TxOutputRef : Set where
   field
     id     : Address
-    index  : Nat
+    index  : ℕ
 ##
 record TxInput : Set where
   field
@@ -96,14 +97,14 @@ runValidation i o refl st = validator i st (value o) (redeemer i st) (dataScript
 \newcommand\UTXOutxo{
 \begin{myagda}\begin{code}
 unspentOutputsTx : Tx -> Set⟨ TxOutputRef ⟩
-unspentOutputsTx tx = fromList (map ((tx ♯) indexed-at_) (indices (outputs tx)))
+unspentOutputsTx tx = fromList (((tx ♯) indexed-at UNDER) <$$> (indices (outputs tx)))
 ##
 spentOutputsTx : Tx -> Set⟨ TxOutputRef ⟩
-spentOutputsTx tx = fromList (map outputRef (inputs tx))
+spentOutputsTx tx = fromList (outputRef <$$> inputs tx)
 ##
 unspentOutputs : Ledger -> Set⟨ TxOutputRef ⟩
 unspentOutputs []           = ∅
-unspentOutputs (tx :: txs)  = unspentOutputs txs SETDIFF spentOutputsTx tx
+unspentOutputs (tx :: txs)  = unspentOutputs txs ∖ spentOutputsTx tx
                             ∪ unspentOutputsTx tx
 \end{code}\end{myagda}
 }
@@ -130,16 +131,16 @@ record IsValidTx (tx : Tx) (l : Ledger) : Set where
       ∀ i -> (iin : i ∈ inputs tx) ->
         D i ≡ Data (lookupOutput l (outputRef i) (validTxRefs i iin) (validOutputIndices i iin))
 
-{- $\hspace{30pt}\rule{11cm}{0.4pt}$ -}
+      {- $\inferVeryLarge$ -}
 
     preservesValues :
       forge tx + sum (mapWith∈ (inputs tx) λ {i} iin ->
                        lookupValue l i (validTxRefs i iin) (validOutputIndices i iin))
         ≡
-      fee tx + sum (map value (outputs tx))
+      fee tx + sum (value <$$> outputs tx)
 
     noDoubleSpending :
-      SETₒ.noDuplicates (map outputRef (inputs tx))
+      SETₒ.noDuplicates (outputRef <$$> inputs tx)
 
     allInputsValidate :
       ∀ i -> (iin : i ∈ inputs tx) ->
@@ -156,7 +157,7 @@ record IsValidTx (tx : Tx) (l : Ledger) : Set where
           out : TxOutput
           out = lookupOutput l (outputRef i) (validTxRefs i iin) (validOutputIndices i iin)
         in
-          toNat (address out) ≡ (validator i) ♯
+          toℕ (address out) ≡ (validator i) ♯
 \end{code}\end{myagda}
 }
 
@@ -195,7 +196,7 @@ weakenTx {as} {bs}  pr  record  { inputs   = inputs
                                 ; fee      = fee
                                 }
                     =   record  { inputs   = inputs
-                                ; outputs  = map (weakenTxOutput pr) outputs
+                                ; outputs  = weakenTxOutput pr <$$> outputs
                                 ; forge    = forge
                                 ; fee      = fee
                                 }
@@ -208,12 +209,12 @@ weakenLedger pr = map (weakenTx pr)
 \newcommand\UTXOweakenLemma{
 \begin{myagda}\begin{code}
 weakening : ∀ {as bs : List Address} {tx : Tx′ as} {l : Ledger′ as}
-          -> (pr : Prefix as bs)
-          -> IsValidTx′ as tx l
-          {- $\hspace{15pt}\rule{8cm}{0.4pt}$ -}
-          -> IsValidTx′ bs (weakenTx pr tx) (weakenLedger pr l)
+  ->  (pr : Prefix as bs)
+  ->  IsValidTx′ as tx l
+      {- $\inferLarge$ -}
+  ->  IsValidTx′ bs (weakenTx pr tx) (weakenLedger pr l)
 
-weakening = ...
+weakening = DOTS
 \end{code}\end{myagda}
 }
 
@@ -224,7 +225,7 @@ addresses = 1 :: 2 :: 3 :: []
 ##
 open import UTxO addresses
 ##
-dummyValidator : State -> Value -> Nat -> Nat -> Bool
+dummyValidator : State -> Value -> ℕ -> ℕ -> Bool
 dummyValidator = λ _ _ _ _ -> true
 ##
 withScripts : TxOutputRef -> TxInput
@@ -240,7 +241,7 @@ BIT v at addr = record  { value       = v
                         }
 ##
 postulate
-  validator♯ : ∀ {i : Index addresses} -> toNat i ≡ dummyValidator ♯
+  validator♯ : ∀ {i : Index addresses} -> toℕ i ≡ dummyValidator ♯
 \end{code}\end{myagda}
 }
 
@@ -303,11 +304,11 @@ ex-ledger =  ∙ t₁ ∶- record  { validTxRefs           = λ i ()
                              ; allInputsValidate     = λ i ()
                              ; validateValidHashes   = λ i ()
                              }
-             ⊕ t₂ ∶- record { ... }
-             ⊕ t₃ ∶- record { ... }
-             ⊕ t₄ ∶- record { ... }
-             ⊕ t₅ ∶- record { ... }
-             ⊕ t₆ ∶- record { ... }
+             ⊕ t₂ ∶- record { DOTS }
+             ⊕ t₃ ∶- record { DOTS }
+             ⊕ t₄ ∶- record { DOTS }
+             ⊕ t₅ ∶- record { DOTS }
+             ⊕ t₆ ∶- record { DOTS }
 \end{code}\end{myagda}
 }
 
@@ -315,5 +316,365 @@ ex-ledger =  ∙ t₁ ∶- record  { validTxRefs           = λ i ()
 \begin{myagda}\begin{code}
 utxo-l₆ : list (unspentOutputs l₆) ≡ [ t₆₀ ]
 utxo-l₆ = refl
+\end{code}\end{myagda}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                 BitML                                      %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Inlined code
+\newcommand{\inlineA}{|A|}
+\newcommand{\inlineB}{|B|}
+\newcommand{\inlineIf}{|if|}
+\newcommand{\inlinePut}{|put|}
+\newcommand{\inlineSplit}{|split|}
+\newcommand{\inlineWithdraw}{|withdraw|}
+\newcommand{\inlineAuthDecoration}{|UNDER : UNDER|}
+\newcommand{\inlineTimeDecoration}{|after UNDER : UNDER|}
+\newcommand{\inlineSimplePut}{|put UNDER ⇒ UNDER|}
+\newcommand{\inlineOplus}{|⊕|}
+\newcommand{\inlineMonoid}{|(UNDERL BAR UNDERR , ∅)|}
+\newcommand{\inlineAfter}{|after UNDER : UNDER|}
+\newcommand{\inlineAuthJoinRule}{|[DEP-AuthJoin]|}
+\newcommand{\inlineJoinRule}{|[DEP-Join]|}
+\newcommand{\inlineAdvertiseRule}{|[C-Advertise]|}
+\newcommand{\inlineAuthCommitRule}{|[C-AuthCommit]|}
+\newcommand{\inlineAuthInitRule}{|[C-AuthInit]|}
+\newcommand{\inlineInitRule}{|[C-Init]|}
+\newcommand{\inlineControlRule}{|[C-Control]|}
+\newcommand{\inlineAuthRevRule}{|[C-AuthRev]|}
+\newcommand{\inlinePutRevRule}{|[C-PutRev]|}
+\newcommand{\inlineWithdrawRule}{|[C-Withdraw]|}
+
+%% Code blocks
+\newcommand\BITbasicTypes{
+\begin{myagda}\begin{code}
+module Types (Participant : Set) (Honest : List SUPPLUS Participant) where
+##
+Time : Set
+Time = ℕ
+##
+Value : Set
+Value = ℕ
+##
+record Deposit : Set where
+  constructor UNDER has UNDER
+  field
+    participant : Participant
+    value       : Value
+##
+Secret : Set
+Secret = String
+##
+data Arith : Secrets → Set where DOTS
+ℕ⟦ UNDER ⟧ : ∀ {s} → Arith s → ℕ
+ℕ⟦ UNDER ⟧ = DOTS
+##
+data Predicate : Secrets → Set where DOTS
+𝔹⟦ UNDER ⟧ : ∀ {s} → Predicate s → Bool
+𝔹⟦ UNDER ⟧ = DOTS
+\end{code}\end{myagda}
+}
+
+\newcommand\BITpreconditions{
+\begin{myagda}\begin{code}
+data Precondition : List Value → Set where
+  -- volatile deposit
+  UNDER ? UNDER : Participant → (v : Value) → Precondition [ v ]
+  -- persistent deposit
+  UNDER ! UNDER : Participant → (v : Value) → Precondition [ v ]
+  -- committed secret
+  UNDER ♯ UNDER : Participant → Secret → Precondition []
+  -- conjunction
+  UNDER ∧ UNDER : ∀ {vs SUBL vs SUBR} → Precondition vs SUBL → Precondition vs SUBR → Precondition (vs SUBL ++ vs SUBR)
+\end{code}\end{myagda}
+}
+
+\newcommand\BITcontracts{
+\begin{myagda}\begin{code}
+data Contract  :  Value   -- the monetary value it carries
+               →  Values  -- the deposits it presumes
+               →  Set where
+  -- collect deposits and secrets
+  put UNDER reveal UNDER if UNDER ⇒ UNDER ∶- UNDER  :  (vs : List Value)
+                                                    →  (s : Secrets)
+                                                    →  Predicate s′
+                                                    →  Contract (v + sum vs) vs′
+                                                    →  s′ ⊆ s
+                                                    →  Contract v (vs′ ++ vs)
+  -- transfer the remaining balance to a participant
+  withdraw : ∀ {v} → Participant → Contract v []
+  -- split the balance across different branches
+  split :  (cs : List (∃[ v ] ^^ ∃[ vs ] ^^ Contract v vs))
+        →  Contract (sum (proj₁ <$$> cs)) (concat (proj₂ <$$> cs))
+  -- wait for participant's authorization
+  UNDER : UNDER : Participant → Contract v vs → Contract v vs
+  -- wait until some time passes
+  after UNDER : UNDER : Time → Contract v vs → Contract v vs
+\end{code}\end{myagda}
+}
+
+\newcommand\BITlollipop{
+\begin{myagda}\begin{code}
+UNDER ⊸ UNDER : ∀ {vs : Values} → (v : Value) → Contract v vs → ∃[ v ] ^^ ∃[ vs ] ^^ Contract v vs
+UNDER ⊸ UNDER {vs} v c = v , vs , c
+\end{code}\end{myagda}
+}
+
+\newcommand\BITadvertisements{
+\begin{myagda}\begin{code}
+record Advertisement (v : Value) (vs SUPC vs SUPG : List Value) : Set where
+  constructor UNDER ⟨ UNDER ⟩∶- UNDER
+  field
+    G      :  Precondition vs
+    C      :  Contracts v vs
+    valid  :  length vs SUPC ≤ length vs SUPG
+           ×  participants SUPG G ++ participants SUPC C ⊆ (participant <$$> persistentDeposits SUPP G)
+\end{code}\end{myagda}
+}
+
+\newcommand\BITexampleAdvertisement{
+\begin{myagda}\begin{code}
+open BitML (A | B) [ A ] SUPPLUS
+
+ex-ad : Advertisement 5 [ 200 ] (200 ∷ 100 ∷ [])
+ex-ad =  ⟨  B ! 200 ∧ A ! 100 ^^ ⟩
+          split  (  2 ⊸ withdraw B
+                 ⊕  2 ⊸ after 100 ∶ withdraw A
+                 ⊕  1 ⊸ put [ 200 ] ⇒ B ∶ withdraw {201} A
+                 )
+          ∶- DOTS
+\end{code}\end{myagda}
+}
+
+\newcommand\BITactions{
+\begin{myagda}\begin{code}
+AdvertisedContracts : Set
+AdvertisedContracts = List (∃[ v ] ^^ ∃[ vs SUPC ] ^^ ∃[ vs SUPG ] ^^ Advertisement v vs SUPC vs SUPG)
+##
+ActiveContracts : Set
+ActiveContracts = List (∃[ v ] ^^ ∃[ vs ] ^^ List (Contract v vs))
+##
+data Action (p : Participant)  -- the participant that authorises this action
+  :  AdvertisedContracts       -- the contract advertisments it requires
+  →  ActiveContracts           -- the active contracts it requires
+  →  Values                    -- the deposits it requires from this participant
+  →  List Deposit              -- the deposits it produces
+  →  Set where
+
+  -- commit secrets to stipulate an advertisement
+  HTRI UNDER  :  (ad : Advertisement v vs SUPC vs SUPG)
+              →  Action p [ v , vs SUPC , vs SUPG , ad ] [] [] []
+
+  -- spend x to stipulate an advertisement
+  UNDER STRI UNDER  :  (ad : Advertisement v vs SUPC vs SUPG)
+                    →  (i : Index vs SUPG)
+                    →  Action p [ v , vs SUPC , vs SUPG , ad ] [] [ vs SUPG ‼ i ] []
+
+  -- pick a branch
+  UNDER BTRI UNDER  :  (c : List (Contract v vs))
+                    →  (i : Index c)
+                    →  Action p [] [ v , vs , c ] [] []
+
+  VDOTS
+\end{code}\end{myagda}
+}
+
+\newcommand\BITactionExample{
+\begin{myagda}\begin{code}
+ex-spend : Action A [ 5 , [ 100 ] , 200 ∷ 100 ∷ [] , ex-ad ] [] [ 100 ] []
+ex-spend = ex-ad STRI 1
+\end{code}\end{myagda}
+}
+
+\newcommand\BITconfigurations{
+\begin{myagda}\begin{code}
+data Configuration′  :  -- $\hspace{22pt}$ current $\hspace{20pt}$ $\times$ $\hspace{15pt}$ required
+                        AdvertisedContracts  × AdvertisedContracts
+                     →  ActiveContracts      × ActiveContracts
+                     →  List Deposit         × List Deposit
+                     →  Set where
+
+  -- empty
+  ∅ : Configuration′ ([] , []) ([] , []) ([] , [])
+
+  -- contract advertisement
+  ` UNDER  :  (ad : Advertisement v vs SUPC vs SUPG)
+           →  Configuration′ ([ v , vs SUPC , vs SUPG , ad ] , []) ([] , []) ([] , [])
+
+  -- active contract
+  ⟨ UNDER , UNDER ⟩ SUPCC ^^  :  (c : List (Contract v vs))
+                              →  (v′ : Value)
+                              →  Configuration′ ([] , []) ([ v , vs , c ] , []) ([] , [])
+
+  -- deposit redeemable by a participant
+  ⟨ UNDER , UNDER ⟩ SUPD  :  (p : Participant)
+                         →   (v : Value)
+                         →   Configuration′ ([] , []) ([] , []) ([ p has v ] , [])
+
+  -- authorization to perform an action
+  UNDER [ UNDER ]  :  (p : Participant)
+                   →  Action p ads cs vs ds
+                   →  Configuration′ ([] , ads) ([] , cs) (ds , ((p has UNDER) <$$> vs))
+
+  -- committed secret
+  ⟨ UNDER ∶ UNDER ♯ UNDER ⟩  :  Participant
+                             →  (s : Secret)
+                             →  (n : ℕ ⊎ ⊥)
+                             →  {pr : n ≡ inj₁ n′ -> n′ ≡ length s}
+                             →  Configuration′ ([] , []) ([] , []) ([] , [])
+
+  -- revealed secret
+  UNDER ∶ UNDER ♯ UNDER  :  Participant
+                         →  (s : Secret)
+                         →  (n : ℕ)
+                         →  {pr : length s ≡ n}
+                         →  Configuration′ ([] , []) ([] , []) ([] , [])
+
+  -- parallel composition
+  UNDER | UNDER  :  Configuration′ (ads SUPL , rads SUPL) (cs SUPL , rcs SUPL) (ds SUPL , rds SUPL)
+                 →  Configuration′ (ads SUPR , rads SUPR) (cs SUPR , rcs SUPR) (ds SUPR , rds SUPR)
+                 →  Configuration′  (ads SUPL                    ++ ads SUPR  , rads SUPL  ++ (rads SUPR  ∖ ads SUPL))
+                                    (cs SUPL                     ++ cs SUPR   , rcs SUPL   ++ (rcs SUPR   ∖ cs SUPL))
+                                    ((ds SUPL ∖ rds SUPR)        ++ ds SUPR   , rds SUPL   ++ (rds SUPR   ∖ ds SUPL))
+\end{code}\end{myagda}
+}
+
+\newcommand\BITclosedConfigurations{
+\begin{myagda}\begin{code}
+Configuration : AdvertisedContracts → ActiveContracts → List Deposit → Set
+Configuration ads cs ds = Configuration′ (ads , []) (cs , []) (ds , [])
+\end{code}\end{myagda}
+}
+
+\newcommand\BITreordering{
+\begin{myagda}\begin{code}
+UNDER ≈ UNDER : Configuration ads cs ds → Configuration ads cs ds → Set
+c ≈ c′ = cfgToList c ↭ cfgToList c′
+  where
+    open import Data.List.Relation.Permutation.Inductive using (UNDER ↭ UNDER)
+
+    cfgToList : Configuration′ p₁ p₂ p₃ → List (∃[ p₁ ] ^^ ∃[ p₂ ] ^^ ∃[ p₃ ] ^^ Configuration′ p₁ p₂ p₃)
+    cfgToList  ∅                 = []
+    cfgToList  (l | r)           = cfgToList l ++ cfgToList r
+    cfgToList  {p₁} {p₂} {p₃} c  = [ p₁ , p₂ , p₃ , c ]
+\end{code}\end{myagda}
+}
+
+\newcommand\BITrules{
+\begin{myagda}\begin{code}
+data UNDER —→ UNDER : Configuration ads cs ds → Configuration ads′ cs′ ds′ → Set where
+  DEP-AuthJoin :
+    ⟨ A , v ⟩ SUPD | ⟨ A , v′ ⟩ SUPD | Γ —→ ⟨ A , v ⟩ SUPD | ⟨ A , v′ ⟩ SUPD | A [ 0 ↔ 1 ] | Γ
+##
+  DEP-Join :
+    ⟨ A , v ⟩ SUPD | ⟨ A , v′ ⟩ SUPD | A [ 0 ↔ 1 ] | Γ —→ ⟨ A , v + v′ ⟩ SUPD | Γ
+##
+  C-Advertise : ∀ {Γ ad}
+    →  ∃[ p ∈ participants SUPG (G ad) ] p ∈ Hon)
+       {- $\inferLarge$ -}
+    →  Γ —→ ` ad | Γ
+##
+  C-AuthCommit : ∀ {A ad Γ}
+    →  secrets (G ad) ≡ a₀ DOTS aₙ
+    →  (A ∈ Hon → ∀[ i ∈ 0 DOTS n ] a SUBI ≢ ⊥)
+       {- $\inferLarge$ -}
+    →  ` ad | Γ —→ ` ad | Γ | DOTS ⟨ A : a SUBI ♯ N SUBI ⟩ DOTS ∣ A auth[ ♯▷ ad ]
+##
+  C-Control : ∀ {Γ C i D}
+    →  C ‼ i ≡ A₁ : A₂ : DOTS : Aₙ : D
+       {- $\inferLarge$ -}
+    →  ⟨ C , v ⟩ SUPC | DOTS A SUBI [ C BTRI i ] DOTS | Γ —→ ⟨ D , v ⟩ SUPC | Γ
+  VDOTS
+\end{code}\end{myagda}
+}
+
+\newcommand\BITgeneralRule{
+\begin{myagda}\begin{code}
+  DEP-AuthJoin : ∀ ^^  {Γ : Configuration ads cs ds}
+                         {Γ′ : Configuration ads cs (A has v ∷ A has v′ ∷ ds)}
+                         {Γ″ : Configuration ads cs (A has (v + v′) ∷ ds)}
+    →  Γ′ ≈ ⟨ A , v ⟩ SUPD | ⟨ A , v′ ⟩ SUPD | Γ
+    →  Γ″ ≈ ⟨ A , v ⟩ SUPD | ⟨ A , v′ ⟩ SUPD | A [ 0 ↔ 1 ] | Γ
+       {- $\inferMedium$ -}
+    →  Γ′ —→ Γ″
+\end{code}\end{myagda}
+}
+
+\newcommand\BITtimedRules{
+\begin{myagda}\begin{code}
+record Configuration SUPT (ads : AdvertisedContracts) (cs  : ActiveContracts) (ds  : Deposits) : Set where
+  constructor UNDER at UNDER
+  field
+    cfg   : Configuration ads cs ds
+    time  : Time
+##
+data UNDER —→ SUBT UNDER : Configuration SUPT ads cs ds → Configuration SUPT ads′ cs′ ds′ → Set where
+##
+  Action : ∀ {Γ Γ′ t}
+    →  Γ —→ Γ′
+       {- $\inferSmall$ -}
+    →  Γ at t —→ SUBT Γ′ at t
+##
+  Delay : ∀ {Γ t δ}
+       {- $\inferMedium$ -}
+    →  Γ at t —→ SUBT Γ at (t + δ)
+##
+  Timeout : ∀ {Γ Γ′ t i contract}
+    →  All (UNDER ≤ t) (timeDecorations (contract ‼ i))  -- all time constraints are satisfied
+    →  ⟨ [ contract ‼ i ] , v ⟩ SUPCC | Γ —→ Γ′          -- resulting state if we pick this branch
+       {- $\inferMedium$ -}
+    →  (⟨ contract , v ⟩ SUPCC | Γ) at t —→ SUBT Γ′ at t
+\end{code}\end{myagda}
+}
+
+\newcommand\BITeqReasoning{
+\begin{myagda}\begin{code}
+data UNDER —↠ UNDER : Configuration ads cs ds → Configuration ads′ cs′ ds′ → Set where
+##
+  UNDER ∎ : (M : Configuration ads cs ds) → M —↠ M
+##
+  UNDER —→ ⟨ UNDER ⟩ UNDER : ∀ {M  N} (L : Configuration ads cs ds)
+    →  L —→ M → M —↠ N
+       {- $\inferMedium$ -}
+    →  L —↠ N
+##
+begin UNDER : ∀ {M N} → M —↠ N → M —↠ N
+\end{code}\end{myagda}
+}
+
+\newcommand\BITexampleA{
+\begin{myagda}\begin{code}
+tc : Advertisement 1 [] (1 ∷ 0 ∷ [])
+tc =  ⟨ A :! 1 ∧ A :♯ a ∧ B :! 0 ⟩
+         reveal [ a ] ⇒ withdraw A ∶- DOTS
+      ⊕  after t ∶ withdraw B
+\end{code}\end{myagda}
+}
+
+\newcommand\BITexampleB{
+\begin{myagda}\begin{code}
+tc-semantics : ⟨ A , 1 ⟩ SUPD —↠ ⟨ A , 1 ⟩ SUPD | A ∶ a ♯ 6
+tc-semantics =
+  begin
+    ⟨ A , 1 ⟩ SUPD
+  —→⟨ C-Advertise ⟩
+    ` tc | ⟨ A , 1 ⟩ SUPD
+  —→⟨ C-AuthCommit ⟩
+    ` tc | ⟨ A , 1 ⟩ SUPD | ⟨A ∶ a ♯ 6⟩ | A [ HTRI tc ]
+  —→⟨ C-AuthInit ⟩
+    ` tc | ⟨ A , 1 ⟩ SUPD | ⟨A ∶ a ♯ 6⟩ | A [ HTRI tc ] | A [ tc STRI 0 ]
+  —→⟨ C-Init ⟩
+    ⟨ tc , 1 ⟩ SUPCC | ⟨ A ∶ a ♯ inj₁ 6 ⟩
+  —→⟨ C-AuthRev ⟩
+    ⟨ tc , 1 ⟩ SUPCC | A ∶ a ♯ 6
+  —→⟨ C-Control ⟩
+    ⟨ [ reveal [ a ] ⇒ withdraw A ∶- DOTS ] , 1 ⟩ SUPCC | A ∶ a ♯ 6
+  —→⟨ C-PutRev ⟩
+    ⟨ [ withdraw A ] , 1 ⟩ SUPCC | A ∶ a ♯ 6
+  —→⟨ C-Withdraw ⟩
+    ⟨ A , 1 ⟩ SUPD | A ∶ a ♯ 6
+  ∎
 \end{code}\end{myagda}
 }

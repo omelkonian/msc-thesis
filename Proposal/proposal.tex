@@ -424,26 +424,21 @@ This section gives an overview of the progress made so far in the on-going Agda 
 namely the Extended UTxO model and the BitML calculus.
 For the sake of brevity, we refrain from showing the full Agda code along with the complete proofs, but rather
 provide the most important datatypes and formalized results and explain crucial design choices we made along the way.
-Furthermore, we will omit notational burden imposed by technicalities particular to Agda, such as \textit{universe polymorphism}.
+Furthermore, we will omit notational burden imposed by technicalities particular to Agda, such as \textit{universe polymorphism}
+and \textit{proof irrelevance}.
 
 \subsection{Formal Model I: Extended UTxO} \label{subsec:eutxo}
 We now set out to model the accounting model of a UTxO-based ledger.
 All code is publicly available on Github\site{https://github.com/omelkonian/formal-utxo}.
 Let us start with some basic types:
-
 \UTXObasicTypes{}
-
-\noindent
 Addresses are represented as natural numbers, since we do not care about details arising from the encoding in an
 actual implementation. Bitcoin values are again represented as natural numbers, but we provide a prefix notation
 to emphasize that a number corresponds to a bitcoin amount.
 
 There is also the notion of the \textit{state} of a ledger, which will be provided to transaction scripts and allow
 them to have stateful behaviour for more complicated schemes (e.g. imposing time constraints).
-
 \UTXOstate{}
-
-\noindent
 The state components have not been finalized yet, but can easily be extended later when we actually investigate
 examples with expressive scripts that make use of state information, such as the current length of the ledger (\textit{height}).
 
@@ -451,16 +446,12 @@ As mentioned previously, we will not dive into the verification of the cryptolog
 hence we postulate an \textit{irreversible} hashing function which, given any value of any type,
 gives back an address (i.e. a natural number) and is furthermore injective (i.e. it is statistically impossible for two different
 values to have the same hash).
-
 \UTXOhash{}
 
 \subsubsection{Transactions}
-In order to model transactions that are part of a distributed ledger, we need to first define transaction \textit{inputs} and
-\textit{outputs}.
-
+In order to model transactions that are part of a distributed ledger, we need to first define
+transaction \textit{inputs} and \textit{outputs}.
 \UTXOinsOutRefs{}
-
-\noindent
 \textit{Output references} consist of the address that this output's transaction hashes to, 
 as well as the index in this transaction's list of outputs.
 \textit{Transaction inputs} refer to some previous output in the ledger, but also contain two types of scripts.
@@ -474,36 +465,26 @@ Transaction outputs send a bitcoin amount to a particular address, which either 
 blockchain participant (P2PKH) or a hash of a next transaction's script (P2SH).
 Here, we opt to embrace the \textit{inherently-typed} philosophy of Agda and model available addresses as module parameters.
 That is, we package the following definitions in a module with such a parameter, as shown below:
-
 \UTXOoutTx{}
-
-\noindent
 \textit{Transaction outputs} consist of a bitcoin amount and the address (out of the available ones) this amount is sent to,
 as well as the data script, which provides extra information to the aforementioned validator and allows for more expressive schemes.
 Investigating exactly the extent of this expressiveness is one of the main goals of this thesis.
 
 For a transaction to be submitted, one has to check that each input can actually spend the output it refers to.
 At this point of interaction, one must combine all scripts, as shown below:
-
 \UTXOrunValidation{}
-
-\noindent
 Note that the intermediate types carried by the respective input and output must align, evidenced by the
 equality proof that is required as an argument.
 
 \subsubsection{Unspent transaction outputs}
 With the basic modelling of a ledger and its transaction in place, it is fairly straightforward to 
 inductively define the calculation of a ledger's unspent transaction outputs:
-
 \UTXOutxo{}
 
 \subsubsection{Validity of transactions}
 In order to submit a transaction, one has to make sure it is valid with respect to the current ledger.
 We model validity as a record indexed by the transaction to be submitted and the current ledger:
-
 \UTXOvalid{}
-
-\noindent
 The first four conditions make sure the transaction references and types are well-formed, namely that
 inputs refer to actual transactions (\textit{validTxRefs}, \textit{validOutputIndices})
 which are unspent so far (\textit{validOutputRefs}), but also that intermediate types used in interacting
@@ -532,8 +513,6 @@ We can now precisely define what it means to weaken an address space; one just a
 addresses without removing any of the pre-existing addresses:
 
 \UTXOweaken{}
-
-\noindent
 For simplicity's sake, we allow extension at the end of the address space instead of anywhere in
 between\footnote{Technically, we require \inlinePrefix{} instead of the more flexible \inlineSubset{}.}.
 Notice also that the only place where weakening takes place are transaction outputs, since all other
@@ -542,8 +521,6 @@ components do not depend on the available address space.
 With the weakening properly defined, we can finally prove the \textit{weakening lemma} for the available address space:
 
 \UTXOweakenLemma{}
-
-\noindent
 The weakening lemma states that the validity of a transaction with respect to a ledger is preserved if
 we choose to weaken the available address space, which we estimate to be useful when we later prove more 
 intricate properties of the extended UTxO model.
@@ -626,10 +603,7 @@ and input-output pairs as edges, as shown in Figure~\ref{fig:utxo-ledger}.
 \end{figure}
 
 First, we need to set things up by declaring the list of available addresses and opening our module with this parameter.
-
 \UTXOexampleSetup{}
-
-\noindent
 Note that, since we will not utilize the expressive power of scripts in this example, we also provide convenient short cuts for
 defining inputs and outputs with dummy default scripts.
 Furthermore, we postulate that the addresses are actually the hashes of validators scripts, corresponding to the P2SH scheme
@@ -638,41 +612,227 @@ in Bitcoin.
 We can then proceed to define the individual transactions depicted in Figure~\ref{fig:utxo-ledger}\footnote{
 The first sub-index of each variable refers to the order the transaction are submitted,
 while the second sub-index refers to which output of the given transaction we select.}:
-
 \UTXOexampleA{}
 
 Finally, we can construct a correct-by-construction ledger, by iteratively submitting each transaction along with
-the proof that it is valid with respect to the ledger constructed thus far.
-
+the proof that it is valid with respect to the ledger constructed thus far\footnote{
+Here, we use a specialized notation of the form $\bullet t_1 \vdash p_1 \oplus t_2 \vdash p_2 \oplus \dots \oplus t_n \vdash p_n$,
+where each insertion of transaction $t_x$ requires a proof of validity $p_x$ as well.
+Technically, the $\oplus$ operator has type \inlineListCons{}.
+}.
 \UTXOexampleB{}
-
-\noindent
-The proof validating the submission of the first transaction $t\_1$ is trivially discharged.
+The proof validating the submission of the first transaction $t_1$ is trivially discharged.
 While the rest of the proofs are quite involved, it is worthy to note that their size/complexity stays constant
 independently of the ledger length. This is mainly due to the re-usability of proof components, arising from
 the main functions being inductively defined.
 
 It is now trivial to verify that the only unspent transaction output of our ledger is the output of the last
-transaction $t\_6$, as demonstrated below:
-
+transaction $t_6$, as demonstrated below:
 \UTXOexampleC{}
 
 \subsection{Formal Model II: BitML Calculus} \label{subsec:bitml}
+Now we move on to our second object of study, the BitML calculus for modelling smart contracts.
+
 All code is publicly available on Github\site{https://github.com/omelkonian/formal-bitml}.
+First, we begin with some basic definitions that will be used throughout this section:
+\BITbasicTypes{}
+Instead of giving a fixed datatype of participants, we parametrise our module with a given \textit{universe} of participants
+and a non-empty list of honest participants.
+Representation of time and monetary values is again done using natural numbers, while we model participant secrets as simple strings.
+A deposits consists of the participant that owns it and the number of bitcoins it carries.
+We, furthermore, introduce a simplistic language of logical predicates and arithmetic expressions with the usual constructs (e.g. numerical addition, logical conjunction) and give the usual semantics (predicates on booleans and arithmetic on naturals).
+A more unusual feature of these expressions is the ability to calculate length of secrets (within arithmetic expressions)
+and, in order to ensure more type safety later on, all expressions are indexed by the secrets they internally use.
 
 \subsubsection{Contracts in BitML}
+A \textit{contract advertisement} consists of a set of \textit{preconditions},
+which require some resources from the involved participants prior to the contract's execution,
+and a \textit{contract}, which specifies the rules according to which bitcoins are transferred between participants.
+
+Preconditions either require participants to have a deposit of a certain value on their name (volatile or not) or 
+commit to a certain secret. Notice the index of the datatype below, which captures all deposits required:
+\BITpreconditions{}
+
+Moving on to actual contracts, we define them by means of a collection of five types of commands;
+\inlinePut{} injects participant deposits and revealed secrets in the remaining contract,
+\inlineWithdraw{} transfers the current funds to a participant,
+\inlineSplit{} distributes the current funds across different individual contracts,
+\inlineAuthDecoration{} requires the authorization from a participant to proceed
+and \inlineTimeDecoration{} allows further execution of the contract only after some time has passed.
+\BITcontracts{}
+There is a lot of type-level manipulation across all constructors, since we need to make sure that indices are
+calculated properly. For instance, the total value in a contract constructed by the \inlineSplit{} command is the 
+sum of the values carried by each branch.
+The \inlinePut{} command\footnote{
+\inlinePut{} comprises of several components and we will omit those that do not contain any helpful information,
+e.g. write \inlineSimplePut{} when there are no revealed secrets and the predicate trivially holds.
+} additionally requires an explicit proof that the predicate
+of the \inlineIf{} part only uses secrets revealed by the same command.
+
+We also introduce an intuitive syntax for declaring the different branches of a \inlineSplit{} command, emphasizing the
+\textit{linear} nature of the contract's total monetary value:
+\BITlollipop{}
+
+Having defined both preconditions and contracts, we arrive at the definition of a contract advertisement:
+\BITadvertisements{}
+Notice that in order to construct an advertisement, one has to provide proof of the contract's validity with respect to
+the given preconditions, namely that all deposit references in the contract are declared in the precondition
+and each involved participant is required to have a persistent deposit.
+
+To clarify things so far, let us see a simple example of a contract advertisement:
+\BITexampleAdvertisement{}
+We first need to open our module with a fixed set of participants (in this case \inlineA{} and \inlineB{}).
+We then define an advertisement, whose type already says a lot about what is going on;
+it carries \bitcoin ~5, presumes the existence of at least one deposit of \bitcoin ~200, and requires the deposit
+of \bitcoin ~200 and \bitcoin ~100 respectively.
+
+Looking at the precondition itself, we see that the required deposits will be provided by \inlineB{} and \inlineA{}, respectively.
+The contract first splits the bitcoins across three branches:
+the first one gives \bitcoin ~2 to \inlineB{}, the second one gives \bitcoin ~2 to \inlineA{} after some time period,
+while the third one retrieves \inlineB{}'s deposit of \bitcoin ~200 and allows \inlineB{} to authorise the
+withdrawal of the remaining funds (currently \bitcoin ~201) from \inlineA{}.
+
+We have omitted the proofs that ascertain the well-formedness of the \inlinePut{} and \inlineSplit{} commands, as
+they are straightforward and do not provide any more intuition\footnote{
+In fact, we have defined decidable procedures for all such proofs using the
+\textit{proof-by-reflection} pattern~\cite{proofbyreflection}.
+These automatically discharge all proof obligations, when there are no variables involved.}.
 
 \subsubsection{Small-step Semantics}
+BitML is a \textit{process calculus}, specialized for the case of smart contracts.
+Contrary to most process calculi that provide primitive operators for inter-process communication via
+message-passing~\cite{csp}, the BitML calculus does not provide such built-in features.
 
-... mention paper bug in [C-Control] ...
+It, instead, provides domain-specific synchronization mechanisms through its \textit{small-step} reduction semantics.
+These essentially define a \textit{labelled transition system} between \textit{configurations}, where
+\textit{action} labels are emitted on every transition representing the required actions of the participants.
+This symbolic model consists of two layers; the bottom one transitioning between \textit{untimed} configurations and the top one
+that works on \textit{timed} configurations.
 
-\subsubsection{Configurations modulo permutation}
+We start with the datatype of actions, which showcases the principal actions required to satisfy an advertisement's preconditions
+and an action to pick one branch of a collection of contracts (introduced by the choice operator \inlineOplus{}).
+We have omitted uninteresting actions concerning the manipulation of deposits, such as dividing, joining, donating and destroying them.
+Since we will often need versions of the types of advertisements/contracts with their
+indices existentially quantified, we first provide aliases for them.
+\BITactions{}
+The action datatype is parametrised\footnote{
+In Agda, parameters are similar to indices, but are not allowed to vary across constructors.
+}
+over the participant who performs it
+and includes several indices representing the prerequisites the current configuration has to satisfy, in order for
+the action to be considered valid (e.g. one cannot spend a deposit to stipulate an advertisement that does not exist).
+
+The first index refers to advertisements that appear in the current configuration, the second to contracts that have
+already been stipulated, the third to deposits owned by the participant currently performing the action and the fourth
+declares new deposits that will be created by the action
+(e.g. dividing a deposit would require a single deposit as the third index and produce two other deposits in its fourth index).
+
+Although are indexing scheme might seem a bit heavyweight now, it makes many little details and assumptions explicit,
+which would bite us hard later on when we will need to reason about such entities.
+
+Continuing from our previous example advertisement, let's see an example action where \inlineA{} spends the required \bitcoin ~100
+to stipulate the example contract\footnote{
+Notice that we have to make all indices of the advertisement explicit in the second index in the action's type signature.
+}:
+\BITactionExample{}
+
+Configurations are now built from advertisements, active contracts, deposits, action authorizations and committed/revealed secrets:
+\BITconfigurations{}
+The indices are quite involved, since we need to record both the current advertisements, stipulated contracts and deposits
+and the required ones for the configuration to become valid (i.e. closed). The most interesting case is the parallel composition
+operator, where the resources provided by the left operand might satisfy some requirements of the right operand. Moreover,
+consumed deposits have to be eliminated as there can be no double spending, while the number of advertisements and contracts
+always grows.
+
+By composing configurations together, we will eventually end up in a \textit{closed} configuration, where 
+all required indices are empty (i.e. the configuration is self-contained):
+\BITclosedConfigurations{}
+
+We are now ready to declare the inference rules of the bottom layer of our small-step semantics,
+by defining an inductive datatype modelling the binary step relation between untimed configurations:
+\BITrules{}
+There is a total of 18 rules we need to define, but we choose to depict only a representative subset of them.
+The first pair of rules initially appends the authorisation to merge
+two deposits to the current configuration (rule \inlineAuthJoinRule{}) and then performs the actual join (rule \inlineJoinRule{}).
+This is a common pattern across all rules, where we first collect authorisations for an action by all involved participants,
+and then we fire a subsequent rule to perform this action.
+\inlineAdvertiseRule{} advertises a new contract, mandating that at least one of the participants involved in the pre-condition
+is honest and requiring all deposits needed for stipulation are available in the surrounding context.
+\inlineAuthCommitRule{} allows participants to commit to the secrets required by the contract's pre-condition, but only dishonest
+ones can commit to the invalid length $\bot$.
+Lastly, \inlineControlRule{} allows participants to give their authorization required by a particular branch out of the current
+choices present in the contract, discarding any time constraints along the way.
+
+It is noteworthy to mention that during the transcriptions of the complete set of rules from the paper~\cite{bitml}
+to our dependently-typed setting,
+we discovered a discrepancy in the \inlineAuthRevRule{} rule, namely that there was no context $\Gamma$.
+Moreover, in order to later facilitate equational reasoning, we re-factored the \inlineControlRule{}
+to not contain the inner step as a hypothesis, but instead immediately inject it in the result operand of the step relation.
+
+A scrupulous reader might have noticed that the inference rules above have elided any treatment of timely constraints.
+This is handled by the top layer, whose states are now timed configurations.
+The only interesting inference rule is the one that handles time decorations of the form \inlineAfter{},
+since all other cases are dispatched to the bottom layer (which just ignores timely aspects).
+\BITtimedRules{}
+
+Having defined the step relation in this way allows for equational reasoning, a powerful tool for
+writing complex proofs:
+\BITeqReasoning{}
 
 \subsubsection{Example}
+We are finally ready to see a more intuitive example of the \textit{timed-commitment protocol}, where a participant
+commits to revealing a valid secret $a$ (e.g. "qwerty") to another participant,
+but loses her deposit of \bitcoin ~1 if she does not meet a certain deadline $t$:
+\BITexampleA{}
 
-\subsection{Expected Problems}
+Below is one possible reduction in the bottom layer of our small-step semantics, demonstrating the case where
+the participant actually meets the deadline:
+\BITexampleB{}
+At first, \inlineA{} holds a deposit of \bitcoin ~1, as required by the contract's precondition.
+Then, the contract is advertised and the participants slowly provide the corresponding prerequisites
+(i.e. \inlineA{} commits to a secret via \inlineAuthCommitRule{} and spends the required deposit via \inlineAuthInitRule{},
+while \inlineB{} does not do anything).
+After all pre-conditions have been satisfied, the contract is stipulated (rule \inlineInitRule{}) and the secret is successfully
+revealed (rule \inlineAuthRevRule{}).
+Finally, the first branch is picked (rule \inlineControlRule{}) and \inlineA{} retrieves her deposit back
+(rules \inlinePutRevRule{} and \inlineWithdrawRule{}).
 
-... up to permutation -> quotient types -> homotopy type theory ...
+\subsection{Reasoning modulo permutation}
+In the definitions above, we have assumed that \inlineMonoid{} forms a commutative monoid, which allowed us
+to always present the required sub-configuration individually on the far left of a composite configuration.
+While such definitions enjoy a striking similarity to the ones appearing in the original paper~\cite{bitml}
+(and should always be preferred in an informal textual setting),
+this approach does not suffice for a mechanized account of the model.
+After all, this explicit treatment of all intuitive assumptions/details is what makes our approach robust and will lead to
+a deeper understanding of how such these systems behave. 
+To overcome this intricacy, we introduce an \textit{equivalence relation} on configurations, which holds when
+they are just permutations of one another:
+\BITreordering{}
+Given this reordering mechanism, we now need to generalise all our inference rules to implicitly
+reorder the current and next configuration of the step relation.
+We achieve this by introducing a new variable for each of the operands of the resulting step relations,
+replacing the operands with these variables and requiring that they are
+re-orderings of the previous configurations, as shown in the following generalisation of the \inlineAuthJoinRule{} rule\footnote{
+In fact, it is not necessary to reorder both ends for the step relation; at least one would be adequate.
+}:
+\BITgeneralRule{}
+
+Unfortunately, we now have more proof obligations of the re-ordering relation lying around, which makes reasoning about
+our semantics rather tedious. We are currently investigating different techniques to model such reasoning up to equivalence:
+\begin{itemize}
+\item \textit{Quotient types}~\cite{quotient} allow equipping a type with an equivalence relation.
+If we assume the axiom that two elements of the underlying type are \textit{propositionally} equal when they are equivalent,
+we could discharge our current proof burden trivially by reflexivity.
+Unfortunately, while one can easily define \textit{setoids} in Agda, there is not enough support from the underlying type system to make reasoning about such an equivalence as easy as with built-in equality.
+\item Going a step further into more advanced notions of equality, we arrive at \textit{homotopy type theory}~\cite{homotopy},
+which tries to bridge the gap between reasoning about isomorphic objects in informal pen-paper proofs
+and the way we achieve this in mechanized formal methods.
+Again, realizing practical systems with such an enriched theory is a topic of current research~\cite{cubical} and no mature implementation exists yet, so we cannot integrate it with our current development in any pragmatic way.
+\item The crucial problems we have encountered so far are attributed to the non-deterministic nature of BitML, which is actually
+inherent in any process calculus. Building upon this idea, we plan to take a step back and investigate different reasoning
+techniques for a minimal process calculus. Once we have an approach that is elegant and pragmatic, we will incorporate it
+in our full-blown BitML calculus.
+\end{itemize}
 
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -703,7 +863,7 @@ All code is publicly available on Github\site{https://github.com/omelkonian/form
 
 \begin{figure*}
   \centering
-  \newcommand{\months}[1]{\multicolumn{#1}{c}{\cellcolor{teal}} \\}
+  \newcommand{\months}[1]{\multicolumn{#1}{c}{\cellcolor{hsblue2}} \\}
   \begin{tabular}{lcccccccc}
     \hline
     & 2018 & \multicolumn{7}{c}{2019} \\
