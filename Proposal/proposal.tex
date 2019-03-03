@@ -463,7 +463,8 @@ Transaction outputs send a bitcoin amount to a particular address, which either 
 blockchain participant (P2PKH) or a hash of a next transaction's script (P2SH).
 Here, we opt to embrace the \textit{inherently-typed} philosophy of Agda and model available addresses as module parameters.
 That is, we package the following definitions in a module with such a parameter, as shown below:
-\UTXOoutTx{}
+\UTXOoutTxA{}
+\UTXOoutTxB{}
 \textit{Transaction outputs} consist of a bitcoin amount and the address (out of the available ones) this amount is sent to,
 as well as the data script, which provides extra information to the aforementioned validator and allows for more expressive schemes.
 Investigating exactly the extent of this expressiveness is one of the main goals of this thesis.
@@ -482,7 +483,8 @@ inductively define the calculation of a ledger's unspent transaction outputs:
 \subsubsection{Validity of transactions}
 In order to submit a transaction, one has to make sure it is valid with respect to the current ledger.
 We model validity as a record indexed by the transaction to be submitted and the current ledger:
-\UTXOvalid{}
+\UTXOvalidA{}
+\UTXOvalidB{}
 The first four conditions make sure the transaction references and types are well-formed, namely that
 inputs refer to actual transactions (\textit{validTxRefs}, \textit{validOutputIndices})
 which are unspent so far (\textit{validOutputRefs}), but also that intermediate types used in interacting
@@ -601,7 +603,8 @@ and input-output pairs as edges, as shown in Figure~\ref{fig:utxo-ledger}.
 \end{figure}
 
 First, we need to set things up by declaring the list of available addresses and opening our module with this parameter.
-\UTXOexampleSetup{}
+\UTXOexampleSetupA{}
+\UTXOexampleSetupB{}
 Note that, since we will not utilize the expressive power of scripts in this example, we also provide convenient short cuts for
 defining inputs and outputs with dummy default scripts.
 Furthermore, we postulate that the addresses are actually the hashes of validators scripts, corresponding to the P2SH scheme
@@ -610,7 +613,8 @@ in Bitcoin.
 We can then proceed to define the individual transactions depicted in Figure~\ref{fig:utxo-ledger}\footnote{
 The first sub-index of each variable refers to the order the transaction are submitted,
 while the second sub-index refers to which output of the given transaction we select.}:
-\UTXOexampleA{}
+\UTXOexampleAA{}
+\UTXOexampleAB{}
 
 Finally, we can construct a correct-by-construction ledger, by iteratively submitting each transaction along with
 the proof that it is valid with respect to the ledger constructed thus far\footnote{
@@ -713,7 +717,8 @@ and an action to pick one branch of a collection of contracts (introduced by the
 We have omitted uninteresting actions concerning the manipulation of deposits, such as dividing, joining, donating and destroying them.
 Since we will often need versions of the types of advertisements/contracts with their
 indices existentially quantified, we first provide aliases for them.
-\BITactions{}
+\BITactionsA{}
+\BITactionsB{}
 The action datatype is parametrised\footnote{
 In Agda, parameters are similar to indices, but are not allowed to vary across constructors.
 }
@@ -736,7 +741,8 @@ Notice that we have to make all indices of the advertisement explicit in the sec
 \BITactionExample{}
 
 Configurations are now built from advertisements, active contracts, deposits, action authorizations and committed/revealed secrets:
-\BITconfigurations{}
+\BITconfigurationsA{}
+\BITconfigurationsB{}
 The indices are quite involved, since we need to record both the current advertisements, stipulated contracts and deposits
 and the required ones for the configuration to become valid (i.e. closed). The most interesting case is the parallel composition
 operator, where the resources provided by the left operand might satisfy some requirements of the right operand. Moreover,
