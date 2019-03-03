@@ -9,6 +9,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Inlined code
+\newcommand{\inlineValue}{|Value|}
 \newcommand{\inlineMaybe}{|Maybe|}
 \newcommand{\inlinePrefix}{|Prefix as bs|}
 \newcommand{\inlineSubset}{|as ⊆ bs|}
@@ -592,11 +593,9 @@ data UNDER —→ UNDER : Configuration ads cs ds → Configuration ads′ cs′
 
 \newcommand\BITgeneralRule{
 \begin{myagda}\begin{code}
-  DEP-AuthJoin : ∀ ^^  {Γ : Configuration ads cs ds}
-                         {Γ′ : Configuration ads cs (A has v ∷ A has v′ ∷ ds)}
-                         {Γ″ : Configuration ads cs (A has (v + v′) ∷ ds)}
-    →  Γ′ ≈ ⟨ A , v ⟩ SUPD | ⟨ A , v′ ⟩ SUPD | Γ
-    →  Γ″ ≈ ⟨ A , v ⟩ SUPD | ⟨ A , v′ ⟩ SUPD | A [ 0 ↔ 1 ] | Γ
+  DEP-AuthJoin :
+       Γ′ ≈ ⟨ A , v ⟩ SUPD | ⟨ A , v′ ⟩ SUPD | Γ                ^^  ∈ Configuration ads cs (A has v ∷ A has v′ ∷ ds)
+    →  Γ″ ≈ ⟨ A , v ⟩ SUPD | ⟨ A , v′ ⟩ SUPD | A [ 0 ↔ 1 ] | Γ  ^^  ∈ Configuration ads cs (A has (v + v′) ∷ ds)
        {- $\inferMedium$ -}
     →  Γ′ —→ Γ″
 \end{code}\end{myagda}
