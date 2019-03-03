@@ -129,7 +129,7 @@ on when these milestones will be completed.
 Cryptocurrencies rely on distributed ledgers, where there is no central authority managing the accounts
 and keeping track of the history of transactions.
 
-One particular instance of distributed ledgers are blockchain systems, where (unrelated) transaction are
+One particular instance of distributed ledgers are blockchain systems, where transactions are
 bundled together in blocks, which are linearly connected with hashes and distributed to all participants/peers.
 The blockchain system, along with a consensus protocol deciding on which competing fork of the chain is to be included,
 maintains an immutable distributed ledger (i.e. the history of transactions).
@@ -143,7 +143,7 @@ for shared control of the evolution of data (in this case transactions)
 and generally leads to more robust and fair management of assets.
 
 While cryptocurrencies are the major application of blockchain systems, one could easily
-use them for any kind of valuable assets, or even as general distributed databases.
+use them for any kind of valuable asset, or even as general distributed databases.
 
 \subsection{Smart Contracts} \label{subsec:smartcontracts}
 Most blockchain systems come equipped with a scripting language, where one can write
@@ -165,8 +165,8 @@ enable tractable and precise reasoning about such systems.
 
 Numerous scripting languages have appeared recently~\cite{scriptlangs}, spanning a wide
 spectrum of expressiveness and complexity. While language design can impose restrictions
-on what can a language express, most of these restriction are inherited from
-the accounting model that the underlying system adhere to.
+on what a language can express, most of these restrictions are inherited from
+the accounting model that the underlying system adheres to.
 
 In the next section, we will discuss the two main forms of accounting models:
 \begin{enumerate}
@@ -178,7 +178,7 @@ In the next section, we will discuss the two main forms of accounting models:
 The primary example of a UTxO-based blockchain is Bitcoin~\cite{bitcoin}.
 Its blockchain is a linear sequence of \textit{blocks} of transactions,
 starting from the initial \textit{genesis} block.
-Essentially, the blockchain acts as public log of all transactions that have taken place, where
+Essentially, the blockchain acts as a public log of all transactions that have taken place, where
 each transaction refers to outputs of previous transactions,
 except for the initial \textit{coinbase} transaction of each block.
 Coinbase transactions have no inputs, create new currency and reward the miner of that block with a fixed amount.
@@ -244,7 +244,7 @@ must hold for the transaction to go through:
 \item $\Semantics{<red>} = \stack{True}$
 \item $\Semantics{<red> OP\_HASH <red\#> OP\_EQ} = \stack{True}$
 \end{enumerate}
-Therefore, in this case the script residing in the output are simpler, but inputs can also contain arbitrary redeemer scripts
+Therefore, in this case the script residing in the output is simpler, but inputs can also contain arbitrary redeemer scripts
 (as long as they are of a standard ``template").
 
 In this thesis, we will model scripts in a much more general, mathematical sense, so
@@ -269,7 +269,7 @@ correct via a correspondence between the symbolic model and the computational mo
 the Bitcoin blockchain. We will return for a more formal treatment of BitML in Section~\ref{subsec:bitml}.
 
 \subsubsection{Extended UTxO}
-In this work, we will consider the version of the UTxO model used by IOHK's Cardano\site{www.cardano.org} blockchain.
+In this work, we will consider the version of the UTxO model used by IOHK's Cardano blockchain\site{www.cardano.org}.
 In contrast to Bitcoin's \textit{proof-of-work} consensus protocol~\cite{bitcoin}, 
 Cardano's \textit{Ouroboros} protocol~\cite{ouroboros} is \textit{proof-of-stake}.
 This, however, does not concern our study of the abstract accounting model, thus we
@@ -337,11 +337,11 @@ give us a clear overview of the essence of the problem.
 Restricting the scope of our attempt is also motivated from the fact that individual
 components such as cryptographic protocols are orthogonal to the functionality we study here.
 This lack of tight cohesion between the components of the system allows one to 
-and thus can be safely factored out and formalized independently.
+safely factor each one out and formalize it independently.
 
 It is important to note that this is not always the case for every domain. A prominent example of
 this are operating systems, which consist of intricately linked subcomponents (e.g. drivers, memory modules),
-thus making impossible to trivially divide the overall proof into small independent ones.
+thus making it impossible to trivially divide the overall proof into small independent ones.
 In order to overcome this complexity burden, one has to invent novel ways of modular proof mechanization, as
 exemplified by \textit{CertiKOS}~\cite{certikos}, a formally verified concurrent OS.
 
@@ -374,7 +374,7 @@ While there has been work on providing Agda with such capabilities~\cite{agdaaut
 it requires moving to a meta-programming mindset which would be an additional programming hindrance.
 
 A reasonable alternative would be to use Coq~\cite{coq}, which provides a pragmatic
-script-like language for programming \textit{tactics}, i.e. programs that work on proof contexts and can
+scripting language for programming \textit{tactics}, i.e. programs that work on proof contexts and can
 generate new sub-goals.
 This approach to proof mechanization has, however, been criticized for widening the gap between informal proofs
 and programs written in a proof assistant.
@@ -402,7 +402,7 @@ while there has been work on writing out papers about the extended UTxO model, t
 One last important manifestation of the functional programming principles behind IOHK is the choice
 of a UTxO-based cryptocurrency itself.
 
-One the one hand, one can view a UTxO ledger as a dataflow diagram, whose nodes are the submitted transactions
+On the one hand, one can view a UTxO ledger as a dataflow diagram, whose nodes are the submitted transactions
 and edges represent links between transaction inputs and outputs.
 On the other hand, account-based ledgers rely on a global state and transaction have a much more complicated
 specification.
@@ -418,7 +418,7 @@ while this is not possible for imperative programs that contain side-effectful c
 \section{Preliminary Results}
 \label{sec:results}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-This section gives an overview of the progress made so far in the on-going Agda formalization of the two main objects of study,
+This section gives an overview of the progress made so far in the on-going Agda formalization of the two main subjects of study,
 namely the Extended UTxO model and the BitML calculus.
 For the sake of brevity, we refrain from showing the full Agda code along with the complete proofs, but rather
 provide the most important datatypes and formalized results and explain crucial design choices we made along the way.
@@ -450,7 +450,7 @@ values to have the same hash).
 In order to model transactions that are part of a distributed ledger, we need to first define
 transaction \textit{inputs} and \textit{outputs}.
 \UTXOinsOutRefs{}
-\textit{Output references} consist of the address that this output's transaction hashes to, 
+\textit{Output references} consist of the address that a transaction hashes to, 
 as well as the index in this transaction's list of outputs.
 \textit{Transaction inputs} refer to some previous output in the ledger, but also contain two types of scripts.
 The \textit{redeemer} provides evidence of authorization to spend the output.
@@ -475,12 +475,12 @@ At this point of interaction, one must combine all scripts, as shown below:
 Note that the intermediate types carried by the respective input and output must align, evidenced by the
 equality proof that is required as an argument.
 
-\subsubsection{Unspent transaction outputs}
+\subsubsection{Unspent Τransaction Οutputs}
 With the basic modelling of a ledger and its transaction in place, it is fairly straightforward to 
 inductively define the calculation of a ledger's unspent transaction outputs:
 \UTXOutxo{}
 
-\subsubsection{Validity of transactions}
+\subsubsection{Validity of Τransactions}
 In order to submit a transaction, one has to make sure it is valid with respect to the current ledger.
 We model validity as a record indexed by the transaction to be submitted and the current ledger:
 \UTXOvalidA{}
@@ -490,19 +490,18 @@ inputs refer to actual transactions (\textit{validTxRefs}, \textit{validOutputIn
 which are unspent so far (\textit{validOutputRefs}), but also that intermediate types used in interacting
 inputs and outputs align (\textit{validDataScriptTypes}).
 
-The last three validation condition are more interesting, as they ascertain the submitted transaction is valid,
+The last four validation conditions are more interesting, as they ascertain the validity of the submitted transaction,
 namely that the bitcoin values sum up properly (\textit{preservesValues}), no output is spent twice (\textit{noDoubleSpending}),
 validation succeeds for each input-output pair (\textit{allInputsValidate}) and outputs hash to the hash of their corresponding 
 validator script (\textit{validateValidHashes}).
 
-The definition of lookup functions is omitted, as they are uninteresting. The only important design choice is that,
+The definitions of lookup functions are omitted, as they are uninteresting. The only important design choice is that,
 instead of modelling lookups as partial functions (i.e. returning \inlineMaybe{}), they require a membership
-proof as an argument moving the responsibility to the caller (as evidences by their usage in the validity conditions).
+proof as an argument moving the responsibility to the caller (as evidenced by their usage in the validity conditions).
 
 \subsubsection{Weakening Lemma}
-
-but it would make sense to be able to add 
-without losing the validity of the ledger constructed thus far.
+We have defined everything with respect to a fixed set of available addresses, but it would make sense to be able to include
+additional addresses without losing the validity of the ledger constructed thus far.
 
 In order to do, we need to first expose the basic datatypes from inside the module,
 introducing their \textit{primed} version which takes the corresponding module parameter as an index:
@@ -610,9 +609,11 @@ defining inputs and outputs with dummy default scripts.
 Furthermore, we postulate that the addresses are actually the hashes of validators scripts, corresponding to the P2SH scheme
 in Bitcoin.
 
-We can then proceed to define the individual transactions depicted in Figure~\ref{fig:utxo-ledger}\footnote{
+We can then proceed to define the individual transactions\footnote{
 The first sub-index of each variable refers to the order the transaction are submitted,
-while the second sub-index refers to which output of the given transaction we select.}:
+while the second sub-index refers to which output of the given transaction we select.
+}
+depicted in Figure~\ref{fig:utxo-ledger}:
 \UTXOexampleAA{}
 \UTXOexampleAB{}
 
@@ -621,7 +622,7 @@ the proof that it is valid with respect to the ledger constructed thus far\footn
 Here, we use a specialized notation of the form $\bullet t_1 \vdash p_1 \oplus t_2 \vdash p_2 \oplus \dots \oplus t_n \vdash p_n$,
 where each insertion of transaction $t_x$ requires a proof of validity $p_x$ as well.
 Technically, the $\oplus$ operator has type \inlineListCons{}.
-}.
+}:
 \UTXOexampleB{}
 The proof validating the submission of the first transaction $t_1$ is trivially discharged.
 While the rest of the proofs are quite involved, it is worthy to note that their size/complexity stays constant
@@ -633,7 +634,7 @@ transaction $t_6$, as demonstrated below:
 \UTXOexampleC{}
 
 \subsection{Formal Model II: BitML Calculus} \label{subsec:bitml}
-Now we move on to our second object of study, the BitML calculus for modelling smart contracts.
+Now let us shift our focus to our second subject of study, the BitML calculus for modelling smart contracts.
 
 All code is publicly available on Github\site{https://github.com/omelkonian/formal-bitml}.
 First, we begin with some basic definitions that will be used throughout this section:
@@ -652,7 +653,7 @@ which require some resources from the involved participants prior to the contrac
 and a \textit{contract}, which specifies the rules according to which bitcoins are transferred between participants.
 
 Preconditions either require participants to have a deposit of a certain value on their name (volatile or not) or 
-commit to a certain secret. Notice the index of the datatype below, which captures all deposits required:
+commit to a certain secret. Notice the index of the datatype below, which captures the values of all required deposits:
 \BITpreconditions{}
 
 Moving on to actual contracts, we define them by means of a collection of five types of commands;
@@ -677,7 +678,7 @@ We also introduce an intuitive syntax for declaring the different branches of a 
 
 Having defined both preconditions and contracts, we arrive at the definition of a contract advertisement:
 \BITadvertisements{}
-Notice that in order to construct an advertisement, one has to provide proof of the contract's validity with respect to
+Notice that in order to construct an advertisement, one has to also provide proof of the contract's validity with respect to
 the given preconditions, namely that all deposit references in the contract are declared in the precondition
 and each involved participant is required to have a persistent deposit.
 
@@ -686,8 +687,8 @@ To clarify things so far, let us see a simple example of a contract advertisemen
 \BITexampleAdvertisement{}
 We first need to open our module with a fixed set of participants (in this case \inlineA{} and \inlineB{}).
 We then define an advertisement, whose type already says a lot about what is going on;
-it carries \bitcoin ~5, presumes the existence of at least one deposit of \bitcoin ~200, and requires the deposit
-of \bitcoin ~200 and \bitcoin ~100 respectively.
+it carries \bitcoin ~5, presumes the existence of at least one deposit of \bitcoin ~200, and requires two deposits
+of \bitcoin ~200 and \bitcoin ~100.
 
 Looking at the precondition itself, we see that the required deposits will be provided by \inlineB{} and \inlineA{}, respectively.
 The contract first splits the bitcoins across three branches:
@@ -695,20 +696,20 @@ the first one gives \bitcoin ~2 to \inlineB{}, the second one gives \bitcoin ~2 
 while the third one retrieves \inlineB{}'s deposit of \bitcoin ~200 and allows \inlineB{} to authorise the
 withdrawal of the remaining funds (currently \bitcoin ~201) from \inlineA{}.
 
-We have omitted the proofs that ascertain the well-formedness of the \inlinePut{} and \inlineSplit{} commands, as
+We have omitted the proofs that ascertain the well-formedness of the \inlinePut{} command and the advertisement, as
 they are straightforward and do not provide any more intuition\footnote{
 In fact, we have defined decidable procedures for all such proofs using the
 \textit{proof-by-reflection} pattern~\cite{proofbyreflection}.
 These automatically discharge all proof obligations, when there are no variables involved.}.
 
 \subsubsection{Small-step Semantics}
-BitML is a \textit{process calculus}, specialized for the case of smart contracts.
+BitML is a \textit{process calculus}, which is geared specifically towards smart contracts.
 Contrary to most process calculi that provide primitive operators for inter-process communication via
 message-passing~\cite{csp}, the BitML calculus does not provide such built-in features.
 
 It, instead, provides domain-specific synchronization mechanisms through its \textit{small-step} reduction semantics.
 These essentially define a \textit{labelled transition system} between \textit{configurations}, where
-\textit{action} labels are emitted on every transition representing the required actions of the participants.
+\textit{action} labels are emitted on every transition and represent the required actions of the participants.
 This symbolic model consists of two layers; the bottom one transitioning between \textit{untimed} configurations and the top one
 that works on \textit{timed} configurations.
 
@@ -720,7 +721,7 @@ indices existentially quantified, we first provide aliases for them.
 \BITactionsA{}
 \BITactionsB{}
 The action datatype is parametrised\footnote{
-In Agda, parameters are similar to indices, but are not allowed to vary across constructors.
+In Agda, datatype parameters are similar to indices, but are not allowed to vary across constructors.
 }
 over the participant who performs it
 and includes several indices representing the prerequisites the current configuration has to satisfy, in order for
@@ -731,8 +732,8 @@ already been stipulated, the third to deposits owned by the participant currentl
 declares new deposits that will be created by the action
 (e.g. dividing a deposit would require a single deposit as the third index and produce two other deposits in its fourth index).
 
-Although are indexing scheme might seem a bit heavyweight now, it makes many little details and assumptions explicit,
-which would bite us hard later on when we will need to reason about such entities.
+Although our indexing scheme might seem a bit heavyweight now, it makes many little details and assumptions explicit,
+which would bite us hard later on when we will need to reason about them.
 
 Continuing from our previous example advertisement, let's see an example action where \inlineA{} spends the required \bitcoin ~100
 to stipulate the example contract\footnote{
@@ -744,7 +745,7 @@ Configurations are now built from advertisements, active contracts, deposits, ac
 \BITconfigurationsA{}
 \BITconfigurationsB{}
 The indices are quite involved, since we need to record both the current advertisements, stipulated contracts and deposits
-and the required ones for the configuration to become valid (i.e. closed). The most interesting case is the parallel composition
+and the required ones for the configuration to become valid. The most interesting case is the parallel composition
 operator, where the resources provided by the left operand might satisfy some requirements of the right operand. Moreover,
 consumed deposits have to be eliminated as there can be no double spending, while the number of advertisements and contracts
 always grows.
@@ -762,7 +763,7 @@ two deposits to the current configuration (rule \inlineAuthJoinRule{}) and then 
 This is a common pattern across all rules, where we first collect authorisations for an action by all involved participants,
 and then we fire a subsequent rule to perform this action.
 \inlineAdvertiseRule{} advertises a new contract, mandating that at least one of the participants involved in the pre-condition
-is honest and requiring all deposits needed for stipulation are available in the surrounding context.
+is honest and requiring that all deposits needed for stipulation are available in the surrounding context.
 \inlineAuthCommitRule{} allows participants to commit to the secrets required by the contract's pre-condition, but only dishonest
 ones can commit to the invalid length $\bot$.
 Lastly, \inlineControlRule{} allows participants to give their authorization required by a particular branch out of the current
@@ -802,14 +803,14 @@ revealed (rule \inlineAuthRevRule{}).
 Finally, the first branch is picked (rule \inlineControlRule{}) and \inlineA{} retrieves her deposit back
 (rules \inlinePutRevRule{} and \inlineWithdrawRule{}).
 
-\subsection{Reasoning modulo permutation}
+\subsection{Reasoning Modulo Permutation}
 In the definitions above, we have assumed that \inlineMonoid{} forms a commutative monoid, which allowed us
 to always present the required sub-configuration individually on the far left of a composite configuration.
 While such definitions enjoy a striking similarity to the ones appearing in the original paper~\cite{bitml}
 (and should always be preferred in an informal textual setting),
 this approach does not suffice for a mechanized account of the model.
 After all, this explicit treatment of all intuitive assumptions/details is what makes our approach robust and will lead to
-a deeper understanding of how such these systems behave. 
+a deeper understanding of how these systems behave. 
 To overcome this intricacy, we introduce an \textit{equivalence relation} on configurations, which holds when
 they are just permutations of one another:
 \BITreordering{}
@@ -849,9 +850,9 @@ and there will definitely be some surprises along the way,
 but I hope it will give realistic expectations of the final results of my thesis.
 
 \subsection{Extended UTxO: Multi-currency}
-Many major blockchain systems today support the creation of secondary cryptocurrencies, independent of the main  currency.
+Many major blockchain systems today support the creation of secondary cryptocurrencies, which are independent of the main  currency.
 In Bitcoin, for instance, \textit{colored coins} allow transactions to assign additional meaning to their outputs
-(e.g. each coin corresponding to a real-world asset, such as company shares)~\cite{coloredcoins}.
+(e.g. each coin could correspond to a real-world asset, such as company shares)~\cite{coloredcoins}.
 
 This approach, however, has the disadvantage of larger transactions and less efficient processing.
 One could instead bake the multi-currency feature into the base system, mitigating the need for
@@ -864,7 +865,7 @@ In order to achieve this, one has to generalize the \inlineValue{} datatype to a
 Hence, I plan to integrate this with my current formal development of the extended UTxO model and,
 by doing so, provide the first formalization of a UTxO ledger that supports multiple cryptocurrencies.
 
-\subsection{BitML Calculus}
+\subsection{BitML: Towards Completeness}
 Continuing my work on the formalization of the BitML paper~\cite{bitml},
 there is still a lot of theoretical results to be covered:
 \begin{itemize}
@@ -883,15 +884,15 @@ each step in the symbolic part is matched by (multiple) steps in the computation
 \end{itemize}
 
 \subsection{UTxO-BitML Integration}
-So far I have worked separately on the two models under study, but it would be interesting to see whether these two
-models can be intertwined in some way.
+So far I have worked separately on the two models under study, but it would be interesting to see whether these
+can be intertwined in some way.
 This would possibly involve a translation from BitML contracts to contracts modelled in our extended UTxO models,
 along with corresponding meta-theoretical properties (e.g. validity of UTxO transactions correspond to another notion
 of validity of BitML contracts).
 
 Moreover, and it would be beneficial to review the different modelling techniques used across both models,
 identifying their key strengths and witnesses.
-With this in mind, I could refactor crucial parts of these two models for the sake of elegance, clarity and ease of reasoning.
+With this in mind, I could refactor crucial parts of each model for the sake of elegance, clarity and ease of reasoning.
 
 \subsection{Plutus Integration}
 In my current formalization of the extended UTxO model, scripts are immediately modelled by their denotations
@@ -928,15 +929,17 @@ positioning the aforementioned tasks across the whole timespan of my thesis.
 I expect to complete the tasks that are more tightly coupled with my current development, i.e.
 incorporating multi-currency features and the formalized Plutus meta-theory into the extended UTxO model,
 completing the formalization of the BitML paper and implementing proof-search automation to facilitate easier reasoning.
-The merging of these two objects of study (i.e. UTxO and BitML) is somewhat unclear at this stage, but I hope
+The merging of these two subjects of study (i.e. UTxO and BitML) is somewhat unclear at this stage, but I hope
 to at least provide a proof-of-concept translation, even if this comes without significant meta-theoretic results like coherence.
 
 Other tasks, such as a mature model of Featherweight Solidity and formal results comparing it to UTxO,
 are sadly outside the scope of this thesis due to time constraints.
-Nonetheless, I will strive for a prototype model and implementation with lots of examples
+Nonetheless, I will strive for a prototype model with lots of examples
 and hope my work will lay the foundations to further investigate these topics in future research.
 
-\begin{figure*}
+\newpage
+
+\begin{figure}[!htb]
   \centering
   \newcommand{\months}[1]{\multicolumn{#1}{c}{\cellcolor{hsblue2}} \\}
   \begin{tabular}{lcccccccc}
@@ -974,12 +977,11 @@ and hope my work will lay the foundations to further investigate these topics in
   \end{tabular}
   \caption{My workplan.}
   \label{fig:workplan}
-\end{figure*}
+\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Bibliography
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\nocite{*} % T0D0 remove
 \bibliography{sources}
 
 \end{document}
