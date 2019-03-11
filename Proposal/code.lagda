@@ -20,10 +20,10 @@
 \begin{myagda}\begin{code}
 Address : Set
 Address = ℕ
-##
+
 Value : Set
 Value = ℕ
-##
+
 BIT : ℕ -> Value
 BIT v = v
 \end{code}\end{myagda}
@@ -32,9 +32,8 @@ BIT v = v
 \newcommand\UTXOstate{
 \begin{myagda}\begin{code}
 record State : Set where
-  field
-    height : ℕ
-    VDOTS
+  field  height : ℕ
+         VDOTS
 \end{code}\end{myagda}
 }
 
@@ -50,18 +49,15 @@ postulate
 \begin{myagda}\begin{code}
 record TxOutputRef : Set where
   constructor UNDERL at UNDERR
-  field
-    id     : Address
-    index  : ℕ
-##
-record TxInput : Set where
-  field
-    outputRef  : TxOutputRef
+  field  id     : Address
+         index  : ℕ
 
-    R          : Set
-    redeemer   : State -> R
-    D          : Set
-    validator  : State ->  Value ->  R ->  D ->  Bool
+record TxInput : Set where
+  field  outputRef  : TxOutputRef
+         R          : Set
+         redeemer   : State -> R
+         D          : Set
+         validator  : State ->  Value ->  R ->  D ->  Bool
 \end{code}\end{myagda}
 }
 
@@ -69,21 +65,18 @@ record TxInput : Set where
 \savecolumns
 \begin{myagda}\begin{code}
 module UTxO (addresses : List Address) where
-##
-record TxOutput : Set where
-  field
-    value       : Value
-    address     : Index addresses
 
-    Data        : Set
-    dataScript  : State -> Data
-##
+record TxOutput : Set where
+  field  value       : Value
+         address     : Index addresses
+         Data        : Set
+         dataScript  : State -> Data
+
 record Tx : Set where
-  field
-    inputs   : Set⟨ TxInput ⟩
-    outputs  : List TxOutput
-    forge    : Value
-    fee      : Value
+  field  inputs   : Set⟨ TxInput ⟩
+         outputs  : List TxOutput
+         forge    : Value
+         fee      : Value
 \end{code}\end{myagda}
 }
 \newcommand\UTXOoutTxB{
@@ -173,18 +166,7 @@ record IsValidTx (tx : Tx) (l : Ledger) : Set where
 Ledger′ : List Address -> Set
 Ledger′ as = Ledger
   where open import UTxO as
-##
-Tx′ : List Address -> Set
-Tx′ as = Tx
-  where open import UTxO as
-##
-IsValidTx′ : (as : List Address) -> Tx′ as -> Ledger′ as -> Set
-IsValidTx′ as t l = IsValidTx t l
-  where open import UTxO as
-##
-TxOutput′ : List Address -> Set
-TxOutput′ as = TxOutput
-  where open import UTxO as
+VDOTS
 \end{code}\end{myagda}
 }
 
@@ -193,12 +175,6 @@ TxOutput′ as = TxOutput
 weakenTxOutput : Prefix as bs -> TxOutput′ as -> TxOutput′ bs
 weakenTxOutput pr txOut = txOut { address = inject≤ addr (prefix-length pr) }
   where open import UTxO bs
-##
-weakenTx : ∀ -> Prefix as bs -> Tx′ as -> Tx′ bs
-weakenTx pr tx = tx { outputs = weakenTxOutput pr <$$> outputs tx }
-##
-weakenLedger : ∀ {as bs} -> Prefix as bs -> Ledger′ as -> Ledger′ bs
-weakenLedger pr = map (weakenTx pr)
 \end{code}\end{myagda}
 }
 
@@ -344,7 +320,8 @@ utxo = refl
 \newcommand{\inlineWithdrawRule}{|[C-Withdraw]|}
 
 %% Code blocks
-\newcommand\BITbasicTypes{
+\newcommand\BITbasicTypesA{
+\savecolumns
 \begin{myagda}\begin{code}
 module Types (Participant : Set) (Honest : List SUPPLUS Participant) where
 ##
@@ -353,12 +330,15 @@ Time = ℕ
 ##
 Value : Set
 Value = ℕ
-##
+\end{code}\end{myagda}
+}
+\newcommand\BITbasicTypesB{
+\restorecolumns
+\begin{myagda}\begin{code}
 record Deposit : Set where
   constructor UNDERL has UNDERR
-  field
-    participant : Participant
-    value       : Value
+  field  participant : Participant
+         value       : Value
 ##
 Secret : Set
 Secret = String
@@ -393,12 +373,9 @@ data Contract  :  Value   -- the monetary value it carries
                →  Values  -- the deposits it presumes
                →  Set where
   -- collect deposits and secrets
-  put UNDER reveal UNDER if UNDER ⇒ UNDER ∶- UNDER  :  (vs : List Value)
-                                                    →  (s : Secrets)
-                                                    →  Predicate s′
-                                                    →  Contract (v + sum vs) vs′
-                                                    →  s′ ⊆ s
-                                                    →  Contract v (vs′ ++ vs)
+  put UNDER reveal UNDER if UNDER ⇒ UNDER ∶- UNDER :
+    (vs : List Value) → (s : Secrets) → Predicate s′  → Contract (v + sum vs) vs′ →  s′ ⊆ s
+    → Contract v (vs′ ++ vs)
   -- transfer the remaining balance to a participant
   withdraw : ∀ {v} → Participant → Contract v []
   -- split the balance across different branches
@@ -422,11 +399,10 @@ UNDERL ⊸ UNDERR {vs} v c = v , vs , c
 \begin{myagda}\begin{code}
 record Advertisement (v : Value) (vs SUPC vs SUPG : List Value) : Set where
   constructor UNDER ⟨ UNDER ⟩∶- UNDER
-  field
-    G      :  Precondition vs
-    C      :  Contracts v vs
-    valid  :  length vs SUPC ≤ length vs SUPG
-           ×  participants SUPG G ++ participants SUPC C ⊆ (participant <$$> persistentDeposits SUPP G)
+  field  G      :  Precondition vs
+         C      :  Contracts v vs
+         valid  :  length vs SUPC ≤ length vs SUPG
+                ×  participants SUPG G ++ participants SUPC C ⊆ (participant <$$> persistentDeposits SUPP G)
 \end{code}\end{myagda}
 }
 
@@ -444,8 +420,7 @@ ex-ad =  ⟨  B ! 200 ∧ A ! 100 ^^ ⟩
 \end{code}\end{myagda}
 }
 
-\newcommand\BITactionsA{
-\savecolumns
+\newcommand\BITactions{
 \begin{myagda}\begin{code}
 AdvertisedContracts : Set
 AdvertisedContracts = List (∃[ v ] ^^ ∃[ vs SUPC ] ^^ ∃[ vs SUPG ] ^^ Advertisement v vs SUPC vs SUPG)
@@ -463,15 +438,12 @@ data Action (p : Participant)  -- the participant that authorises this action
   -- commit secrets to stipulate an advertisement
   HTRI UNDERR  :  (ad : Advertisement v vs SUPC vs SUPG)
                →  Action p [ v , vs SUPC , vs SUPG , ad ] [] [] []
+
   -- spend x to stipulate an advertisement
   UNDER STRI UNDERR  :  (ad : Advertisement v vs SUPC vs SUPG)
                      →  (i : Index vs SUPG)
                      →  Action p [ v , vs SUPC , vs SUPG , ad ] [] [ vs SUPG ‼ i ] []
-\end{code}\end{myagda}
-}
-\newcommand\BITactionsB{
-\restorecolumns
-\begin{myagda}\begin{code}
+
   -- pick a branch
   UNDER BTRI UNDERR  :  (c : List (Contract v vs))
                      →  (i : Index c)
@@ -488,8 +460,7 @@ ex-spend = ex-ad STRI 1
 \end{code}\end{myagda}
 }
 
-\newcommand\BITconfigurationsA{
-\savecolumns
+\newcommand\BITconfigurations{
 \begin{myagda}\begin{code}
 data Configuration′  :  -- $\hspace{22pt}$ current $\hspace{20pt}$ $\times$ $\hspace{15pt}$ required
                         AdvertisedContracts  × AdvertisedContracts
@@ -505,36 +476,22 @@ data Configuration′  :  -- $\hspace{22pt}$ current $\hspace{20pt}$ $\times$ $\
            →  Configuration′ ([ v , vs SUPC , vs SUPG , ad ] , []) ([] , []) ([] , [])
 
   -- active contract
-  ⟨ UNDER , UNDER ⟩ SUPCC  :  (c : List (Contract v vs))
-                           →  (v′ : Value)
+  ⟨ UNDER , UNDER ⟩ SUPCC  :  (c : List (Contract v vs)) → Value
                            →  Configuration′ ([] , []) ([ v , vs , c ] , []) ([] , [])
-\end{code}\end{myagda}
-}
-\newcommand\BITconfigurationsB{
-\restorecolumns
-\begin{myagda}\begin{code}
+
   -- deposit redeemable by a participant
-  ⟨ UNDERR , UNDER ⟩ SUPD  :  (p : Participant)
-                           →  (v : Value)
+  ⟨ UNDERR , UNDER ⟩ SUPD  :  (p : Participant) → (v : Value)
                            →  Configuration′ ([] , []) ([] , []) ([ p has v ] , [])
 
   -- authorization to perform an action
-  UNDERL [ UNDER ]  : (p : Participant)
-                    → Action p ads cs vs ds
+  UNDERL [ UNDER ]  : (p : Participant) → Action p ads cs vs ds
                     → Configuration′ ([] , ads) ([] , cs) (ds , ((p has UNDER) <$$> vs))
 
   -- committed secret
-  ⟨ UNDER ∶ UNDER ♯ UNDER ⟩  :  Participant
-                             →  (s : Secret)
-                             →  (n : ℕ ⊎ ⊥)
-                             →  {pr : n ≡ inj₁ n′ -> n′ ≡ length s}
+  ⟨ UNDER ∶ UNDER ♯ UNDER ⟩  :  Participant →  Secret →  ℕ ⊎ ⊥
                              →  Configuration′ ([] , []) ([] , []) ([] , [])
-
   -- revealed secret
-  UNDER ∶ UNDER ♯ UNDER  :  Participant
-                         →  (s : Secret)
-                         →  (n : ℕ)
-                         →  {pr : length s ≡ n}
+  UNDER ∶ UNDER ♯ UNDER  :  Participant →  Secret → ℕ
                          →  Configuration′ ([] , []) ([] , []) ([] , [])
 
   -- parallel composition
@@ -571,7 +528,7 @@ data UNDER —→ UNDER : Configuration ads cs ds → Configuration ads′ cs′
     →  secrets (G ad) ≡ a₀ DOTS aₙ
     →  (A ∈ Hon → ∀[ i ∈ 0 DOTS n ] a SUBI ≢ ⊥)
        {- $\inferLarge$ -}
-    →  ` ad | Γ —→ ` ad | Γ | DOTS ⟨ A : a SUBI ♯ N SUBI ⟩ DOTS ∣ A auth[ ♯▷ ad ]
+    →  ` ad | Γ —→ ` ad | Γ | DOTS ⟨ A : a SUBI ♯ N SUBI ⟩ DOTS ^^ BAR ^^ A [ ♯▷ ^^ ad ]
 ##
   C-Control : ∀ {Γ C i D}
     →  C ‼ i ≡ A₁ : A₂ : DOTS : Aₙ : D
@@ -585,21 +542,20 @@ data UNDER —→ UNDER : Configuration ads cs ds → Configuration ads′ cs′
 \begin{myagda}\begin{code}
 record Configuration SUPT (ads : AdvertisedContracts) (cs  : ActiveContracts) (ds  : Deposits) : Set where
   constructor UNDER at UNDER
-  field
-    cfg   : Configuration ads cs ds
-    time  : Time
+  field  cfg   : Configuration ads cs ds
+         time  : Time
 ##
 data UNDER —→ SUBT UNDER : Configuration SUPT ads cs ds → Configuration SUPT ads′ cs′ ds′ → Set where
-##
+
   Action : ∀ {Γ Γ′ t}
     →  Γ —→ Γ′
        {- $\inferSmall$ -}
     →  Γ at t —→ SUBT Γ′ at t
-##
+
   Delay : ∀ {Γ t δ}
        {- $\inferMedium$ -}
     →  Γ at t —→ SUBT Γ at (t + δ)
-##
+
   Timeout : ∀ {Γ Γ′ t i contract}
     →  All (UNDER ≤ t) (timeDecorations (contract ‼ i))  -- all time constraints are satisfied
     →  ⟨ [ contract ‼ i ] , v ⟩ SUPCC | Γ —→ Γ′          -- resulting state if we pick this branch
@@ -611,14 +567,14 @@ data UNDER —→ SUBT UNDER : Configuration SUPT ads cs ds → Configuration SU
 \newcommand\BITeqReasoning{
 \begin{myagda}\begin{code}
 data UNDER —↠ UNDER : Configuration ads cs ds → Configuration ads′ cs′ ds′ → Set where
-##
+
   UNDER ∎ : (M : Configuration ads cs ds) → M —↠ M
-##
+
   UNDER —→ ⟨ UNDER ⟩ UNDER : ∀ {M  N} (L : Configuration ads cs ds)
     →  L —→ M → M —↠ N
        {- $\inferMedium$ -}
     →  L —↠ N
-##
+
 begin UNDER : ∀ {M N} → M —↠ N → M —↠ N
 \end{code}\end{myagda}
 }

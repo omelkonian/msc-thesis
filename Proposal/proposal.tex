@@ -34,6 +34,7 @@
 \newcommand\todo[1]{\textcolor{red}{TODO: #1}}
 
 \begin{document}
+\sloppy % for proper justification (no overflows to the right)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Title
@@ -71,11 +72,11 @@ Utrecht University and Manuel Chakravarty from IOHK.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Distributed ledger technology creates issues
-Although blockchain technology has opened a whole array of interesting new applications
-(e.g. secure multi-party computation\cite{mpc}, fair protocol design fair\cite{fair}, zero-knowledge proof systems\cite{zeroproof}), 
-reasoning about the behaviour of such systems is an exceptionally hard task. This is partly due to their concurrent nature, but
-also the fiscal nature of the majority of the applications, which require a much higher degree of rigorousness compared to
-conventional IT applications.
+Blockchain technology has opened a whole array of interesting new applications
+(e.g. secure multi-party computation\cite{mpc}, fair protocol design fair\cite{fair}, zero-knowledge proof systems\cite{zeroproof}).
+Nonetheless, reasoning about the behaviour of such systems is an exceptionally hard task, mainly due to their distributed nature.
+Moreover, the fiscal nature of the majority of these applications requires a much higher degree of rigorousness compared to
+conventional IT applications, hence the need for a more formal account of their behaviour.
 
 % Smart contracts create issues
 The advent of smart contracts (programs that run on the blockchain itself) gave
@@ -93,8 +94,8 @@ in a concurrent/distributed setting.
 % Aim of thesis
 \paragraph{Research Question}
 The aim of this thesis is to provide a mechanized formal model of an abstract distributed ledger equipped with
-smart contracts, in which one can begin to formally investigate the expressiveness of the extended UTxo model.
-Moreover, we hope to lay down firm grounds, onto which one can further conduct a formal comparison with account-based
+smart contracts, in which one can begin to formally investigate the expressiveness of the extended UTxO model.
+Moreover, we hope to lay a foundation for a formal comparison with account-based
 models used in Ethereum. Put concisely, the research question posed is:
 \begin{displayquote}
 	\textit{How much expressiveness do we gain by extending the UTxO model?} \\
@@ -130,12 +131,12 @@ Cryptocurrencies rely on distributed ledgers, where there is no central authorit
 and keeping track of the history of transactions.
 
 One particular instance of distributed ledgers are blockchain systems, where transactions are
-bundled together in blocks, which are linearly connected with hashes and distributed to all participants/peers.
+bundled together in blocks, which are linearly connected with hashes and distributed to all peers.
 The blockchain system, along with a consensus protocol deciding on which competing fork of the chain is to be included,
 maintains an immutable distributed ledger (i.e. the history of transactions).
 
 Validity of the transactions is tightly coupled with a consensus protocol, which makes sure
-peers in the network only validate well-behaved/truthful transactions and are, moreover,
+peers in the network only validate well-behaved and truthful transactions and are, moreover,
 properly incentivized to do so.
 
 The absence of a single central authority that has control over all assets of the participants allows
@@ -158,15 +159,14 @@ is fairly straightforward to write such programs embedded in a general-purpose
 language (in this case Haskell) and to reason about them with \textit{equational reasoning},
 it is restricted in the centralized setting and, therefore, does not suffice for our needs.
 
-Things become much more complicated when we move to the distributed/blockchain setting, as
-can be evidenced by the current attempts being made to overcome this~\cite{setzer,short,scilla}.
+Things become much more complicated when we move to the distributed setting of a blockchain~\cite{setzer,short,scilla}.
 Hence, there is a growing need for methods and tools that will
 enable tractable and precise reasoning about such systems.
 
 Numerous scripting languages have appeared recently~\cite{scriptlangs}, spanning a wide
 spectrum of expressiveness and complexity. While language design can impose restrictions
 on what a language can express, most of these restrictions are inherited from
-the accounting model that the underlying system adheres to.
+the accounting model to which the underlying system adheres.
 
 In the next section, we will discuss the two main forms of accounting models:
 \begin{enumerate}
@@ -183,7 +183,7 @@ each transaction refers to outputs of previous transactions,
 except for the initial \textit{coinbase} transaction of each block.
 Coinbase transactions have no inputs, create new currency and reward the miner of that block with a fixed amount.
 Bitcoin also provides a cryptographic protocol to make sure no adversary can tamper with the transactional history,
-e.g. by making the creation of new blocks computationally hard and invalidating the "truthful" chain statistically impossible.
+e.g. by making the creation of new blocks computationally hard and invalidating the ``truthful" chain statistically impossible.
 
 A crucial aspect of Bitcoin's design is that there are no explicit addresses included in the transactions.
 Rather, transaction outputs are actually program scripts, which allow someone to claim the funds by giving the proper inputs.
@@ -191,7 +191,7 @@ Thus, although there are no explicit user accounts in transactions, the effectiv
 are all the \textit{unspent transaction outputs} (UTxO) that he can claim (e.g. by providing a digital signature).
 
 \subsubsection{\textsc{Script}}
-In order to state such scripts in the outputs of a transaction, Bitcoin provides a low-level, Forth-like,
+In order to write such scripts in the outputs of a transaction, Bitcoin provides a low-level, Forth-like,
 stack-based scripting language, called \textsc{Script}.
 \textsc{Script} is intentionally not Turing-complete (e.g. it does not provide looping structures),
 in order to have more predictable behaviour.
@@ -204,7 +204,7 @@ allowed to be relayed from node to node.
 
 \paragraph{P2PKH}
 The most frequent example of a 'standard' program in \textsc{Script} is the
-\textit{pay-to-pubkey-hash} (P2PKH) type of scripts. Given a hash of public key \texttt{<pub\#>},
+\textit{pay-to-pubkey-hash} (P2PKH) type of scripts. Given a hash of a public key \texttt{<pub\#>},
 a P2PKH output carries the following script:
 \[
   \stack{OP\_DUP OP\_HASH <pub\#> OP\_EQ OP\_CHECKSIG}
@@ -283,7 +283,7 @@ This extension of the UTxO model has already been
 implemented\site{https://github.com/input-output-hk/plutus/tree/master/wallet-api/src/Ledger}, but
 only informally documented\site{https://github.com/input-output-hk/plutus/blob/master/docs/extended-utxo/README.md}.
 The reason to extend the UTxO model with data scripts is to bring more expressive power to UTxO-based blockchains,
-hoping that it is on par with Ethereum's account-based scripting model (see Section~\ref{subsec:ethereum}).
+hopefully bringing it on par with Ethereum's account-based scripting model (see Section~\ref{subsec:ethereum}).
 
 However, there is no formal argument to support this claim, and it is the goal of this thesis
 to provide the first formal investigation of the expressiveness introduced by this extension.
@@ -306,7 +306,8 @@ rather straightforward.
 One of Solidity's most distinguishing features is the concept of a contract's \textit{gas}; a limit to the amount
 of computational steps a contract can perform.
 At the time of the creation of a transaction, its owner specifies a certain amount of gas the contract can consume and
-pays a transaction fee proportional to it. In case of complete depletion, all global state changes are reverted.
+pays a transaction fee proportional to it. In case of complete depletion (i.e. all gas has been consumed before the contract
+finishes its execution), all global state changes are reverted as if the contract had never been run.
 This is a necessary ingredient for smart contract languages that provide
 arbitrary looping behaviour, since non-termination of the validation phase is certainly undesirable.
 
@@ -359,13 +360,14 @@ similar to Haskell~\cite{haskell}.
 
 Agda embraces the \textit{Curry-Howard correspondence}, which states that types are isomorphic to statements in
 (intuitionistic) logic and their programs correspond to the proofs of these statements~\cite{itt}.
-Through its unicode-based \textit{mixfix} notational system, one can easily translate a mathematical formula
-into a valid Agda type. Moreover, programs closely follow the structure of the corresponding proof, e.g. induction
+Through its unicode-based \textit{mixfix} notational system, one can easily translate a mathematical theorem
+into a valid Agda type.
+Moreover, programs and proofs share the same structure, e.g. induction
 in the proof manifests itself as recursion in the program.
 
 While Agda is not ideal for large software development, its flexible notation
 and elegant design is suitable for rapid prototyping of new ideas and exploratory purposes.
-We estimate not to hit such a barrier of complexity,
+We do not expect to hit such problems,
 since we will stay on a fairly abstract level which postulates cryptographic operations and other implementation details.
 
 \paragraph{Limitation}
@@ -396,7 +398,8 @@ which result in a prototype/reference implementation in Haskell,
 which informs the production code-base (also written in Haskell) on the properties that should be tested.
 
 Since this thesis is done in close collaboration with IOHK, it is situated on the second step of aforementioned pipeline;
-while there has been work on writing out papers about the extended UTxO model, there are still no formally verified results.
+while there has been work on writing papers about the extended UTxO model along with the actual implementation in Haskell,
+there is still no complete and mechanized account of its properties.
 
 \subsection{Functional Programming Principles}
 One last important manifestation of the functional programming principles behind IOHK is the choice
@@ -413,6 +416,9 @@ Coming back to the principles of functional programming, one could contrast this
 functional and imperative programs.
 One can use \textit{equational reasoning} for functional programs, due to their \textit{referential transparency},
 while this is not possible for imperative programs that contain side-effectful commands.
+Therefore, we hope that these principles will be reflected in the proof process itself;
+one would reason about purely functional UTxO-based ledgers in a compositional manner.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Preliminary Results}
@@ -427,7 +433,12 @@ and \textit{proof irrelevance}.
 
 \subsection{Formal Model I: Extended UTxO} \label{subsec:eutxo}
 We now set out to model the accounting model of a UTxO-based ledger.
+We will provide a inherently-typed model of transactions and ledgers;
+this gives rise to a notion of \textit{weakening} of available addresses, which we formalize.
+Moreover, we showcase the reasoning abilities of our model by giving
+an example of a correct-by-construction ledger.
 All code is publicly available on Github\site{https://github.com/omelkonian/formal-utxo}.
+
 Let us start with some basic types:
 \UTXObasicTypes{}
 Addresses are represented as natural numbers, since we do not care about details arising from the encoding in an
@@ -442,7 +453,7 @@ examples with expressive scripts that make use of state information, such as the
 
 As mentioned previously, we will not dive into the verification of the cryptological components of the model,
 hence we postulate an \textit{irreversible} hashing function which, given any value of any type,
-gives back an address (i.e. a natural number) and is furthermore injective (i.e. it is statistically impossible for two different
+gives back an address (i.e. a natural number) and is furthermore injective (i.e. it is highly unlikely for two different
 values to have the same hash).
 \UTXOhash{}
 
@@ -635,10 +646,13 @@ transaction $t_6$, as demonstrated below:
 
 \subsection{Formal Model II: BitML Calculus} \label{subsec:bitml}
 Now let us shift our focus to our second subject of study, the BitML calculus for modelling smart contracts.
-
+In this subsection we sketch the formalized part of BitML we have covered so far, namely the syntax and small-step
+semantics of BitML contracts, as well as an example execution of a contract under these semantics.
 All code is publicly available on Github\site{https://github.com/omelkonian/formal-bitml}.
+
 First, we begin with some basic definitions that will be used throughout this section:
-\BITbasicTypes{}
+\BITbasicTypesA{}
+\BITbasicTypesB{}
 Instead of giving a fixed datatype of participants, we parametrise our module with a given \textit{universe} of participants
 and a non-empty list of honest participants.
 Representation of time and monetary values is again done using natural numbers, while we model participant secrets as simple strings.
@@ -683,7 +697,6 @@ the given preconditions, namely that all deposit references in the contract are 
 and each involved participant is required to have a persistent deposit.
 
 To clarify things so far, let us see a simple example of a contract advertisement:
-\\ \todo{Find a more intuitive example...}
 \BITexampleAdvertisement{}
 We first need to open our module with a fixed set of participants (in this case \inlineA{} and \inlineB{}).
 We then define an advertisement, whose type already says a lot about what is going on;
@@ -718,8 +731,7 @@ and an action to pick one branch of a collection of contracts (introduced by the
 We have omitted uninteresting actions concerning the manipulation of deposits, such as dividing, joining, donating and destroying them.
 Since we will often need versions of the types of advertisements/contracts with their
 indices existentially quantified, we first provide aliases for them.
-\BITactionsA{}
-\BITactionsB{}
+\BITactions{}
 The action datatype is parametrised\footnote{
 In Agda, datatype parameters are similar to indices, but are not allowed to vary across constructors.
 }
@@ -733,7 +745,7 @@ declares new deposits that will be created by the action
 (e.g. dividing a deposit would require a single deposit as the third index and produce two other deposits in its fourth index).
 
 Although our indexing scheme might seem a bit heavyweight now, it makes many little details and assumptions explicit,
-which would bite us hard later on when we will need to reason about them.
+which would bite us later on when we will need to reason about them.
 
 Continuing from our previous example advertisement, let's see an example action where \inlineA{} spends the required \bitcoin ~100
 to stipulate the example contract\footnote{
@@ -742,8 +754,7 @@ Notice that we have to make all indices of the advertisement explicit in the sec
 \BITactionExample{}
 
 Configurations are now built from advertisements, active contracts, deposits, action authorizations and committed/revealed secrets:
-\BITconfigurationsA{}
-\BITconfigurationsB{}
+\BITconfigurations{}
 The indices are quite involved, since we need to record both the current advertisements, stipulated contracts and deposits
 and the required ones for the configuration to become valid. The most interesting case is the parallel composition
 operator, where the resources provided by the left operand might satisfy some requirements of the right operand. Moreover,
@@ -775,8 +786,8 @@ we discovered a discrepancy in the \inlineAuthRevRule{} rule, namely that there 
 Moreover, in order to later facilitate equational reasoning, we re-factored the \inlineControlRule{}
 to not contain the inner step as a hypothesis, but instead immediately inject it in the result operand of the step relation.
 
-A scrupulous reader might have noticed that the inference rules above have elided any treatment of timely constraints.
-This is handled by the top layer, whose states are now timed configurations.
+The inference rules above have elided any treatment of timely constraints;
+this is handled by the top layer, whose states are now timed configurations.
 The only interesting inference rule is the one that handles time decorations of the form \inlineAfter{},
 since all other cases are dispatched to the bottom layer (which just ignores timely aspects).
 \BITtimedRules{}
@@ -836,7 +847,7 @@ and the way we achieve this in mechanized formal methods.
 Again, realizing practical systems with such an enriched theory is a topic of current research~\cite{cubical} and no mature implementation exists yet, so we cannot integrate it with our current development in any pragmatic way.
 \item The crucial problems we have encountered so far are attributed to the non-deterministic nature of BitML, which is actually
 inherent in any process calculus. Building upon this idea, we plan to take a step back and investigate different reasoning
-techniques for a minimal process calculus. Once we have an approach that is elegant and pragmatic, we will incorporate it
+techniques for a minimal process calculus. Once we have an approach that is more suitable, we will incorporate it
 in our full-blown BitML calculus.
 \end{itemize}
 
@@ -871,7 +882,7 @@ there is still a lot of theoretical results to be covered:
 \begin{itemize}
 \item While I currently have the symbolic model in place, there is still no formalization of \textit{symbolic strategies},
 where one can reason about different adversary strategies and prove that certain scenarios are impossible.
-\item Another import task is to model the computational model; a counterpart of the symbolic model augmented
+\item Another import task is to define the computational model; a counterpart of the symbolic model augmented
 with pragmatic computational properties to more closely resemble the low-level details of Bitcoin.
 \item When both symbolic and computational strategies have been formalized, I will be able to finally
 prove the correctness of the BitML compiler, which translates high-level BitML contracts to
