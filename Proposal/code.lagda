@@ -18,14 +18,10 @@
 %% Code blocks
 \newcommand\UTXObasicTypes{
 \begin{myagda}\begin{code}
-Address : Set
-Address = ℕ
-
-Value : Set
-Value = ℕ
-
-BIT : ℕ -> Value
-BIT v = v
+postulate
+  Address : Set
+  Value : Set
+  BIT : ℕ -> Value
 \end{code}\end{myagda}
 }
 
@@ -52,11 +48,9 @@ record TxOutputRef : Set where
   field  id     : Address
          index  : ℕ
 
-record TxInput : Set where
+record TxInput {R D : Set} : Set where
   field  outputRef  : TxOutputRef
-         R          : Set
          redeemer   : State -> R
-         D          : Set
          validator  : State ->  Value ->  R ->  D ->  Bool
 \end{code}\end{myagda}
 }
@@ -66,22 +60,22 @@ record TxInput : Set where
 \begin{myagda}\begin{code}
 module UTxO (addresses : List Address) where
 
-record TxOutput : Set where
+record TxOutput {D : Set} : Set where
   field  value       : Value
          address     : Index addresses
-         Data        : Set
-         dataScript  : State -> Data
+         dataScript  : State -> D
 
 record Tx : Set where
   field  inputs   : Set⟨ TxInput ⟩
          outputs  : List TxOutput
-         forge    : Value
-         fee      : Value
 \end{code}\end{myagda}
 }
 \newcommand\UTXOoutTxB{
 \restorecolumns
 \begin{myagda}\begin{code}
+         forge    : Value
+         fee      : Value
+
 Ledger : Set
 Ledger = List Tx
 \end{code}\end{myagda}
@@ -89,23 +83,20 @@ Ledger = List Tx
 
 \newcommand\UTXOrunValidation{
 \begin{myagda}\begin{code}
-runValidation : (i : TxInput) -> (o : TxOutput) -> D i ≡ Data o -> State -> Bool
+runValidation : (i : TxInput) -> (o : TxOutput) -> D i ≡ D o -> State -> Bool
 runValidation i o refl st = validator i st (value o) (redeemer i st) (dataScript o st)
 \end{code}\end{myagda}
 }
 
 \newcommand\UTXOutxo{
 \begin{myagda}\begin{code}
-unspentOutputsTx : Tx -> Set⟨ TxOutputRef ⟩
-unspentOutputsTx tx = ((tx ♯) ^^ at UNDERR) <$$> (indices (outputs tx))
-##
-spentOutputsTx : Tx -> Set⟨ TxOutputRef ⟩
-spentOutputsTx tx = outputRef <$$> inputs tx
-##
 unspentOutputs : Ledger -> Set⟨ TxOutputRef ⟩
 unspentOutputs []           = ∅
-unspentOutputs (tx :: txs)  = unspentOutputs txs ∖ spentOutputsTx tx
-                            ∪ unspentOutputsTx tx
+unspentOutputs (tx :: txs)  = (unspentOutputs txs ∖ spentOutputsTx tx) ∪ unspentOutputsTx tx
+  where
+    spentOutputsTx, unspentOutputsTx : Tx -> Set⟨ TxOutputRef ⟩
+    spentOutputsTx       = (outputRef <$$> UNDERR) ∘ inputs
+    unspentOutputsTx tx  = ((tx ♯) ^^ at UNDERR) <$$> (indices (outputs tx))
 \end{code}\end{myagda}
 }
 
@@ -133,7 +124,7 @@ record IsValidTx (tx : Tx) (l : Ledger) : Set where
 ##
     validDataScriptTypes :
       ∀ i -> (iin : i ∈ inputs tx) ->
-        D i ≡ Data (lookupOutput l (outputRef i) (validTxRefs i iin) (validOutputIndices i iin))
+        D i ≡ D (lookupOutput l (outputRef i) (validTxRefs i iin) (validOutputIndices i iin))
 ##
       {- $\inferVeryLarge$ -}
 ##

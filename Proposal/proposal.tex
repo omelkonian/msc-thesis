@@ -202,6 +202,19 @@ allowed to be relayed from node to node.
 \newcommand\stack[1]{\text{\ttt{#1}}}
 \newcommand\Semantics[1]{\llbracket \stack{#1} \rrbracket}
 
+\paragraph{\textsc{Script} Notation}
+Programs in script are a linear sequence of either data values (e.g. numbers, hashes) or
+built-in operations (distinguished by their $\stack{OP\_\ }$ prefix).
+
+The stack is initially considered empty and we start reading inputs from left to right.
+When we encounter a data item, we simply push it to the top of the stack.
+On encountering an operation, we pop the necessary number of arguments from the stack, apply
+the operation and push the result back.
+The evaluation function $\llbracket \_ \rrbracket$ executes the given program and returns the final
+result at the top of the stack. For instance, adding two numbers looks like this:
+\[
+  \Semantics{1 2 OP\_ADD} = \stack{3}
+\]
 \paragraph{P2PKH}
 The most frequent example of a 'standard' program in \textsc{Script} is the
 \textit{pay-to-pubkey-hash} (P2PKH) type of scripts. Given a hash of a public key \texttt{<pub\#>},
@@ -439,11 +452,12 @@ Moreover, we showcase the reasoning abilities of our model by giving
 an example of a correct-by-construction ledger.
 All code is publicly available on Github\site{https://github.com/omelkonian/formal-utxo}.
 
-Let us start with some basic types:
+We start with the basic types, keeping them abstract since we do not care about details arising from the encoding in an
+actual implementation:
 \UTXObasicTypes{}
-Addresses are represented as natural numbers, since we do not care about details arising from the encoding in an
-actual implementation. Bitcoin values are again represented as natural numbers, but we provide a prefix notation
-to emphasize that a number corresponds to a bitcoin amount.
+We assume there are types representing addresses and bitcoin values, but also require the ability to construct
+a value out of a natural number. In the examples that follow, we assume the simplest representation, where
+both types are the natural numbers.
 
 There is also the notion of the \textit{state} of a ledger, which will be provided to transaction scripts and allow
 them to have stateful behaviour for more complicated schemes (e.g. imposing time constraints).
@@ -655,7 +669,11 @@ First, we begin with some basic definitions that will be used throughout this se
 \BITbasicTypesB{}
 Instead of giving a fixed datatype of participants, we parametrise our module with a given \textit{universe} of participants
 and a non-empty list of honest participants.
-Representation of time and monetary values is again done using natural numbers, while we model participant secrets as simple strings.
+Representation of time and monetary values is again done using natural numbers,
+while we model participant secrets as simple strings\footnote{
+Of course, one could provide more realistic types (e.g. words of specific length)
+to be closer to the implementation, as shown for the UTxO model in Section~\ref{subsec:eutxo}.
+}.
 A deposits consists of the participant that owns it and the number of bitcoins it carries.
 We, furthermore, introduce a simplistic language of logical predicates and arithmetic expressions with the usual constructs (e.g. numerical addition, logical conjunction) and give the usual semantics (predicates on booleans and arithmetic on naturals).
 A more unusual feature of these expressions is the ability to calculate length of secrets (within arithmetic expressions)
