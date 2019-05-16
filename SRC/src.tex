@@ -1,0 +1,80 @@
+\documentclass[acmsmall,nonacm=true,screen=true]{acmart}
+\settopmatter{printfolios=true,printccs=false,printacmref=false}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Bibliography style
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bibliographystyle{ACM-Reference-Format}
+\citestyle{acmauthoryear}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Packages
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% URLs
+\newcommand\site[1]{\footnote{\url{#1}}}
+
+% Graphics
+\graphicspath{ {images/} }
+\usepackage{colortbl}
+
+% Tikz
+\usepackage{tikz}
+\usetikzlibrary{chains,arrows,automata,fit,positioning,calc}
+
+% Import Agda code
+\input{code}
+
+\begin{document}
+\sloppy % for proper justification (no overflows to the right)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Title
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{Formalization of the BitML Calculus in Agda}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Authors
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\author{Orestis Melkonian}
+\orcid{0000-0003-2182-2698}
+\affiliation{
+  \department{Information and Computing Sciences}
+  \institution{Utrecht University}
+  \city{Utrecht}
+  \country{The Netherlands}
+}
+%\email{melkon.or@gmail.com}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Abstract
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{abstract}
+  \begin{description}
+    \item[Email:] melkon.or@gmail.com
+    \item[Research Advisors:] Wouter Swierstra \& Manuel Chakravarty
+    \item[ACM Student Number:] 4094241
+    \item[Category:] Graduate (MSc)
+  \end{description}
+\vspace{1cm}
+... Bitcoin ... Process Calculi ... the BitML calculus ...\\
+... provide the first formalization of the BitML calculus ...\\
+... set the foundation to later accommodate a full compilation correctness proof ... full abstraction result ...\\
+\end{abstract}
+
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+\label{sec:intro}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Distributed ledger technology creates issues
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Bibliography
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\nocite{*}
+\bibliography{sources}
+
+\end{document}
