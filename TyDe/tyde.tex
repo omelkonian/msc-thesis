@@ -1,0 +1,105 @@
+\documentclass[sigplan,nonacm=true,screen=true]{acmart}
+\settopmatter{printfolios=true,printccs=false,printacmref=false}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Bibliography style
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bibliographystyle{ACM-Reference-Format}
+\citestyle{acmauthoryear}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Packages
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% URLs
+\newcommand\site[1]{\footnote{\url{#1}}}
+
+% Graphics
+\graphicspath{ {images/} }
+\usepackage{colortbl}
+
+% Tikz
+\usepackage{tikz}
+\usetikzlibrary{chains,arrows,automata,fit,positioning,calc}
+
+% Import Agda code
+\input{code}
+
+\begin{document}
+\sloppy % for proper justification (no overflows to the right)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Title
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{Formal investigation of the Extended UTxO model (Extended Abstract)}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Authors
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\author{Orestis Melkonian}
+\orcid{0000-0003-2182-2698}
+\affiliation{
+  \department{Information and Computing Sciences}
+  \institution{Utrecht University}
+  \city{Utrecht}
+  \country{The Netherlands}
+}
+\email{melkon.or@gmail.com}
+
+\author{Wouter Swierstra}
+%\orcid{????-????-????-????}
+\affiliation{
+  \department{Information and Computing Sciences}
+  \institution{Utrecht University}
+  \city{Utrecht}
+  \country{The Netherlands}
+}
+\email{w.s.swierstra@uu.nl}
+
+\author{Manuel Chakravarty}
+%\orcid{????-????-????-????}
+\affiliation{
+  \institution{Input Output HK}
+  \country{Hong Kong}
+}
+\email{manuel.chakravarty@iohk.io}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Abstract
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{abstract}
+... Bitcoin ... UTxO vs Account-based ...\\
+... Cardano \& eUTxO ...\\
+... inherently-typed ledger validity ...\\
+... multicurrency ...\\
+\end{abstract}
+
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+\label{sec:intro}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Background}
+\label{sec:background}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Background}
+\label{sec:background}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Formal Model}
+\label{sec:model}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Bibliography
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\nocite{*}
+\bibliography{sources}
+
+\end{document}
