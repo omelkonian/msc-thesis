@@ -1,1 +1,15 @@
+# Tex
+**/*.out
+**/*.aux
+**/*.bbl
+**/*.blg
+**/*.lof
+**/*.log
+**/*.lot
+**/*.pyg
+**/*.gz
+**/*.toc
+**/*.ptb
+**/*.cut
+**/_minted*/
 **/code.tex
