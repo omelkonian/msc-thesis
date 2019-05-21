@@ -52,7 +52,8 @@
   %\vspace{0.15cm}
   \begin{minipage}{\textwidth}
 }
-{ \end{minipage}
+{ %\vspace{-.5cm}
+  \end{minipage}
   %\vspace{0.15cm}
 }
 
@@ -148,15 +149,21 @@
 %format refl      = "\HSCon{refl}"
 %format ∷         = "\HSCon{::}"
 %format tt        = "\HSCon{tt}"
+%format true      = "\HSCon{true}"
+%format DATA      = "\HSVar{data}"
 
 %%% Formatting
 %format DOTS     = "\HSSym{\dots}"
 %format VDOTS    = "\HSSym{\vdots}"
 %format ^^       = "\;"
 %format ##       = "\vspace{10pt}"
-%format UNDER    = "\HSSym{\_}"
+%format UNDEER   = "\HSSym{\_}"
+%format UNDER    = "\HSSym{\!\_\!}"
 %format UNDERL   = "\HSSym{\_\!}"
 %format UNDERR   = "\HSSym{\!\_}"
+%format IN       = "\HSVar{\! _{in}}"
+%format OUT      = "\HSVar{\! _{out}}"
+%format Σ        = "\HSVar{\sum}"
 
 %%% Usefull Notation
 %format ,        = "\HSSym{\mathbin{,}}"
@@ -186,8 +193,8 @@
 %format <->      = "\HSSym{\mathrel{\leftrightarrow}}"
 %format <=>      = "\HSSym{\mathrel{\iff}}"
 %format if       = "if"
-%format ℕ        = "\HSSym{\mathbb{N}}"
-%format 𝔹        = "\HSSym{\mathbb{B}}"
+%format ℕ        = "\HSCon{\mathbb{N}}"
+%format 𝔹        = "\HSCon{\mathbb{B}}"
 %format ∅        = "\HSSym{\varnothing}"
 %format ∪        = "\HSSym{\mathbin{\cup}}"
 %format ⟨        = "\HSSym{\langle\ }"
@@ -201,7 +208,8 @@
 %format BIT      = "\HSSym{\bitcoin}"
 %format ‼        = "\HSSym{\mathbin{!!}}"
 %format ♯        = "\HSSym{\ ♯}"
-%format ∶-       = "\HSSym{\vdash}"
+%format ∶-       = "\HSSym{\dashv}"
+%format ⊢       = "\HSSym{\dashv}"
 %format ⟩∶-      = "\HSSym{\ \rangle\vdash}"
 %format ∙        = "\HSSym{\bullet}"
 %format ⊕        = "\HSSym{\mathbin{\oplus}}"
@@ -225,25 +233,6 @@
 %format ≈        = "\HSSym{\mathrel{≈}}"
 %format ⇒        = "\HSSym{\mathrel{\Rightarrow}}"
 %format at       = "\HSSym{@}"
+%format ↪        = "\HSSym{\mathbin{\hookrightarrow}}"
+%format **       = "\HSSym{\mathbin{\ast}}"
 
-%format BAR      = "\HSSym{\! | \!}"
-%format TRI      = "\HSSym{\vartriangleright}"
-%format HTRI     = "\HSSym{♯\!\vartriangleright}"
-%format DTRI     = "\HSSym{{\vartriangleright}^d}"
-%format STRI     = "\HSSym{{\vartriangleright}^s}"
-%format BTRI     = "\HSSym{{\vartriangleright}^b}"
-
-%format SUBL     = "\HSSym{\!\text{\textsubscript{\tiny l}}}"
-%format SUBR     = "\HSSym{\!\text{\textsubscript{\tiny r}}}"
-%format SUBT     = "\HSSym{\!\text{\textsubscript{\tiny t}}}"
-%format SUBI     = "\HSSym{\!\text{\textsubscript{\tiny i}}}"
-%format SUPC     = "\HSSym{\!\text{\textsuperscript{\tiny c}}}"
-%format SUPG     = "\HSSym{\!\text{\textsuperscript{\tiny g}}}"
-%format SUPA     = "\HSSym{\!\text{\textsuperscript{\tiny a}}}"
-%format SUPL     = "\HSSym{\!\text{\textsuperscript{\tiny l}}}"
-%format SUPR     = "\HSSym{\!\text{\textsuperscript{\tiny r}}}"
-%format SUPP     = "\HSSym{\!\text{\textsuperscript{\tiny p}}}"
-%format SUPPLUS  = "\HSSym{\!\text{\textsuperscript{\tiny +}}}"
-%format SUPT     = "\HSSym{\!\text{\textsuperscript{\tiny t}}}"
-%format SUPCC    = "\HSSym{\text{\textsuperscript{\tiny c}}}"
-%format SUPD     = "\HSSym{\text{\textsuperscript{\tiny d}}}"

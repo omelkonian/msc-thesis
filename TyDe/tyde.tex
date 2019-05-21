@@ -1,11 +1,18 @@
-\documentclass[sigplan,nonacm=true,screen=true]{acmart}
-\settopmatter{printfolios=true,printccs=false,printacmref=false}
+\documentclass[sigplan,review,screen]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Bibliography style
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \bibliographystyle{ACM-Reference-Format}
-\citestyle{acmauthoryear}
+%\citestyle{acmauthoryear}
+
+%% Conference information
+\acmConference[PL'18]{ACM SIGPLAN Conference on Programming Languages}{January 01--03, 2018}{New York, NY, USA}
+\acmYear{2018}
+\acmISBN{} % \acmISBN{978-x-xxxx-xxxx-x/YY/MM}
+\acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
+\startPage{1}
+
+% Copyright
+\setcopyright{none}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Packages
@@ -13,14 +20,6 @@
 
 % URLs
 \newcommand\site[1]{\footnote{\url{#1}}}
-
-% Graphics
-\graphicspath{ {images/} }
-\usepackage{colortbl}
-
-% Tikz
-\usepackage{tikz}
-\usetikzlibrary{chains,arrows,automata,fit,positioning,calc}
 
 % Import Agda code
 \input{code}
@@ -31,7 +30,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Title
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\title{Formal investigation of the Extended UTxO model (Extended Abstract)}
+\title{Formal Investigation of the Extended UTxO Model (Extended Abstract)}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Authors
@@ -67,12 +66,38 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Abstract
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{abstract}
-... Bitcoin ... UTxO vs Account-based ...\\
-... Cardano \& eUTxO ...\\
-... inherently-typed ledger validity ...\\
-... multicurrency ...\\
-\end{abstract}
+%\begin{abstract}
+%\end{abstract}
+
+%% 2012 ACM Computing Classification System (CSS) concepts
+%% Generate at 'http://dl.acm.org/ccs/ccs.cfm'.
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10002978.10002986</concept_id>
+<concept_desc>Security and privacy~Formal methods and theory of security</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10002978.10002986.10002990</concept_id>
+<concept_desc>Security and privacy~Logic and verification</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10003752.10010124.10010131</concept_id>
+<concept_desc>Theory of computation~Program semantics</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Theory of computation~Program semantics}
+\ccsdesc[500]{Security and privacy~Formal methods and theory of security}
+\ccsdesc[500]{Security and privacy~Logic and verification}
+%% End of generated code
+
+%% Keywords (comma separated list)
+%\keywords{}
 
 \maketitle
 
@@ -80,26 +105,134 @@
 \section{Introduction}
 \label{sec:intro}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Distributed ledger technology has seen a myriad of applications during the past few years~\cite{mpc,zeroproof,fair},
+but has also unveiled a new source of vulnerabilities\site{
+https://en.wikipedia.org/wiki/The_DAO_(organization)
+} arising from the distributed execution of \textit{smart contracts} (programs that run on the blockchain).
+Since most of these applications deal with transactions of significant funds, it is crucial
+that we can formally reason about their concurrent behaviour.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Background}
-\label{sec:background}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Background}
-\label{sec:background}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+To this end, we attempt to lay the foundations for a mechanized formal framework,
+where one can verify that such scenarios are impossible.
+The grand vision is that blockchain developers will work alongside a proof assistant,
+writing code that carries formal proofs of the desired properties.
+We formulate an accounting model for ledgers based on \textit{unspent transaction outputs} (UTxO) in Agda~\cite{agda},
+exploiting its expressive dependent type system to mechanically enforce desired properties statically.
+An executable specification of our formal development is available on Github\site{
+https://github.com/omelkonian/formal-utxo/
+}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Formal Model}
 \label{sec:model}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Our formalization closely follows the abstract accounting model for UTxO-based cryptocurrencies presented in \cite{utxo},
+which leaves out details of other technical components of the blockchain such as cryptographic operations.
+We further extend the original formulation to cover the extensions employed by the Cardano blockchain platform~\cite{eutxo}.
+Cardano extends Bitcoin's UTxO model~\cite{bitcoin} with data scripts on transaction outputs, bringing it on par with Ethereum's expressive account-based scripting model~\cite{ethereum},
+as well as support for multiple cryptocurrencies on the same ledger~\cite{multicurrency}.
+
+\paragraph{Transactions \& Ledgers}
+For simplicity, we model monetary quantities and hashes as natural numbers.
+We treat the type of addresses as an abstract module parameter equipped with an injective hash function.
+Transactions consist of a list of outputs, transferring a monetary value to an address, and a list of inputs
+referring to previous outputs:
+\basic{}
+
+Both inputs and outputs carry authorization scripts; for a transaction to consume an unspent output, the
+result of the validator script has to evaluate to \inlineTrue{}, given the current state of the ledger and
+additional information provided by the redeemer and data scripts:
+\auth{}
+
+A ledger consists of a list of transactions, whose \textit{unspent transaction outputs} we can recursively compute:
+\utxo{}
+
+\paragraph{Validity}
+We are now ready to encode the validity of a transaction with respect to a given ledger as a dependent data type.
+For the sake of brevity, we present only two such conditions, namely that inputs refer to existing unspent outputs
+and all authorizations succeed:
+
+\valid{}
+Other validity conditions include that no output is spent twice (\inlineNDS{})
+and transactions preserve total values (\inlinePV{}).
+
+It is now possible to characterize a well-formed \inlineLedger{},
+by requiring a validity proof along with each insertion to the list of transactions.
+Exposing only this type-safe interface to the user will ensure one can only construct valid ledgers.
+
+\paragraph{Multi-currency}
+In order to allow for user-issues currencies, we generalize the transferred values to maps from currencies to natural numbers.
+Fortunately, the validity conditions work for any (ordered) commutative group, so we can effortlessly replace
+the previous numeric representation with currency maps.
+\textit{Monetary policies} are enforced by requiring a forging transaction to spend an output that carries the
+corresponding policy in its validator script:
+\multicurrency{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Meta-theory}
+\label{sec:meta}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Apart from being able to define correct-by-construction ledgers, we can prove further meta-theoretical results over our
+existing formulation.
+
+\paragraph{Weakening}
+Given a suitable injection on addresses, we prove a weakening lemma, stating that a valid ledger
+parametrized over some addresses will remain valid even if more addresses become available:
+\weakening{}
+Weakening consists of traversing the ledger's outputs and transporting all addresses via the supplied injection;
+in order to keep references intact, the injection has to also preserve the original hashes\footnote{
+A practical case of such weakening is migrating from a 32-bit word address space to a 64-bit one.
+}.
+
+\paragraph{Combining}
+Ideally, one would wish for a modular proof procedure, where the prover ``zooms in'' of interest
+and then weakens to the 
+
+We provide a ledger combinator that interleaves two \textit{separate} ledgers.
+Due to lack of space, we eschew from giving the formal definition of the separation connective \inlineAst{}.
+Briefly, two ledgers are separate if they do not share any common transaction and the produced interleaving 
+does not break previous validator scripts (since they will now execute on a different ledger state).
+These conditions are necessary to transfer the validity of the two sub-ledgers to a proof of validity of the merged ledger.
+\combining{}
+The notion of weakening we previously defined proves rather useful here,
+as it allows merging two ledgers acting on different addresses.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Future Work}
+\label{sec:future}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Proof Automation}
+Although we have made it possible to express desired ledger properties in the type system,
+users still need to manually discharge tedious proof obligations.
+In order to make the proof process more ergonomic, we can prove that the involved propositions are \textit{decidable},
+thus defining a decision procedure for closed formulas that do not contain any free variables~\cite{proofbyreflection};
+we have already proven decidability of the validity conditions\footnote{
+There is an example construction of a valid ledger in the code repository,
+where our decision procedure automatically discharges all required proofs.
+}
+and wish to also cover the propositions appearing in weakening and combining.
+
+Furthermore, it would be convenient to utilize Agda's meta-programming facilities to
+automatically insert weakening transports as needed when combining ledgers of a different address space.
+This would allow the prover to focus only on the transactions of interest and afterwards combine the results,
+without having to worry about intermediate weakening steps that are necessary to plumb things together.
+
+\paragraph{Comparison with Ethereum}
+It would be interesting to conduct a more formal comparison between UTxO-based and account-based ledgers,
+relying on previous work on \textit{chimeric ledgers}~\cite{chimeric} that gives a translation between these two approaches.
+Note that implementing this translation on our inherently-typed representation would
+guarantee that we only ever compile down to \textbf{valid} UTxO ledgers.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Acknowledgements
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{acks}
+We would like to thank Philip Wadler and Michael Peyton Jones for helpful discussion and IOHK for financial support.
+\end{acks}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Bibliography
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\nocite{*}
 \bibliography{sources}
 
 \end{document}
