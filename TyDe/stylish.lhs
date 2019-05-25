@@ -49,12 +49,11 @@
 
 \newenvironment{myagda}
 { \par
-  %\vspace{0.15cm}
+  \vspace{.1cm}
   \begin{minipage}{\textwidth}
 }
-{ %\vspace{-.5cm}
+{ %\vspace{.15cm}
   \end{minipage}
-  %\vspace{0.15cm}
 }
 
 \newcommand{\HSKeyword}[1]{\mathcolor{hsgold3}{\textbf{#1}}}
@@ -87,7 +86,7 @@
 %format pattern    = "\HSKeyword{pattern}"
 %format _          = "\HSSym{\anonymous} "
 %format ->         = "\HSSym{\to} "
-%format →          = "\HSSym{\to} "
+%format →          = "\HSSym{\to}"
 %format <-         = "\HSSym{\leftarrow} "
 %format =>         = "\HSSym{\Rightarrow} "
 %format \          = "\HSSym{\lambda} "
@@ -156,7 +155,7 @@
 %format DOTS     = "\HSSym{\dots}"
 %format VDOTS    = "\HSSym{\vdots}"
 %format ^^       = "\;"
-%format ##       = "\vspace{10pt}"
+%format ##       = "\vspace{3pt}"
 %format UNDEER   = "\HSSym{\_}"
 %format UNDER    = "\HSSym{\!\_\!}"
 %format UNDERL   = "\HSSym{\_\!}"
@@ -230,9 +229,9 @@
 %format —→       = "\HSSym{\mathrel{\longrightarrow}}"
 %format —↠       = "\HSSym{\mathrel{\twoheadrightarrow}}"
 %format ↭        = "\HSSym{\mathrel{\leftrightsquigarrow}}"
-%format ≈        = "\HSSym{\mathrel{≈}}"
 %format ⇒        = "\HSSym{\mathrel{\Rightarrow}}"
 %format at       = "\HSSym{@}"
 %format ↪        = "\HSSym{\mathbin{\hookrightarrow}}"
 %format **       = "\HSSym{\mathbin{\ast}}"
-
+%format ≈        = "\HSSym{\mathbin{≈}}"
+%format <$>      = "\HSSym{\mathbin{\ \langle\$\rangle\ }}"

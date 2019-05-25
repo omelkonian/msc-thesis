@@ -1,9 +1,6 @@
 %include polycode.fmt
 %include stylish.lhs
 
-\def\commentbegin{}
-\def\commentend{}
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                                  UTxO                                      %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -12,7 +9,7 @@
 \newcommand{\inlineTrue}{|true|}
 \newcommand{\inlineAst}{|UNDERL ** UNDER ~~ UNDERR|}
 \newcommand{\inlineLedger}{|Ledger|}
-\newcommand{\inlineNDS}{|Unique (outRef <$$> inputs tx)|}
+\newcommand{\inlineNDS}{|Unique (outRef <$> inputs tx)|}
 \newcommand{\inlinePV}{|forge + Σ IN ≡ fee + Σ OUT |}
 
 %% Code blocks
@@ -22,8 +19,8 @@
 module UTxO (Address : Set) (UNDERL ♯ : Address → ℕ) where
 
 record OutputRef : Set where
-  field  id     : Address
-         index  : ℕ
+  field  id     : ℕ  -- hash of the transaction
+         index  : ℕ  -- index in the list of outputs
 
 record Input {R D : Set} : Set where
   field  outRef     : OutputRef
@@ -55,7 +52,8 @@ authorize i l = let s = getState l in
 \begin{myagda}\begin{code}
 utxo : List Tx → List OutputRef
 utxo []         =  ∅
-utxo (tx :: l)  =  (utxo l ∖ outRefs tx) ∪ outputs tx
+utxo (tx :: l)  =  utxo l ^^ ∖ (outRef <$> inputs tx)
+                ∪  outputs tx
 \end{code}\end{myagda}
 }
 
@@ -70,26 +68,15 @@ record IsValidTx (tx : Tx) (l : List Tx) : Set where
 \end{code}\end{myagda}
 }
 
-\newcommand\multicurrency{
-\begin{myagda}\begin{code}
-forging :  ∀ c → c ∈ keys (forge tx) →
-             ∃[ i ] ^^ ∃ ^^ λ (_ : i ∈ inputs tx) →
-               (address $ lookupOutput l (outRef i)) ♯ ≡ c
-\end{code}\end{myagda}
-}
-
 \newcommand\weakening{
 \begin{myagda}\begin{code}
-weakening  :  (f : A ↪ B) → Ledger l
-              {- $\rule[3pt]{3.5cm}{.6pt}$ -}
-           →  Ledger (weaken f l)
+weakening  :  (f : A ↪ B) → Ledger l → Ledger (weaken f l)
 \end{code}\end{myagda}
 }
 
 \newcommand\combining{
 \begin{myagda}\begin{code}
 UNDEER ↔ UNDEER ⊢ UNDEER  :  Ledger l → Ledger l′ → l ** l′ ~~ l″
-                             {- $\rule[3pt]{5cm}{.6pt}$ -}
                           →  Ledger l″
 \end{code}\end{myagda}
 }
