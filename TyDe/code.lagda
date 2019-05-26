@@ -70,7 +70,7 @@ record IsValidTx (tx : Tx) (l : List Tx) : Set where
 
 \newcommand\weakening{
 \begin{myagda}\begin{code}
-weakening  :  (f : A ↪ B) → Ledger l → Ledger (weaken f l)
+weakening : (f : A ↪ B) → Ledger l → Ledger (weaken f l)
 \end{code}\end{myagda}
 }
 
