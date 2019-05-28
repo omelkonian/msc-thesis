@@ -1,11 +1,19 @@
 default: all
 
-all: build
+all: view
 
-build: code.lagda
-	lhs2TeX --poly -o code.tex code.lagda
+view: build
+	evince src.pdf &
+
+build: code src.tex
+	xelatex -interaction=nonstopmode --shell-escape src.tex
+	bibtex src.aux
+	xelatex -interaction=nonstopmode --shell-esacpe src.tex
+
+code: stylish.lhs src.lagda
+	lhs2TeX --poly -o src.tex src.lagda
 
 clean:
-	rm -f *.aux *.log l*.out code.tex
+	rm -f *.aux *.log *.out *.ptb *.blg *.bbl code.tex
 
 .PHONY: default all clean
