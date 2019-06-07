@@ -52,8 +52,8 @@
   %\vspace{0.15cm}
   \begin{minipage}{\textwidth}
 }
-{ \end{minipage}
-  %\vspace{0.15cm}
+{ \vspace{-0.3cm}
+  \end{minipage}
 }
 
 \newcommand{\HSKeyword}[1]{\mathcolor{hsgold3}{\textbf{#1}}}
@@ -145,22 +145,28 @@
 %%format as         = "\HSKeyword{as}"
 %format using       = "\HSKeyword{using}"
 
-%format refl      = "\HSCon{refl}"
-%format ∷         = "\HSCon{::}"
-%format tt        = "\HSCon{tt}"
+%format refl     = "\HSCon{refl}"
+%format ∷        = "\HSCon{::}"
+%format tt       = "\HSCon{tt}"
 
 %%% Formatting
 %format DOTS     = "\HSSym{\dots}"
 %format VDOTS    = "\HSSym{\vdots}"
 %format ^^       = "\;"
+%format SP       = "\;"
 %format ##       = "\vspace{10pt}"
-%format UNDER    = "\HSSym{\_}"
-%format UNDERL   = "\HSSym{\_\!}"
-%format UNDERR   = "\HSSym{\!\_}"
+%format U        = "\HSSym{\_}"
+%format UL       = "\HSSym{\_\!}"
+%format ULL      = "\HSSym{\_\!\!}"
+%format UR       = "\HSSym{\!\_}"
+%format URR      = "\HSSym{\!\!\_}"
 
 %%% Usefull Notation
 %format ,        = "\HSSym{\mathbin{,}}"
-%format forall   = "\HSSym{\forall}"
+%format forall   = "\HSSym{\forall\ }"
+%format ∀        = "\HSSym{\forall\ }"
+%format exists   = "\HSSym{\exists\ }"
+%format ∃        = "\HSSym{\exists}"
 %format dot      = "\HSSym{.}"
 %format ^=       = "\HSSym{\bumpeq}"
 %format alpha    = "\HSVar{\alpha}"
@@ -181,7 +187,7 @@
 %format :+:      = "\HSCon{:\!+\!:}"
 %format :@:      = "\HSCon{:\!@\!:}"
 %format <>       = "\HSSym{\diamond}"
-%format <$$>     = "\HSSym{<\!\!\$\!\!>}"
+%format <$$>     = "\HSSym{\langle\!\!\$\!\!\rangle}"
 %format <*>      = "\HSSym{<\!\!*\!\!>}"
 %format <->      = "\HSSym{\mathrel{\leftrightarrow}}"
 %format <=>      = "\HSSym{\mathrel{\iff}}"
@@ -193,6 +199,7 @@
 %format ⟨        = "\HSSym{\langle\ }"
 %format ⟩        = "\HSSym{\ \rangle}"
 %format ∈        = "\HSSym{\mathrel{\in}}"
+%format ∉        = "\HSSym{\mathrel{\notin}}"
 %format ∋        = "\HSSym{\mathrel{\ni}}"
 %format iin      = "\HSSym{i\!\in}"
 %format ⊆        = "\HSSym{\mathrel{\subseteq}}"
@@ -220,13 +227,18 @@
 %format ∎        = "\HSSym{\text{\mbox{\tiny$\square$}}}"
 %format —→⟨      = "\HSSym{\longrightarrow\!\langle\ }"
 %format —→       = "\HSSym{\mathrel{\longrightarrow}}"
-%format —↠       = "\HSSym{\mathrel{\twoheadrightarrow}}"
+%format ARR      = "\HSSym{\mathrel{\overset{\alpha}{\longrightarrow}}}"
+%format —↠       = "\HSSym{\mathrel{{\longrightarrow}^*}}"
 %format ↭        = "\HSSym{\mathrel{\leftrightsquigarrow}}"
 %format ≈        = "\HSSym{\mathrel{≈}}"
 %format ⇒        = "\HSSym{\mathrel{\Rightarrow}}"
 %format at       = "\HSSym{@}"
+%format ∗        = "\HSSym{\ \ast}"
+%format →        = "\HSSym{\mathrel{\rightarrow}}"
+%format ≟        = "\HSSym{\mathbin{\overset{\tiny ?}{=}}}"
+%format Σ        = "\HSSym{\Sigma\!}"
 
-%format BAR      = "\HSSym{\! | \!}"
+%format BAR      = "\HSSym{\mathbin{|}}"
 %format TRI      = "\HSSym{\vartriangleright}"
 %format HTRI     = "\HSSym{♯\!\vartriangleright}"
 %format DTRI     = "\HSSym{{\vartriangleright}^d}"
@@ -236,14 +248,13 @@
 %format SUBL     = "\HSSym{\!\text{\textsubscript{\tiny l}}}"
 %format SUBR     = "\HSSym{\!\text{\textsubscript{\tiny r}}}"
 %format SUBT     = "\HSSym{\!\text{\textsubscript{\tiny t}}}"
+%format SUBN     = "\HSSym{\!\text{\textsubscript{\tiny n}}}"
 %format SUBI     = "\HSSym{\!\text{\textsubscript{\tiny i}}}"
-%format SUPC     = "\HSSym{\!\text{\textsuperscript{\tiny c}}}"
-%format SUPG     = "\HSSym{\!\text{\textsuperscript{\tiny g}}}"
-%format SUPA     = "\HSSym{\!\text{\textsuperscript{\tiny a}}}"
-%format SUPL     = "\HSSym{\!\text{\textsuperscript{\tiny l}}}"
-%format SUPR     = "\HSSym{\!\text{\textsuperscript{\tiny r}}}"
-%format SUPP     = "\HSSym{\!\text{\textsuperscript{\tiny p}}}"
-%format SUPPLUS  = "\HSSym{\!\text{\textsuperscript{\tiny +}}}"
-%format SUPT     = "\HSSym{\!\text{\textsuperscript{\tiny t}}}"
-%format SUPCC    = "\HSSym{\text{\textsuperscript{\tiny c}}}"
-%format SUPD     = "\HSSym{\text{\textsuperscript{\tiny d}}}"
+%format SG     = "\HSSym{\!\text{\textsuperscript{\tiny g}}}"
+%format SA     = "\HSSym{\!\text{\textsuperscript{\tiny a}}}"
+%format SL     = "\HSSym{\!\text{\textsuperscript{\tiny l}}}"
+%format SR     = "\HSSym{\!\text{\textsuperscript{\tiny r}}}"
+%format SPLUS  = "\HSSym{\!\text{\textsuperscript{\tiny +}}}"
+%format ST     = "\HSSym{\!\text{\textsuperscript{\tiny t}}}"
+%format SC     = "\HSSym{\text{\textsuperscript{\tiny c}}}"
+%format SD     = "\HSSym{\text{\textsuperscript{\tiny d}}}"
