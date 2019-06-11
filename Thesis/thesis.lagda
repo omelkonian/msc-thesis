@@ -17,21 +17,22 @@
 % Quotes
 \usepackage{csquotes}
 
-% Graphics
-\graphicspath{ {images/} }
-\usepackage{colortbl}
-
 % Tikz
 \usepackage{tikz}
 \usetikzlibrary{chains,arrows,automata,fit,positioning,calc}
-
-% Import Agda code
-\input{code}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Macros
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand\todo[1]{\textcolor{red}{TODO: #1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Agda imports
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%include polycode.fmt
+%include stylish.lhs
+\def\commentbegin{}
+\def\commentend{}
 
 \begin{document}
 \sloppy % for proper justification (no overflows to the right)
@@ -54,7 +55,7 @@
   \city{Utrecht}
   \country{The Netherlands}
 }
-\email{melkon.or@gmail.com}
+\email{melkon.or@@gmail.com}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Abstract
@@ -283,7 +284,7 @@ the Bitcoin blockchain. We will return for a more formal treatment of BitML in S
 
 \subsubsection{Extended UTxO}
 In this work, we will consider the version of the UTxO model used by IOHK's Cardano blockchain\site{www.cardano.org}.
-In contrast to Bitcoin's \textit{proof-of-work} consensus protocol~\cite{bitcoin}, 
+In contrast to Bitcoin's \textit{proof-of-work} consensus protocol~\cite{bitcoin},
 Cardano's \textit{Ouroboros} protocol~\cite{ouroboros} is \textit{proof-of-stake}.
 This, however, does not concern our study of the abstract accounting model, thus we
 refrain from formally modelling and comparing different consensus techniques.
@@ -327,7 +328,7 @@ arbitrary looping behaviour, since non-termination of the validation phase is ce
 If time permits, we will initially provide a formal justification of Solidity and proceed to
 formally compare the extended UTxO model against it.
 Since Solidity is a fully-fledged programming language with lots of features
-(e.g. static typing, inheritance, libraries, user-defined types), it makes sense to 
+(e.g. static typing, inheritance, libraries, user-defined types), it makes sense to
 restrict our formal study to a compact subset of Solidity that is easy to reason about.
 This is the approach also taken in Featherweight Java~\cite{featherweightjava}; a subset
 of Java that omits complex features such as reflection, in favour of easier behavioural reasoning
@@ -341,7 +342,7 @@ In the same vein, we will try to introduce a lightweight version of Solidity, wh
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Scope}
-At this point, we have to stress the fact that we are not aiming for a formalization of a fully-fledged 
+At this point, we have to stress the fact that we are not aiming for a formalization of a fully-fledged
 blockchain system with all its bells and whistles, but rather focus on the underlying accounting model.
 Therefore, we will omit details concerning cryptographic operations and aspects of the actual implementation
 of such a system. Instead, we will work on an abstract layer that postulates the well-behavedness of these
@@ -350,7 +351,7 @@ give us a clear overview of the essence of the problem.
 
 Restricting the scope of our attempt is also motivated from the fact that individual
 components such as cryptographic protocols are orthogonal to the functionality we study here.
-This lack of tight cohesion between the components of the system allows one to 
+This lack of tight cohesion between the components of the system allows one to
 safely factor each one out and formalize it independently.
 
 It is important to note that this is not always the case for every domain. A prominent example of
@@ -406,7 +407,7 @@ and the use of \textit{property-based testing}~\cite{quickcheck} for the product
 
 IOHK's distinct feature is that it advocates a more rigorous development pipeline;
 ideas are initially worked on paper by pure academics,
-which create fertile ground for starting formal verification in Agda/Coq for more confident results, 
+which create fertile ground for starting formal verification in Agda/Coq for more confident results,
 which result in a prototype/reference implementation in Haskell,
 which informs the production code-base (also written in Haskell) on the properties that should be tested.
 
@@ -454,14 +455,23 @@ All code is publicly available on Github\site{https://github.com/omelkonian/form
 
 We start with the basic types, keeping them abstract since we do not care about details arising from the encoding in an
 actual implementation:
-\UTXObasicTypes{}
+\begin{myagda}\begin{code}
+postulate
+  Address : Set
+  Value : Set
+  BIT : ℕ -> Value
+\end{code}\end{myagda}
 We assume there are types representing addresses and bitcoin values, but also require the ability to construct
 a value out of a natural number. In the examples that follow, we assume the simplest representation, where
 both types are the natural numbers.
 
 There is also the notion of the \textit{state} of a ledger, which will be provided to transaction scripts and allow
 them to have stateful behaviour for more complicated schemes (e.g. imposing time constraints).
-\UTXOstate{}
+\begin{myagda}\begin{code}
+record State : Set where
+  field  height : ℕ
+         VDOTS
+\end{code}\end{myagda}
 The state components have not been finalized yet, but can easily be extended later when we actually investigate
 examples with expressive scripts that make use of state information, such as the current length of the ledger (\textit{height}).
 
@@ -469,13 +479,27 @@ As mentioned previously, we will not dive into the verification of the cryptolog
 hence we postulate an \textit{irreversible} hashing function which, given any value of any type,
 gives back an address (i.e. a natural number) and is furthermore injective (i.e. it is highly unlikely for two different
 values to have the same hash).
-\UTXOhash{}
+\begin{myagda}\begin{code}
+postulate
+  UNDERL ♯ : ∀ {A : Set} -> A -> Address
+  ♯-injective : ∀ {x y : A} -> x ♯ ≡ y ♯ -> x ≡ y
+\end{code}\end{myagda}
 
 \subsubsection{Transactions}
 In order to model transactions that are part of a distributed ledger, we need to first define
 transaction \textit{inputs} and \textit{outputs}.
-\UTXOinsOutRefs{}
-\textit{Output references} consist of the address that a transaction hashes to, 
+\begin{myagda}\begin{code}
+record TxOutputRef : Set where
+  constructor UNDERL at UNDERR
+  field  id     : Address
+         index  : ℕ
+
+record TxInput {R D : Set} : Set where
+  field  outputRef  : TxOutputRef
+         redeemer   : State -> R
+         validator  : State ->  Value ->  R ->  D ->  Bool
+\end{code}\end{myagda}
+\textit{Output references} consist of the address that a transaction hashes to,
 as well as the index in this transaction's list of outputs.
 \textit{Transaction inputs} refer to some previous output in the ledger, but also contain two types of scripts.
 The \textit{redeemer} provides evidence of authorization to spend the output.
@@ -488,28 +512,105 @@ Transaction outputs send a bitcoin amount to a particular address, which either 
 blockchain participant (P2PKH) or a hash of a next transaction's script (P2SH).
 Here, we opt to embrace the \textit{inherently-typed} philosophy of Agda and model available addresses as module parameters.
 That is, we package the following definitions in a module with such a parameter, as shown below:
-\UTXOoutTxA{}
-\UTXOoutTxB{}
+\savecolumns
+\begin{myagda}\begin{code}
+module UTxO (addresses : List Address) where
+
+record TxOutput {D : Set} : Set where
+  field  value       : Value
+         address     : Index addresses
+         dataScript  : State -> D
+
+record Tx : Set where
+  field  inputs   : Set⟨ TxInput ⟩
+         outputs  : List TxOutput
+\end{code}\end{myagda}
+
+\restorecolumns
+\begin{myagda}\begin{code}
+         forge    : Value
+         fee      : Value
+
+Ledger : Set
+Ledger = List Tx
+\end{code}\end{myagda}
 \textit{Transaction outputs} consist of a bitcoin amount and the address (out of the available ones) this amount is sent to,
 as well as the data script, which provides extra information to the aforementioned validator and allows for more expressive schemes.
 Investigating exactly the extent of this expressiveness is one of the main goals of this thesis.
 
 For a transaction to be submitted, one has to check that each input can actually spend the output it refers to.
 At this point of interaction, one must combine all scripts, as shown below:
-\UTXOrunValidation{}
+\begin{myagda}\begin{code}
+runValidation : (i : TxInput) -> (o : TxOutput) -> D i ≡ D o -> State -> Bool
+runValidation i o refl st = validator i st (value o) (redeemer i st) (dataScript o st)
+\end{code}\end{myagda}
 Note that the intermediate types carried by the respective input and output must align, evidenced by the
 equality proof that is required as an argument.
 
 \subsubsection{Unspent Τransaction Οutputs}
-With the basic modelling of a ledger and its transaction in place, it is fairly straightforward to 
+With the basic modelling of a ledger and its transaction in place, it is fairly straightforward to
 inductively define the calculation of a ledger's unspent transaction outputs:
-\UTXOutxo{}
+\begin{myagda}\begin{code}
+unspentOutputs : Ledger -> Set⟨ TxOutputRef ⟩
+unspentOutputs []           = ∅
+unspentOutputs (tx :: txs)  = (unspentOutputs txs ∖ spentOutputsTx tx) ∪ unspentOutputsTx tx
+  where
+    spentOutputsTx, unspentOutputsTx : Tx -> Set⟨ TxOutputRef ⟩
+    spentOutputsTx       = (outputRef <$$> UNDERR) ∘ inputs
+    unspentOutputsTx tx  = ((tx ♯) ^^ at UNDERR) <$$> (indices (outputs tx))
+\end{code}\end{myagda}
 
 \subsubsection{Validity of Τransactions}
 In order to submit a transaction, one has to make sure it is valid with respect to the current ledger.
 We model validity as a record indexed by the transaction to be submitted and the current ledger:
-\UTXOvalidA{}
-\UTXOvalidB{}
+\savecolumns
+\begin{myagda}\begin{code}
+record IsValidTx (tx : Tx) (l : Ledger) : Set where
+  field
+    validTxRefs :
+      ∀ i -> i ∈ inputs tx ->
+        Any (λ t -> t ♯ ≡ id (outputRef i)) l
+##
+    validOutputIndices :
+      ∀ i -> (iin : i ∈ inputs tx) ->
+        index (outputRef i) <
+          length (outputs (lookupTx l (outputRef i) (validTxRefs i iin)))
+\end{code}\end{myagda}
+
+\restorecolumns
+\begin{myagda}\begin{code}
+    validOutputRefs :
+      ∀ i -> i ∈ inputs tx ->
+        outputRef i ∈ unspentOutputs l
+##
+    validDataScriptTypes :
+      ∀ i -> (iin : i ∈ inputs tx) ->
+        D i ≡ D (lookupOutput l (outputRef i) (validTxRefs i iin) (validOutputIndices i iin))
+##
+      {- $\inferVeryLarge$ -}
+##
+    preservesValues :
+      forge tx + sum (mapWith∈ (inputs tx) λ {i} iin ->
+                       lookupValue l i (validTxRefs i iin) (validOutputIndices i iin))
+        ≡
+      fee tx + sum (value <$$> outputs tx)
+##
+    noDoubleSpending :
+      noDuplicates (outputRef <$$> inputs tx)
+##
+    allInputsValidate :
+      ∀ i -> (iin : i ∈ inputs tx) ->
+        let  out : TxOutput
+             out = lookupOutput l (outputRef i) (validTxRefs i iin) (validOutputIndices i iin)
+        in   ∀ (st : State) ->
+               T (runValidation i out (validDataScriptTypes i iin) st)
+##
+    validateValidHashes :
+      ∀ i -> (iin : i ∈ inputs tx) ->
+        let  out : TxOutput
+             out = lookupOutput l (outputRef i) (validTxRefs i iin) (validOutputIndices i iin)
+        in   toℕ (address out) ≡ (validator i) ♯
+\end{code}\end{myagda}
 The first four conditions make sure the transaction references and types are well-formed, namely that
 inputs refer to actual transactions (\textit{validTxRefs}, \textit{validOutputIndices})
 which are unspent so far (\textit{validOutputRefs}), but also that intermediate types used in interacting
@@ -517,11 +618,11 @@ inputs and outputs align (\textit{validDataScriptTypes}).
 
 The last four validation conditions are more interesting, as they ascertain the validity of the submitted transaction,
 namely that the bitcoin values sum up properly (\textit{preservesValues}), no output is spent twice (\textit{noDoubleSpending}),
-validation succeeds for each input-output pair (\textit{allInputsValidate}) and outputs hash to the hash of their corresponding 
+validation succeeds for each input-output pair (\textit{allInputsValidate}) and outputs hash to the hash of their corresponding
 validator script (\textit{validateValidHashes}).
 
 The definitions of lookup functions are omitted, as they are uninteresting. The only important design choice is that,
-instead of modelling lookups as partial functions (i.e. returning \inlineMaybe{}), they require a membership
+instead of modelling lookups as partial functions (i.e. returning |Maybe|), they require a membership
 proof as an argument moving the responsibility to the caller (as evidenced by their usage in the validity conditions).
 
 \subsubsection{Weakening Lemma}
@@ -531,29 +632,46 @@ additional addresses without losing the validity of the ledger constructed thus 
 In order to do, we need to first expose the basic datatypes from inside the module,
 introducing their \textit{primed} version which takes the corresponding module parameter as an index:
 
-\UTXOprimedTypes{}
+\begin{myagda}\begin{code}
+Ledger′ : List Address -> Set
+Ledger′ as = Ledger
+  where open import UTxO as
+VDOTS
+\end{code}\end{myagda}
 
 We can now precisely define what it means to weaken an address space; one just adds more available
 addresses without removing any of the pre-existing addresses:
 
-\UTXOweaken{}
+\begin{myagda}\begin{code}
+weakenTxOutput : Prefix as bs -> TxOutput′ as -> TxOutput′ bs
+weakenTxOutput pr txOut = txOut { address = inject≤ addr (prefix-length pr) }
+  where open import UTxO bs
+\end{code}\end{myagda}
 For simplicity's sake, we allow extension at the end of the address space instead of anywhere in
-between\footnote{Technically, we require \inlinePrefix{} instead of the more flexible \inlineSubset{}.}.
+between\footnote{Technically, we require |Prefix as bs| instead of the more flexible |as ⊆ bs|.}.
 Notice also that the only place where weakening takes place are transaction outputs, since all other
 components do not depend on the available address space.
 
 With the weakening properly defined, we can finally prove the \textit{weakening lemma} for the available address space:
 
-\UTXOweakenLemma{}
+\begin{myagda}\begin{code}
+weakening : ∀ {as bs : List Address} {tx : Tx′ as} {l : Ledger′ as}
+  ->  (pr : Prefix as bs)
+  ->  IsValidTx′ as tx l
+      {- $\inferLarge$ -}
+  ->  IsValidTx′ bs (weakenTx pr tx) (weakenLedger pr l)
+
+weakening = DOTS
+\end{code}\end{myagda}
 The weakening lemma states that the validity of a transaction with respect to a ledger is preserved if
-we choose to weaken the available address space, which we estimate to be useful when we later prove more 
+we choose to weaken the available address space, which we estimate to be useful when we later prove more
 intricate properties of the extended UTxO model.
 
 \subsubsection{Example} \label{subsec:utxo-example}
 To showcase how we can use our model to construct \textit{correct-by-construction} ledgers,
 let us revisit the example ledger presented in the Chimeric Ledgers paper~\cite{chimeric}.
 
-Any blockchain can be visually represented as a \textit{directed acyclic graph} (DAG), with transactions as nodes 
+Any blockchain can be visually represented as a \textit{directed acyclic graph} (DAG), with transactions as nodes
 and input-output pairs as edges, as shown in Figure~\ref{fig:utxo-ledger}.
 \begin{figure}
 \newcommand\forge[1]{forge: \bitcoin ~#1}
@@ -591,7 +709,7 @@ and input-output pairs as edges, as shown in Figure~\ref{fig:utxo-ledger}.
     & \node[basic box, label = $t_6$] (tsix)
       {\forge{0}\\ \fee{1}};
     & \node (end) {}; \\
-    
+
     \node {};
     & \node {};
     & \node[basic box, label = $t_3$] (ttt)
@@ -605,21 +723,21 @@ and input-output pairs as edges, as shown in Figure~\ref{fig:utxo-ledger}.
 
   \path
   (t)     edge[to]           node[anchor=south,above]{\bitcoin ~1000}
-                             node[anchor=north,below]{@1} (tt)
+                             node[anchor=north,below]{@@1} (tt)
   (tt)    edge[to, redge]    node[anchor=south,above]{\hspace{10pt} \bitcoin ~200}
-                             node[anchor=north,below]{\hspace{-10pt} @1} (ttt)
+                             node[anchor=north,below]{\hspace{-10pt} @@1} (ttt)
   (tt)    edge[to]           node[anchor=south,above]{\bitcoin ~800}
-                             node[anchor=north,below]{@2} (tfive)  
+                             node[anchor=north,below]{@@2} (tfive)
   (ttt)   edge[to]           node[anchor=south,above]{\bitcoin ~199}
-                             node[anchor=north,below]{@3} (tfour)
+                             node[anchor=north,below]{@@3} (tfour)
   (tfour) edge[to, redge]    node[anchor=south,above]{\hspace{-10pt} \bitcoin ~207}
-                             node[anchor=north,below]{\hspace{10pt} @2} (tfive)
+                             node[anchor=north,below]{\hspace{10pt} @@2} (tfive)
   (tfive) edge[to, upedge]   node[anchor=south,above]{\bitcoin ~500}
-                             node[anchor=north,below]{@2} (tsix)
+                             node[anchor=north,below]{@@2} (tsix)
   (tfive) edge[to, downedge] node[anchor=south,above]{\bitcoin ~500}
-                             node[anchor=north,below]{@3} (tsix)
+                             node[anchor=north,below]{@@3} (tsix)
   (tsix)  edge[to, red]      node[anchor=south,above]{\bitcoin ~999}
-                             node[anchor=north,below]{@3} (end)
+                             node[anchor=north,below]{@@3} (end)
   ;
 \end{tikzpicture}
 \caption{Example ledger with six transactions (unspent outputs are coloured in red)}
@@ -627,8 +745,34 @@ and input-output pairs as edges, as shown in Figure~\ref{fig:utxo-ledger}.
 \end{figure}
 
 First, we need to set things up by declaring the list of available addresses and opening our module with this parameter.
-\UTXOexampleSetupA{}
-\UTXOexampleSetupB{}
+\savecolumns
+\begin{myagda}\begin{code}
+addresses : List Address
+addresses = 1 :: 2 :: 3 :: []
+##
+open import UTxO addresses
+##
+dummyValidator : State -> Value -> ℕ -> ℕ -> Bool
+dummyValidator = λ _ _ _ _ -> true
+##
+withScripts : TxOutputRef -> TxInput
+withScripts tin = record  { outputRef  = tin
+                          ; redeemer   = λ _ -> 0
+                          ; validator  = dummyValidator
+                          }
+\end{code}\end{myagda}
+
+\restorecolumns
+\begin{myagda}\begin{code}
+BIT UNDERL at UNDERR : Value -> Index addresses -> TxOutput
+BIT v at addr = record  { value       = v
+                        ; address     = addr
+                        ; dataScript  = λ _ -> 0
+                        }
+##
+postulate
+  validator♯ : ∀ {i : Index addresses} -> toℕ i ≡ dummyValidator ♯
+\end{code}\end{myagda}
 Note that, since we will not utilize the expressive power of scripts in this example, we also provide convenient short cuts for
 defining inputs and outputs with dummy default scripts.
 Furthermore, we postulate that the addresses are actually the hashes of validators scripts, corresponding to the P2SH scheme
@@ -639,16 +783,68 @@ The first sub-index of each variable refers to the order the transaction are sub
 while the second sub-index refers to which output of the given transaction we select.
 }
 depicted in Figure~\ref{fig:utxo-ledger}:
-\UTXOexampleAA{}
-\UTXOexampleAB{}
+\savecolumns
+\begin{myagda}\begin{code}
+t₁ , t₂ , t₃ , t₄ , t₅ , t₆ : Tx
+t₁ = record  { inputs   = []
+             ; outputs  = [ BIT 1000 at 0 ]
+             ; forge    = BIT 1000
+             ; fee      = BIT 0
+             }
+t₂ = record  { inputs   = [ withScripts t₁₀ ]
+             ; outputs  = BIT 800 at 1 :: BIT 200 at 0 :: []
+             ; forge    = BIT 0
+             ; fee      = BIT 0
+             }
+t₃ = record  { inputs   = [ withScripts t₂₁ ]
+             ; outputs  = [ BIT 199 at 2 ]
+             ; forge    = BIT 0
+             ; fee      = BIT 1
+             }
+t₄ = record  { inputs   = [ withScripts t₃₀ ]
+             ; outputs  = [ BIT 207 at 1 ]
+             ; forge    = BIT 10
+             ; fee      = BIT 2
+             }
+\end{code}\end{myagda}
+
+\restorecolumns
+\begin{myagda}\begin{code}
+t₅ = record  { inputs   = withScripts t₂₀ :: withScripts t₄₀ :: []
+             ; outputs  = BIT 500 at 1 :: BIT 500 at 2 :: []
+             ; forge    = BIT 0
+             ; fee      = BIT 7
+             }
+t₆ = record  { inputs   = withScripts t₅₀ :: withScripts t₅₁ :: []
+             ; outputs  = [ BIT 999 at 2 ]
+             ; forge    = BIT 0
+             ; fee      = BIT 1
+             }
+\end{code}\end{myagda}
 
 Finally, we can construct a correct-by-construction ledger, by iteratively submitting each transaction along with
 the proof that it is valid with respect to the ledger constructed thus far\footnote{
 Here, we use a specialized notation of the form $\bullet t_1 \vdash p_1 \oplus t_2 \vdash p_2 \oplus \dots \oplus t_n \vdash p_n$,
 where each insertion of transaction $t_x$ requires a proof of validity $p_x$ as well.
-Technically, the $\oplus$ operator has type \inlineListCons{}.
+Technically, the $\oplus$ operator has type |(l : Ledger) → (t : Tx) → IsValidTx t l → Ledger|.
 }:
-\UTXOexampleB{}
+\begin{myagda}\begin{code}
+ex-ledger : Ledger
+ex-ledger =  ∙ t₁ ∶- record  { validTxRefs           = λ i ()
+                             ; validOutputIndices    = λ i ()
+                             ; validOutputRefs       = λ i ()
+                             ; validDataScriptTypes  = λ i ()
+                             ; preservesValues       = refl
+                             ; noDoubleSpending      = tt
+                             ; allInputsValidate     = λ i ()
+                             ; validateValidHashes   = λ i ()
+                             }
+             ⊕ t₂ ∶- record { DOTS }
+             ⊕ t₃ ∶- record { DOTS }
+             ⊕ t₄ ∶- record { DOTS }
+             ⊕ t₅ ∶- record { DOTS }
+             ⊕ t₆ ∶- record { DOTS }
+\end{code}\end{myagda}
 The proof validating the submission of the first transaction $t_1$ is trivially discharged.
 While the rest of the proofs are quite involved, it is worthy to note that their size/complexity stays constant
 independently of the ledger length. This is mainly due to the re-usability of proof components, arising from
@@ -656,7 +852,10 @@ the main functions being inductively defined.
 
 It is now trivial to verify that the only unspent transaction output of our ledger is the output of the last
 transaction $t_6$, as demonstrated below:
-\UTXOexampleC{}
+\begin{myagda}\begin{code}
+utxo : list (unspentOutputs ex-ledger) ≡ [ t₆₀ ]
+utxo = refl
+\end{code}\end{myagda}
 
 \subsection{Formal Model II: BitML Calculus} \label{subsec:bitml}
 Now let us shift our focus to our second subject of study, the BitML calculus for modelling smart contracts.
@@ -665,8 +864,35 @@ semantics of BitML contracts, as well as an example execution of a contract unde
 All code is publicly available on Github\site{https://github.com/omelkonian/formal-bitml}.
 
 First, we begin with some basic definitions that will be used throughout this section:
-\BITbasicTypesA{}
-\BITbasicTypesB{}
+\savecolumns
+\begin{myagda}\begin{code}
+module Types (Participant : Set) (Honest : List SUPPLUS Participant) where
+##
+Time : Set
+Time = ℕ
+##
+Value : Set
+Value = ℕ
+\end{code}\end{myagda}
+
+\restorecolumns
+\begin{myagda}\begin{code}
+record Deposit : Set where
+  constructor UNDERL has UNDERR
+  field  participant : Participant
+         value       : Value
+##
+Secret : Set
+Secret = String
+##
+data Arith : List Secret → Set where DOTS
+ℕ⟦ UNDER ⟧ : ∀ {s} → Arith s → ℕ
+ℕ⟦ UNDER ⟧ = DOTS
+##
+data Predicate : List Secret → Set where DOTS
+𝔹⟦ UNDER ⟧ : ∀ {s} → Predicate s → Bool
+𝔹⟦ UNDER ⟧ = DOTS
+\end{code}\end{myagda}
 Instead of giving a fixed datatype of participants, we parametrise our module with a given \textit{universe} of participants
 and a non-empty list of honest participants.
 Representation of time and monetary values is again done using natural numbers,
@@ -684,50 +910,97 @@ A \textit{contract advertisement} consists of a set of \textit{preconditions},
 which require some resources from the involved participants prior to the contract's execution,
 and a \textit{contract}, which specifies the rules according to which bitcoins are transferred between participants.
 
-Preconditions either require participants to have a deposit of a certain value on their name (volatile or not) or 
+Preconditions either require participants to have a deposit of a certain value on their name (volatile or not) or
 commit to a certain secret. Notice the index of the datatype below, which captures the values of all required deposits:
-\BITpreconditions{}
+\begin{myagda}\begin{code}
+data Precondition : List Value → Set where
+  -- volatile deposit
+  UNDER ? UNDER : Participant → (v : Value) → Precondition [ v ]
+  -- persistent deposit
+  UNDER ! UNDER : Participant → (v : Value) → Precondition [ v ]
+  -- committed secret
+  UNDERL ♯ UNDERR : Participant → Secret → Precondition []
+  -- conjunction
+  UNDER ∧ UNDER : Precondition vs SUBL → Precondition vs SUBR → Precondition (vs SUBL ++ vs SUBR)
+\end{code}\end{myagda}
 
 Moving on to actual contracts, we define them by means of a collection of five types of commands;
-\inlinePut{} injects participant deposits and revealed secrets in the remaining contract,
-\inlineWithdraw{} transfers the current funds to a participant,
-\inlineSplit{} distributes the current funds across different individual contracts,
-\inlineAuthDecoration{} requires the authorization from a participant to proceed
-and \inlineTimeDecoration{} allows further execution of the contract only after some time has passed.
-\BITcontracts{}
+|put| injects participant deposits and revealed secrets in the remaining contract,
+|withdraw| transfers the current funds to a participant,
+|split| distributes the current funds across different individual contracts,
+|UNDER : UNDER| requires the authorization from a participant to proceed
+and |after UNDER : UNDER| allows further execution of the contract only after some time has passed.
+\begin{myagda}\begin{code}
+data Contract  :  Value   -- the monetary value it carries
+               →  Values  -- the deposits it presumes
+               →  Set where
+  -- collect deposits and secrets
+  put UNDER reveal UNDER if UNDER ⇒ UNDER ∶- UNDER :
+    (vs : List Value) → (s : Secrets) → Predicate s′  → Contract (v + sum vs) vs′ →  s′ ⊆ s
+    → Contract v (vs′ ++ vs)
+  -- transfer the remaining balance to a participant
+  withdraw : ∀ {v} → Participant → Contract v []
+  -- split the balance across different branches
+  split :  (cs : List (∃[ v ] ^^ ∃[ vs ] ^^ Contract v vs))
+        →  Contract (sum (proj₁ <$$> cs)) (concat (proj₂ <$$> cs))
+  -- wait for participant's authorization
+  UNDER : UNDER : Participant → Contract v vs → Contract v vs
+  -- wait until some time passes
+  after UNDER : UNDER : Time → Contract v vs → Contract v vs
+\end{code}\end{myagda}
 There is a lot of type-level manipulation across all constructors, since we need to make sure that indices are
-calculated properly. For instance, the total value in a contract constructed by the \inlineSplit{} command is the 
+calculated properly. For instance, the total value in a contract constructed by the |split| command is the
 sum of the values carried by each branch.
-The \inlinePut{} command\footnote{
-\inlinePut{} comprises of several components and we will omit those that do not contain any helpful information,
-e.g. write \inlineSimplePut{} when there are no revealed secrets and the predicate trivially holds.
+The |put| command\footnote{
+|put| comprises of several components and we will omit those that do not contain any helpful information,
+e.g. write |put UNDER ⇒ UNDER| when there are no revealed secrets and the predicate trivially holds.
 } additionally requires an explicit proof that the predicate
-of the \inlineIf{} part only uses secrets revealed by the same command.
+of the |if| part only uses secrets revealed by the same command.
 
-We also introduce an intuitive syntax for declaring the different branches of a \inlineSplit{} command, emphasizing the
+We also introduce an intuitive syntax for declaring the different branches of a |split| command, emphasizing the
 \textit{linear} nature of the contract's total monetary value:
-\BITlollipop{}
+\begin{myagda}\begin{code}
+UNDERL ⊸ UNDERR : ∀ {vs : Values} → (v : Value) → Contract v vs → ∃[ v ] ^^ ∃[ vs ] ^^ Contract v vs
+UNDERL ⊸ UNDERR {vs} v c = v , vs , c
+\end{code}\end{myagda}
 
 Having defined both preconditions and contracts, we arrive at the definition of a contract advertisement:
-\BITadvertisements{}
+\begin{myagda}\begin{code}
+record Advertisement (v : Value) (vs SUPC vs SUPG : List Value) : Set where
+  constructor UNDER ⟨ UNDER ⟩∶- UNDER
+  field  G      :  Precondition vs
+         C      :  Contracts v vs
+         valid  :  length vs SUPC ≤ length vs SUPG
+                ×  participants SUPG G ++ participants SUPC C ⊆ (participant <$$> persistentDeposits SUPP G)
+\end{code}\end{myagda}
 Notice that in order to construct an advertisement, one has to also provide proof of the contract's validity with respect to
 the given preconditions, namely that all deposit references in the contract are declared in the precondition
 and each involved participant is required to have a persistent deposit.
 
 To clarify things so far, let us see a simple example of a contract advertisement:
-\BITexampleAdvertisement{}
-We first need to open our module with a fixed set of participants (in this case \inlineA{} and \inlineB{}).
+\begin{myagda}\begin{code}
+open BitML (A | B) [ A ] SUPPLUS
+
+ex-ad : Advertisement 5 [ 200 ] (200 ∷ 100 ∷ [])
+ex-ad =  ⟨  B ! 200 ∧ A ! 100 ^^ ⟩
+          split  (  2 ⊸ withdraw B
+                 ⊕  2 ⊸ after 100 ∶ withdraw A
+                 ⊕  1 ⊸ put [ 200 ] ⇒ B ∶ withdraw {201} A ∶- DOTS
+                 )
+          ∶- DOTS
+\end{code}\end{myagda}
+We first need to open our module with a fixed set of participants (in this case |A| and |B|).
 We then define an advertisement, whose type already says a lot about what is going on;
 it carries \bitcoin ~5, presumes the existence of at least one deposit of \bitcoin ~200, and requires two deposits
 of \bitcoin ~200 and \bitcoin ~100.
 
-Looking at the precondition itself, we see that the required deposits will be provided by \inlineB{} and \inlineA{}, respectively.
+Looking at the precondition itself, we see that the required deposits will be provided by |B| and |A|, respectively.
 The contract first splits the bitcoins across three branches:
-the first one gives \bitcoin ~2 to \inlineB{}, the second one gives \bitcoin ~2 to \inlineA{} after some time period,
-while the third one retrieves \inlineB{}'s deposit of \bitcoin ~200 and allows \inlineB{} to authorise the
-withdrawal of the remaining funds (currently \bitcoin ~201) from \inlineA{}.
+the first one gives \bitcoin ~2 to |B|, the second one gives \bitcoin ~2 to |A| after some time period,
+while the third one retrieves |B|'s deposit of \bitcoin ~200 and allows |B| to authorise the
+withdrawal of the remaining funds (currently \bitcoin ~201) from |A|.
 
-We have omitted the proofs that ascertain the well-formedness of the \inlinePut{} command and the advertisement, as
+We have omitted the proofs that ascertain the well-formedness of the |put| command and the advertisement, as
 they are straightforward and do not provide any more intuition\footnote{
 In fact, we have defined decidable procedures for all such proofs using the
 \textit{proof-by-reflection} pattern~\cite{proofbyreflection}.
@@ -745,11 +1018,40 @@ This symbolic model consists of two layers; the bottom one transitioning between
 that works on \textit{timed} configurations.
 
 We start with the datatype of actions, which showcases the principal actions required to satisfy an advertisement's preconditions
-and an action to pick one branch of a collection of contracts (introduced by the choice operator \inlineOplus{}).
+and an action to pick one branch of a collection of contracts (introduced by the choice operator |⊕|).
 We have omitted uninteresting actions concerning the manipulation of deposits, such as dividing, joining, donating and destroying them.
 Since we will often need versions of the types of advertisements/contracts with their
 indices existentially quantified, we first provide aliases for them.
-\BITactions{}
+\begin{myagda}\begin{code}
+AdvertisedContracts : Set
+AdvertisedContracts = List (∃[ v ] ^^ ∃[ vs SUPC ] ^^ ∃[ vs SUPG ] ^^ Advertisement v vs SUPC vs SUPG)
+##
+ActiveContracts : Set
+ActiveContracts = List (∃[ v ] ^^ ∃[ vs ] ^^ List (Contract v vs))
+##
+data Action (p : Participant)  -- the participant that authorises this action
+  :  AdvertisedContracts       -- the contract advertisments it requires
+  →  ActiveContracts           -- the active contracts it requires
+  →  Values                    -- the deposits it requires from this participant
+  →  List Deposit              -- the deposits it produces
+  →  Set where
+##
+  -- commit secrets to stipulate an advertisement
+  HTRI UNDERR  :  (ad : Advertisement v vs SUPC vs SUPG)
+               →  Action p [ v , vs SUPC , vs SUPG , ad ] [] [] []
+
+  -- spend x to stipulate an advertisement
+  UNDER STRI UNDERR  :  (ad : Advertisement v vs SUPC vs SUPG)
+                     →  (i : Index vs SUPG)
+                     →  Action p [ v , vs SUPC , vs SUPG , ad ] [] [ vs SUPG ‼ i ] []
+
+  -- pick a branch
+  UNDER BTRI UNDERR  :  (c : List (Contract v vs))
+                     →  (i : Index c)
+                     →  Action p [] [ v , vs , c ] [] []
+
+  VDOTS
+\end{code}\end{myagda}
 The action datatype is parametrised\footnote{
 In Agda, datatype parameters are similar to indices, but are not allowed to vary across constructors.
 }
@@ -765,92 +1067,235 @@ declares new deposits that will be created by the action
 Although our indexing scheme might seem a bit heavyweight now, it makes many little details and assumptions explicit,
 which would bite us later on when we will need to reason about them.
 
-Continuing from our previous example advertisement, let's see an example action where \inlineA{} spends the required \bitcoin ~100
+Continuing from our previous example advertisement, let's see an example action where |A| spends the required \bitcoin ~100
 to stipulate the example contract\footnote{
 Notice that we have to make all indices of the advertisement explicit in the second index in the action's type signature.
 }:
-\BITactionExample{}
+\begin{myagda}\begin{code}
+ex-spend : Action A [ 5 , [ 200 ] , 200 ∷ 100 ∷ [] , ex-ad ] [] [ 100 ] []
+ex-spend = ex-ad STRI 1
+\end{code}\end{myagda}
 
 Configurations are now built from advertisements, active contracts, deposits, action authorizations and committed/revealed secrets:
-\BITconfigurations{}
+\begin{myagda}\begin{code}
+data Configuration′  :  -- $\hspace{22pt}$ current $\hspace{20pt}$ $\times$ $\hspace{15pt}$ required
+                        AdvertisedContracts  × AdvertisedContracts
+                     →  ActiveContracts      × ActiveContracts
+                     →  List Deposit         × List Deposit
+                     →  Set where
+
+  -- empty
+  ∅ : Configuration′ ([] , []) ([] , []) ([] , [])
+
+  -- contract advertisement
+  ` UNDER  :  (ad : Advertisement v vs SUPC vs SUPG)
+           →  Configuration′ ([ v , vs SUPC , vs SUPG , ad ] , []) ([] , []) ([] , [])
+
+  -- active contract
+  ⟨ UNDER , UNDER ⟩ SUPCC  :  (c : List (Contract v vs)) → Value
+                           →  Configuration′ ([] , []) ([ v , vs , c ] , []) ([] , [])
+
+  -- deposit redeemable by a participant
+  ⟨ UNDERR , UNDER ⟩ SUPD  :  (p : Participant) → (v : Value)
+                           →  Configuration′ ([] , []) ([] , []) ([ p has v ] , [])
+
+  -- authorization to perform an action
+  UNDERL [ UNDER ]  : (p : Participant) → Action p ads cs vs ds
+                    → Configuration′ ([] , ads) ([] , cs) (ds , ((p has UNDER) <$$> vs))
+
+  -- committed secret
+  ⟨ UNDER ∶ UNDER ♯ UNDER ⟩  :  Participant →  Secret →  ℕ ⊎ ⊥
+                             →  Configuration′ ([] , []) ([] , []) ([] , [])
+  -- revealed secret
+  UNDER ∶ UNDER ♯ UNDER  :  Participant →  Secret → ℕ
+                         →  Configuration′ ([] , []) ([] , []) ([] , [])
+
+  -- parallel composition
+  UNDER | UNDER  :  Configuration′ (ads SUPL , rads SUPL) (cs SUPL , rcs SUPL) (ds SUPL , rds SUPL)
+                 →  Configuration′ (ads SUPR , rads SUPR) (cs SUPR , rcs SUPR) (ds SUPR , rds SUPR)
+                 →  Configuration′  (ads SUPL                    ++ ads SUPR  , rads SUPL  ++ (rads SUPR  ∖ ads SUPL))
+                                    (cs SUPL                     ++ cs SUPR   , rcs SUPL   ++ (rcs SUPR   ∖ cs SUPL))
+                                    ((ds SUPL ∖ rds SUPR)        ++ ds SUPR   , rds SUPL   ++ (rds SUPR   ∖ ds SUPL))
+\end{code}\end{myagda}
 The indices are quite involved, since we need to record both the current advertisements, stipulated contracts and deposits
 and the required ones for the configuration to become valid. The most interesting case is the parallel composition
 operator, where the resources provided by the left operand might satisfy some requirements of the right operand. Moreover,
 consumed deposits have to be eliminated as there can be no double spending, while the number of advertisements and contracts
 always grows.
 
-By composing configurations together, we will eventually end up in a \textit{closed} configuration, where 
+By composing configurations together, we will eventually end up in a \textit{closed} configuration, where
 all required indices are empty (i.e. the configuration is self-contained):
-\BITclosedConfigurations{}
+\begin{myagda}\begin{code}
+Configuration : AdvertisedContracts → ActiveContracts → List Deposit → Set
+Configuration ads cs ds = Configuration′ (ads , []) (cs , []) (ds , [])
+\end{code}\end{myagda}
 
 We are now ready to declare the inference rules of the bottom layer of our small-step semantics,
 by defining an inductive datatype modelling the binary step relation between untimed configurations:
-\BITrules{}
+\begin{myagda}\begin{code}
+data UNDER —→ UNDER : Configuration ads cs ds → Configuration ads′ cs′ ds′ → Set where
+  DEP-AuthJoin :
+    ⟨ A , v ⟩ SUPD | ⟨ A , v′ ⟩ SUPD | Γ —→ ⟨ A , v ⟩ SUPD | ⟨ A , v′ ⟩ SUPD | A [ 0 ↔ 1 ] | Γ
+##
+  DEP-Join :
+    ⟨ A , v ⟩ SUPD | ⟨ A , v′ ⟩ SUPD | A [ 0 ↔ 1 ] | Γ —→ ⟨ A , v + v′ ⟩ SUPD | Γ
+##
+  C-Advertise : ∀ {Γ ad}
+    →  ∃[ p ∈ participants SUPG (G ad) ] p ∈ Hon
+       {- $\inferLarge$ -}
+    →  Γ —→ ` ad | Γ
+##
+  C-AuthCommit : ∀ {A ad Γ}
+    →  secrets (G ad) ≡ a₀ DOTS aₙ
+    →  (A ∈ Hon → ∀[ i ∈ 0 DOTS n ] a SUBI ≢ ⊥)
+       {- $\inferLarge$ -}
+    →  ` ad | Γ —→ ` ad | Γ | DOTS ⟨ A : a SUBI ♯ N SUBI ⟩ DOTS ^^ BAR ^^ A [ ♯▷ ^^ ad ]
+##
+  C-Control : ∀ {Γ C i D}
+    →  C ‼ i ≡ A₁ : A₂ : DOTS : Aₙ : D
+       {- $\inferLarge$ -}
+    →  ⟨ C , v ⟩ SUPCC | DOTS A SUBI [ C BTRI i ] DOTS | Γ —→ ⟨ D , v ⟩ SUPCC | Γ
+  VDOTS
+\end{code}\end{myagda}
 There is a total of 18 rules we need to define, but we choose to depict only a representative subset of them.
 The first pair of rules initially appends the authorisation to merge
-two deposits to the current configuration (rule \inlineAuthJoinRule{}) and then performs the actual join (rule \inlineJoinRule{}).
+two deposits to the current configuration (rule |[DEP-AuthJoin]|) and then performs the actual join (rule |[DEP-Join]|).
 This is a common pattern across all rules, where we first collect authorisations for an action by all involved participants,
 and then we fire a subsequent rule to perform this action.
-\inlineAdvertiseRule{} advertises a new contract, mandating that at least one of the participants involved in the pre-condition
+|[C-Advertise]| advertises a new contract, mandating that at least one of the participants involved in the pre-condition
 is honest and requiring that all deposits needed for stipulation are available in the surrounding context.
-\inlineAuthCommitRule{} allows participants to commit to the secrets required by the contract's pre-condition, but only dishonest
+|[C-AuthCommit]| allows participants to commit to the secrets required by the contract's pre-condition, but only dishonest
 ones can commit to the invalid length $\bot$.
-Lastly, \inlineControlRule{} allows participants to give their authorization required by a particular branch out of the current
+Lastly, |[C-Control]| allows participants to give their authorization required by a particular branch out of the current
 choices present in the contract, discarding any time constraints along the way.
 
 It is noteworthy to mention that during the transcriptions of the complete set of rules from the paper~\cite{bitml}
 to our dependently-typed setting,
-we discovered a discrepancy in the \inlineAuthRevRule{} rule, namely that there was no context $\Gamma$.
-Moreover, in order to later facilitate equational reasoning, we re-factored the \inlineControlRule{}
+we discovered a discrepancy in the |[C-AuthRev]| rule, namely that there was no context $\Gamma$.
+Moreover, in order to later facilitate equational reasoning, we re-factored the |[C-Control]|
 to not contain the inner step as a hypothesis, but instead immediately inject it in the result operand of the step relation.
 
 The inference rules above have elided any treatment of timely constraints;
 this is handled by the top layer, whose states are now timed configurations.
-The only interesting inference rule is the one that handles time decorations of the form \inlineAfter{},
+The only interesting inference rule is the one that handles time decorations of the form |after UNDER : UNDER|,
 since all other cases are dispatched to the bottom layer (which just ignores timely aspects).
-\BITtimedRules{}
+\begin{myagda}\begin{code}
+record Configuration SUPT (ads : AdvertisedContracts) (cs  : ActiveContracts) (ds  : Deposits) : Set where
+  constructor UNDER at UNDER
+  field  cfg   : Configuration ads cs ds
+         time  : Time
+##
+data UNDER —→ SUBT UNDER : Configuration SUPT ads cs ds → Configuration SUPT ads′ cs′ ds′ → Set where
+
+  Action : ∀ {Γ Γ′ t}
+    →  Γ —→ Γ′
+       {- $\inferSmall$ -}
+    →  Γ at t —→ SUBT Γ′ at t
+
+  Delay : ∀ {Γ t δ}
+       {- $\inferMedium$ -}
+    →  Γ at t —→ SUBT Γ at (t + δ)
+
+  Timeout : ∀ {Γ Γ′ t i contract}
+    →  All (UNDER ≤ t) (timeDecorations (contract ‼ i))  -- all time constraints are satisfied
+    →  ⟨ [ contract ‼ i ] , v ⟩ SUPCC | Γ —→ Γ′          -- resulting state if we pick this branch
+       {- $\inferMedium$ -}
+    →  (⟨ contract , v ⟩ SUPCC | Γ) at t —→ SUBT Γ′ at t
+\end{code}\end{myagda}
 
 Having defined the step relation in this way allows for equational reasoning, a powerful tool for
 writing complex proofs:
-\BITeqReasoning{}
+\begin{myagda}\begin{code}
+data UNDER —↠ UNDER : Configuration ads cs ds → Configuration ads′ cs′ ds′ → Set where
+
+  UNDER ∎ : (M : Configuration ads cs ds) → M —↠ M
+
+  UNDER —→ ⟨ UNDER ⟩ UNDER : ∀ {M  N} (L : Configuration ads cs ds)
+    →  L —→ M → M —↠ N
+       {- $\inferMedium$ -}
+    →  L —↠ N
+
+begin UNDER : ∀ {M N} → M —↠ N → M —↠ N
+\end{code}\end{myagda}
 
 \subsubsection{Example}
 We are finally ready to see a more intuitive example of the \textit{timed-commitment protocol}, where a participant
 commits to revealing a valid secret $a$ (e.g. "qwerty") to another participant,
 but loses her deposit of \bitcoin ~1 if she does not meet a certain deadline $t$:
-\BITexampleA{}
+\begin{myagda}\begin{code}
+tc : Advertisement 1 [] (1 ∷ 0 ∷ [])
+tc =  ⟨ A ! 1 ∧ A ♯ a ∧ B ! 0 ⟩ ^^ reveal [ a ] ⇒ withdraw A ∶- DOTS ^^ ⊕ ^^ after t ∶ withdraw B
+\end{code}\end{myagda}
 
 Below is one possible reduction in the bottom layer of our small-step semantics, demonstrating the case where
 the participant actually meets the deadline:
-\BITexampleB{}
-At first, \inlineA{} holds a deposit of \bitcoin ~1, as required by the contract's precondition.
+\begin{myagda}\begin{code}
+tc-semantics : ⟨ A , 1 ⟩ SUPD —↠ ⟨ A , 1 ⟩ SUPD | A ∶ a ♯ 6
+tc-semantics =
+  begin
+    ⟨ A , 1 ⟩ SUPD
+  —→⟨ C-Advertise ⟩
+    ` tc | ⟨ A , 1 ⟩ SUPD
+  —→⟨ C-AuthCommit ⟩
+    ` tc | ⟨ A , 1 ⟩ SUPD | ⟨A ∶ a ♯ 6⟩ | A [ HTRI tc ]
+  —→⟨ C-AuthInit ⟩
+    ` tc | ⟨ A , 1 ⟩ SUPD | ⟨A ∶ a ♯ 6⟩ | A [ HTRI tc ] | A [ tc STRI 0 ]
+  —→⟨ C-Init ⟩
+    ⟨ tc , 1 ⟩ SUPCC | ⟨ A ∶ a ♯ inj₁ 6 ⟩
+  —→⟨ C-AuthRev ⟩
+    ⟨ tc , 1 ⟩ SUPCC | A ∶ a ♯ 6
+  —→⟨ C-Control ⟩
+    ⟨ [ reveal [ a ] ⇒ withdraw A ∶- DOTS ] , 1 ⟩ SUPCC | A ∶ a ♯ 6
+  —→⟨ C-PutRev ⟩
+    ⟨ [ withdraw A ] , 1 ⟩ SUPCC | A ∶ a ♯ 6
+  —→⟨ C-Withdraw ⟩
+    ⟨ A , 1 ⟩ SUPD | A ∶ a ♯ 6
+  ∎
+\end{code}\end{myagda}
+At first, |A| holds a deposit of \bitcoin ~1, as required by the contract's precondition.
 Then, the contract is advertised and the participants slowly provide the corresponding prerequisites
-(i.e. \inlineA{} commits to a secret via \inlineAuthCommitRule{} and spends the required deposit via \inlineAuthInitRule{},
-while \inlineB{} does not do anything).
-After all pre-conditions have been satisfied, the contract is stipulated (rule \inlineInitRule{}) and the secret is successfully
-revealed (rule \inlineAuthRevRule{}).
-Finally, the first branch is picked (rule \inlineControlRule{}) and \inlineA{} retrieves her deposit back
-(rules \inlinePutRevRule{} and \inlineWithdrawRule{}).
+(i.e. |A| commits to a secret via |[C-AuthCommit]| and spends the required deposit via |[C-AuthInit]|,
+while |B| does not do anything).
+After all pre-conditions have been satisfied, the contract is stipulated (rule |[C-Init]|) and the secret is successfully
+revealed (rule |[C-AuthRev]|).
+Finally, the first branch is picked (rule |[C-Control]|) and |A| retrieves her deposit back
+(rules |[C-PutRev]| and |[C-Withdraw]|).
 
 \subsection{Reasoning Modulo Permutation}
-In the definitions above, we have assumed that \inlineMonoid{} forms a commutative monoid, which allowed us
+In the definitions above, we have assumed that |(UNDERL BAR UNDERR , ∅)| forms a commutative monoid, which allowed us
 to always present the required sub-configuration individually on the far left of a composite configuration.
 While such definitions enjoy a striking similarity to the ones appearing in the original paper~\cite{bitml}
 (and should always be preferred in an informal textual setting),
 this approach does not suffice for a mechanized account of the model.
 After all, this explicit treatment of all intuitive assumptions/details is what makes our approach robust and will lead to
-a deeper understanding of how these systems behave. 
+a deeper understanding of how these systems behave.
 To overcome this intricacy, we introduce an \textit{equivalence relation} on configurations, which holds when
 they are just permutations of one another:
-\BITreordering{}
+\begin{myagda}\begin{code}
+UNDER ≈ UNDER : Configuration ads cs ds → Configuration ads cs ds → Set
+c ≈ c′ = cfgToList c ↭ cfgToList c′
+  where
+    open import Data.List.Permutation using (UNDER ↭ UNDER)
+
+    cfgToList : Configuration′ p₁ p₂ p₃ → List (∃[ p₁ ] ^^ ∃[ p₂ ] ^^ ∃[ p₃ ] ^^ Configuration′ p₁ p₂ p₃)
+    cfgToList  ∅                 = []
+    cfgToList  (l | r)           = cfgToList l ++ cfgToList r
+    cfgToList  {p₁} {p₂} {p₃} c  = [ p₁ , p₂ , p₃ , c ]
+\end{code}\end{myagda}
 Given this reordering mechanism, we now need to generalise all our inference rules to implicitly
 reorder the current and next configuration of the step relation.
 We achieve this by introducing a new variable for each of the operands of the resulting step relations,
 replacing the operands with these variables and requiring that they are
-re-orderings of the previous configurations, as shown in the following generalisation of the \inlineAuthJoinRule{} rule\footnote{
+re-orderings of the previous configurations, as shown in the following generalisation of the |[DEP-AuthJoin]| rule\footnote{
 In fact, it is not necessary to reorder both ends for the step relation; at least one would be adequate.
 }:
-\BITgeneralRule{}
+\begin{myagda}\begin{code}
+  DEP-AuthJoin :
+       Γ′ ≈ ⟨ A , v ⟩ SUPD | ⟨ A , v′ ⟩ SUPD | Γ                ^^  ∈ Configuration ads cs (A has v ∷ A has v′ ∷ ds)
+    →  Γ″ ≈ ⟨ A , v ⟩ SUPD | ⟨ A , v′ ⟩ SUPD | A [ 0 ↔ 1 ] | Γ  ^^  ∈ Configuration ads cs (A has (v + v′) ∷ ds)
+       {- $\inferMedium$ -}
+    →  Γ′ —→ Γ″
+\end{code}\end{myagda}
 
 Unfortunately, we now have more proof obligations of the re-ordering relation lying around, which makes reasoning about
 our semantics rather tedious. We are currently investigating different techniques to model such reasoning up to equivalence:
@@ -890,7 +1335,7 @@ Building on the abstract UTxO model, there are current research efforts on a gen
 to establish and enforce monetary policies for multiple currencies~\cite{multicurrency}.
 
 Fortunately, the extensions proposed by the multi-currency are orthogonal to the functionality I have currently formalized.
-In order to achieve this, one has to generalize the \inlineValue{} datatype to account for multiple currencies.
+In order to achieve this, one has to generalize the |Value| datatype to account for multiple currencies.
 Hence, I plan to integrate this with my current formal development of the extended UTxO model and,
 by doing so, provide the first formalization of a UTxO ledger that supports multiple cryptocurrencies.
 
@@ -967,47 +1412,6 @@ Nonetheless, I will strive for a prototype model with lots of examples
 and hope my work will lay the foundations to further investigate these topics in future research.
 
 \newpage
-
-\begin{figure}[!htb]
-  \centering
-  \newcommand{\months}[1]{\multicolumn{#1}{c}{\cellcolor{hsblue2}} \\}
-  \begin{tabular}{lcccccccc}
-    \hline
-    & 2018 & \multicolumn{7}{c}{2019} \\
-    \hline
-    & Dec & Jan & Feb & Mar & Apr & May & Jun & Jul \\
-    \hline
-
-    \textbf{UTxO} \\
-    Basic abstract model                &      \months{2}
-    Weakening lemma                     &&     \months{1}
-    Extend with data scripts            &&&    \months{1}
-    Multi-currency                      &&&&   \months{1}
-
-    \textbf{BitML} \\
-    Small-step Semantics                &      \months{3}
-    Symbolic Model                      &&&&   \months{1}
-    Computational Model                 &&&&   \months{1}
-    Coherence                           &&&&&  \months{2}
-
-    \textbf{UTxO-BitML Integration} \\
-    Compiling BitML to UTxO             &&&&&  \months{2}
-    
-    \textbf{Plutus Integration} \\
-    Model scripts with Plutus-Core      &&&&&& \months{1}
-    
-    \textbf{Evaluation} \\
-    Featherweight Model                 &&&&&  \months{1}
-    Example contracts                   &&&&&  \months{3}
-    
-    \textbf{Writeup} \\
-    Write final thesis                  &&&&&& \months{3}
-    
-  \end{tabular}
-  \caption{My workplan.}
-  \label{fig:workplan}
-\end{figure}
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Bibliography
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
