@@ -11,6 +11,12 @@
 %% Packages
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% US letter size
+%% \usepackage{geometry}
+%% \setlength{\paperheight}{11in}
+%% \setlength{\paperwidth}{8.5in}
+%% \geometry{paperwidth=6.75in, paperheight=10in}
+
 % URLs
 \newcommand\site[1]{\footnote{\url{#1}}}
 
@@ -134,7 +140,7 @@ data UL —→ UR : Configuration ads cs ds → Configuration ads′ cs′ ds′
 
   C-Advertise   :  Any (UL ∈ Hon) (participants (G ad)) → (Γ —→ ad | Γ)
 
-  C-AuthCommit  :  (secrets A (G ad) ≡ a₀ DOTS aₙ) × (A ∈ Hon → All (UL ≢ nothing) a SUBI)
+  C-AuthCommit  :  (secrets A (G ad) ≡ a₀ DOTS aₙ) × (A ∈ Hon → All (U ≢ ^^ nothing) a SUBI)
                 →  ` ad | Γ —→ ` ad | Γ | DOTS ⟨ A : a SUBI ♯ N SUBI ⟩ DOTS ^^ BAR ^^ A [ ♯▷ ^^ ad ]
 \end{code}\end{myagda}
 Most rules come in pairs; one rule introduces an authorization of a participant to perform an action
@@ -142,11 +148,11 @@ and a subsequent rule performs the action. For instance, a participant can join 
 first authorizing the join action (|D-AuthJoin|) and then actually merging the two deposits (|D-Join|).
 Other rules are a bit more involved, requiring that certain premises are met before a transition can take place.
 |C-Advertise| will advertise a contract with at least one honest participant to the current configuration
-and |C-AuthCommit| authorizes a participant's commitment to all secrets mentioned in the advertisement's precondition
-and makes sure that honest participants only commit to valid secrets.
+and |C-AuthCommit| authorizes a participant's commitment to all secrets mentioned in the advertisement's precondition,
+making sure that honest participants only commit to valid secrets.
 
 In all of the rules above, configuration elements of interest always appear on the left of a composition,
-relying on the fact that |(Configuration, ULL BAR URR)| forms a commutative monoid.
+relying on the fact that |(Configuration, ULL BAR URR)| forms a \textit{commutative monoid}.
 In a machine-checked setting this is not enough; we have to somehow reorder the input and output configurations.
 We first define an \textit{equivalence} |UL ≈ UR|, relating configurations that are equal up to permutation.
 We then factor out the equivalence relation in the reflexive transitive closure of the step relation,
@@ -164,15 +170,16 @@ Let us give a mechanized derivation for a contract implementing the \textit{time
 where a participant commits to revealing a valid secret |a| to another participant,
 but loses her deposit of \bitcoin~1 if she does not meet a certain deadline |t|:
 \begin{myagda}\begin{code}
-tc : ⟨ A , 1 ⟩ SD —↠ ⟨ A , 1 ⟩ SD | A ∶ a ♯ 6
-tc = let tc = ⟨ A ! 1 ∧ A ♯ a ⟩ ^^ reveal [ a ] ⇒ withdraw A ^^ ⊕ ^^ after t ∶ withdraw B in
+tc-deriv : ⟨ A , 1 ⟩ SD —↠ ⟨ A , 1 ⟩ SD | A ∶ a ♯ 6
+tc-deriv = let tc = ⟨ A ! 1 ∧ A ♯ a ⟩ ^^ reveal [ a ] ⇒ withdraw A ^^ ⊕ ^^ after t ∶ withdraw B in
   ⟨ A , 1 ⟩ SD                                                   SP  —→⟨ C-Advertise ⟩
-  ` tc | ⟨ A , 1 ⟩ SD DOTS SP ⟨ withdraw A , 1 ⟩ SC | A ∶ a ♯ 6  SP  —→⟨ C-Withdraw  ⟩
+  ` tc | ⟨ A , 1 ⟩ SD                                            SP  DOTS
+  ⟨ withdraw A , 1 ⟩ SC | A ∶ a ♯ 6                              SP  —→⟨ C-Withdraw  ⟩
   ⟨ A , 1 ⟩ SD | A ∶ a ♯ 6 SP                                    SP  SP ∎
 \end{code}\end{myagda}
 First, |A| holds a deposit of \bitcoin~1, as required by the advertised contract's precondition (|C-Advertise|).
-The contract is stipulated after the prerequisites are satisfied, which includes |A| revealing her secret.
-Finally, the first branch is picked and |A| retrieves the deposit back (|C-Withdraw|).
+The contract is stipulated after the prerequisites are satisfied and the first branch is picked when |A| reveals her secret.
+Finally, |A| retrieves the deposit back (|C-Withdraw|).
 
 \paragraph{\textbf{Symbolic model}}
 Moving on to the definition of BitML's symbolic model, we associate a label to each inference rule and
