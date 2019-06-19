@@ -2,7 +2,11 @@
 %%
 %% Agda Styling
 %%
-%% TODO: Figure out spacing!
+
+\usepackage{scrextend}
+\newenvironment{agda}
+{ \begin{addmargin}[1em]{1em} }
+{ \end{addmargin} }
 
 % Bitcoin symbol
 \def\bitcoin{%
@@ -45,15 +49,6 @@
   \begingroup
     \color#1{#2}#3%
   \endgroup
-}
-
-\newenvironment{myagda}
-{ \par
-  %\vspace{0.15cm}
-  \begin{minipage}{\textwidth}
-}
-{ \end{minipage}
-  %\vspace{0.15cm}
 }
 
 \newcommand{\HSKeyword}[1]{\mathcolor{hsgold3}{\textbf{#1}}}
@@ -154,9 +149,11 @@
 %format VDOTS    = "\HSSym{\vdots}"
 %format ^^       = "\;"
 %format ##       = "\vspace{10pt}"
-%format UNDER    = "\HSSym{\_}"
-%format UNDERL   = "\HSSym{\_\!}"
-%format UNDERR   = "\HSSym{\!\_}"
+%format U        = "\HSSym{\_}"
+%format UL       = "\HSSym{\_\!}"
+%format ULL      = "\HSSym{\_\!\!}"
+%format UR       = "\HSSym{\!\_}"
+%format URR      = "\HSSym{\!\!\_}"
 
 %%% Usefull Notation
 %format ,        = "\HSSym{\mathbin{,}}"
@@ -238,6 +235,7 @@
 %format SUBT     = "\HSSym{\!\text{\textsubscript{\tiny t}}}"
 %format SUBI     = "\HSSym{\!\text{\textsubscript{\tiny i}}}"
 %format SUPC     = "\HSSym{\!\text{\textsuperscript{\tiny c}}}"
+%format SB       = "\HSSym{\!\text{\textsuperscript{\tiny b}}}"
 %format SUPG     = "\HSSym{\!\text{\textsuperscript{\tiny g}}}"
 %format SUPA     = "\HSSym{\!\text{\textsuperscript{\tiny a}}}"
 %format SUPL     = "\HSSym{\!\text{\textsuperscript{\tiny l}}}"
