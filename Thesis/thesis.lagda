@@ -34,7 +34,7 @@
 %% Agda imports
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %include polycode.fmt
-%include stylish.lhs
+%include stylish.fmt
 \def\commentbegin{}
 \def\commentend{}
 
@@ -68,6 +68,7 @@
 \email{melkon.or@@gmail.com}
 
 % Title Page
+\thispagestyle{empty}
 \begin{center}\begin{minipage}{0.8\linewidth}
   \centering
 \vspace{3cm}
@@ -1236,7 +1237,7 @@ data U —→ U : Configuration ads cs ds → Configuration ads′ cs′ ds′ �
 \end{code}\end{agda}
 There is a total of 18 rules we need to define, but we choose to depict only a representative subset of them.
 The first pair of rules initially appends the authorisation to merge
-two deposits to the current configuration (rule |[DEP-AuthJoin]|) and then performs the actual join (rule |[DEP-Join]|).
+two deposits to the current configuration (rule |DEP-AuthJoin|) and then performs the actual join (rule |[DEP-Join]|).
 This is a common pattern across all rules, where we first collect authorisations for an action by all involved participants,
 and then we fire a subsequent rule to perform this action.
 |[C-Advertise]| advertises a new contract, mandating that at least one of the participants involved in the pre-condition
@@ -1331,12 +1332,12 @@ tc-semantics =
 \end{code}\end{agda}
 At first, |A| holds a deposit of \bitcoin ~1, as required by the contract's precondition.
 Then, the contract is advertised and the participants slowly provide the corresponding prerequisites
-(i.e. |A| commits to a secret via |[C-AuthCommit]| and spends the required deposit via |[C-AuthInit]|,
+(i.e. |A| commits to a secret via |C-AuthCommit| and spends the required deposit via |C-AuthInit|,
 while |B| does not do anything).
-After all pre-conditions have been satisfied, the contract is stipulated (rule |[C-Init]|) and the secret is successfully
-revealed (rule |[C-AuthRev]|).
-Finally, the first branch is picked (rule |[C-Control]|) and |A| retrieves her deposit back
-(rules |[C-PutRev]| and |[C-Withdraw]|).
+After all pre-conditions have been satisfied, the contract is stipulated (rule |C-Init|) and the secret is successfully
+revealed (rule |C-AuthRev|).
+Finally, the first branch is picked (rule |C-Control|) and |A| retrieves her deposit back
+(rules |C-PutRev| and |C-Withdraw|).
 
 \subsection{Reasoning Modulo Permutation}
 In the definitions above, we have assumed that |(UL BAR UR , ∅)| forms a commutative monoid, which allowed us
@@ -1363,7 +1364,7 @@ Given this reordering mechanism, we now need to generalise all our inference rul
 reorder the current and next configuration of the step relation.
 We achieve this by introducing a new variable for each of the operands of the resulting step relations,
 replacing the operands with these variables and requiring that they are
-re-orderings of the previous configurations, as shown in the following generalisation of the |[DEP-AuthJoin]| rule\footnote{
+re-orderings of the previous configurations, as shown in the following generalisation of the |DEP-AuthJoin| rule\footnote{
 In fact, it is not necessary to reorder both ends for the step relation; at least one would be adequate.
 }:
 \begin{agda}\begin{code}
@@ -1394,87 +1395,244 @@ in our full-blown BitML calculus.
 \subsection{Symbolic Model}
 In order to formalize the BitML's symbolic model, we first notice that a constructed derivation
 witnesses one of many possible contract executions.
-That is, derivations of our small-step semantics model \textit{traces} of the contract execution.
+In other words, derivations of our small-step semantics model \textit{traces} of the contract execution.
 Our symbolic model will provide a game-theoretic view over those traces, where each participant has a certain
 \textit{strategy} that selects moves depending on the current trace of previous moves.
-Moves here should be understood just as emissions of a certain label, i.e. application of a certain inference rule.
+Moves here should be understood just as emissions of a label, i.e. application of a certain inference rule.
 
+\subsubsection{Labelled Step Relation}
 To that end, we associate a label to each inference rule and
 extend the original step relation to additionally emit labels,
 hence defining a \textit{labelled transition system}.
 
 We first define the set of labels, which basically distinguish which rule was used,
-along with all (non-proof) arguments that are required by the rule.
-Below we give an example label for the |[C-AuthControl]| rule:~\footnote{
-Notice how we existentially pack indexed types.
-}
+along with all (non-proof) arguments that are required by the rule:
 \begin{agda}\begin{code}
 data Label : Set where
 ##
-  auth-control[ U , U ▷ SB U] : Participant → (c : ∃Contracts) → Index (proj₂ (proj₂ c)) → Label
+  auth-join[ _ , _ ↔ _ ] : Participant →  DepositIndex → DepositIndex → Label
+  join[ _ ↔ _ ] :                         DepositIndex → DepositIndex → Label
 ##
+  auth-divide[ _ , _ ▷ _ , _ ] : Participant →  DepositIndex → Value → Value → Label
+  divide[ _ ▷ _ , _ ] :                         DepositIndex → Value → Value → Label
+##
+  auth-donate[ _ , _ ▷ SD _ ] : Participant →  DepositIndex → Participant → Label
+  donate[ _ ▷ SD _ ] :                         DepositIndex → Participant → Label
+##
+  auth-destroy[ _ , _ ] : Participant → DepositIndex → Label
+  destroy[ _ ] :                              DepositIndex → Label
+##
+  advertise[ _ ] : ∃Advertisement → Label
+##
+  auth-commit[ _ , _ , _ ] : Participant → ∃Advertisement → List CommittedSecret → Label
+  auth-init[ _ , _ , _ ] : Participant → ∃Advertisement → DepositIndex → Label
+  init[ _ ] : ∃Advertisement → Label
+##
+  split : Label
+##
+  auth-rev[ _ , _ ] : Participant → Secret → Label
+  rev[ _ , _ ] : Values → Secrets → Label
+##
+  withdraw[ _ , _ ] : Participant → Value → Label
+##
+  auth-control[ _ , _ ▷ SB _] : Participant → (c : ∃Contracts) → Index (proj₂ (proj₂ c)) → Label
+  control : Label
+##
+  delay[ _ ] : Time → Label
+\end{code}\end{agda}
+Notice how we existentially pack indexed types, so that |Label| remains simply-typed.
+This is essential, as it would be tedious to manipulate indices when there is no need for them.
+Moreover, some indices are now just |ℕ| instead of |Fin|, losing the guarantee to not fall out-of-bounds.
+
+The step relation will now emit the corresponding label for each rule. Below, we give
+the updated kind signature and an example for the |DEP-AuthJoin| rule:
+\begin{agda}\begin{code}
+data _ —→[ _ ] _  :  Configuration ads cs ds
+                  →  Label
+                  →  Configuration ads′ cs′ ds′
+                  →  Set where
+  VDOTS
+  DEP-AuthJoin :
+    ⟨ A , v ⟩ SUPD | ⟨ A , v′ ⟩ SUPD | Γ
+  —→[ auth-join[ A , 0 ↔ 1 ] ]
+    ⟨ A , v ⟩ SUPD | ⟨ A , v′ ⟩ SUPD | A [ 0 ↔ 1 ] | Γ
   VDOTS
 \end{code}\end{agda}
 
 Naturally, the reflexive transitive closure of the augmented step relation will now hold a sequence of labels as well:
 \begin{agda}\begin{code}
-data U —↠ [ U ] U  :  Configuration ads cs ds
-                   →  Labels
-                   →  Configuration ads′ cs′ ds′
-                   →  Set where
+data _ —↠⟦ _ ⟧ _  :  Configuration ads cs ds
+                  →  Labels
+                  →  Configuration ads′ cs′ ds′
+                  →  Set where
+##
+  _ ∎∎  : (M : Configuration ads cs ds)
 
-  UL ∎∎  : (M : Configuration ads cs ds)
+       {- \inferLine{3cm} -}
+    →  M —↠⟦ [] ⟧ M
+##
+  _ —→⟨ _ ⟩ _ ⊢ _ :  (L : Configuration ads cs ds) {L′ : Configuration ads cs ds}
+                     {M M′ : Configuration ads′ cs′ ds′} {N : Configuration ads″ cs″ ds″}
 
-       ------------
-    →  M —↠[ [] ] M
-
-  U —→⟨ U ⟩ U ⊢ U : (L : Configuration ads cs ds) {L′ : Configuration ads cs ds}
-                    {M M′ : Configuration ads′ cs′ ds′} {N : Configuration ads″ cs″ ds″}
-
-    →  L′ —→[ a ] M′
+    →  L′ —→⟦ a ⟧ M′
     →  (L ≈ L′) × (M ≈ M′)
-    →  M —↠[ as ]  N
-       -------------------
-    →  L —↠[ a ∷ as ] N
-
+    →  M —↠⟦ as ⟧  N
+       {- \inferLine{8cm} -}
+    →  L —↠⟦ a ∷ as ⟧ N
+##
 start_ : {M : Configuration ads cs ds} {N : Configuration ads′ cs′ ds′}
 
-  →  M —↠[ as ] N
-     ------------
-  →  M —↠[ as ] N
+  →  M —↠⟦ as ⟧ N
+     {- \inferLine{3cm} -}
+  →  M —↠⟦ as ⟧ N
 
 start M—↠N = M—↠N
 \end{code}\end{agda}
 The timed variants of the step relation follow exactly the same procedure, so we do not repeat the definitions here.
 
-
-
-We can now extract
+\subsubsection{Traces}
+Values of type |_ —↠[ _ ] _| model execution traces.
 Since the complex type indices of the step-relation datatype is not as useful here,
 we define a simpler datatype of execution traces that is a list of labelled transitions
 between (existentially-packed) timed configurations:
 \begin{agda}\begin{code}
-data Trace =
+data Trace : Set where
+  _ ∙ : ∃TimedConfiguration → Trace
+##
+  _ ∷⟦ _ ⟧ _ : ∃TimedConfiguration → Label → Trace → Trace
 \end{code}\end{agda}
 
-
-\subsubsection{Labels}
-\TODO{One-to-one correspondence with rules}
-...
-\TODO{Extend step relation}
-
-\subsubsection{Runs}
-\TODO{Existentially-packed timed rules}
-...
 \paragraph{Stripping}
-...
+Strategies will make moves based on these traces,
+so we need a \textit{stripping} operation that traverses a configuration with its emitted labels
+and removes any sensitive information (i.e. committed secrets):
+\begin{agda}\begin{code}
+stripCfg : Configuration′ p₁ p₂ p₃ → Configuration′ p₁ p₂ p₃
+stripCfg ⟨ p ∶ a ♯ _ ⟩  =  ⟨ p ∶ a ♯ nothing ⟩
+stripCfg (l | r ∶- p)   =  stripCfg l | stripCfg r ∶- p
+stripCfg c              =  c
+
+stripLabel : Label → Label
+stripLabel auth-commit[ p , ad , _ ] = auth-commit[ p , ad , [] ]
+stripLabel a = a
+
+_∗ : Trace → Trace
+(DOTS , Γ at t) ∗          = (DOTS , stripCfg Γ at t)
+(DOTS , Γ at t) ∷⟦ α ⟧ ts  = (DOTS , stripCfg Γ at t) ∷⟦ stripLabel α ⟧ (ts ∗)
+\end{code}\end{agda}
 
 \subsubsection{Strategies}
-\TODO{assume PPTIME complexity ... too difficult to model complexity-aware models ...}
-...
+\textit{Participant strategies} are functions which, given the (stripped) trace so far, pick
+a set of possible next moves for its participant.
+These moves cannot be arbitrary; they have to satisfy several validity conditions which
+we require as proof in the datatype definition itself.
+
+Strategies are expected to be PPTIME algorithms, so as to have a certain computational bound
+on the processing they can undergo to compute secrets, etc.
+Since working on a resource-aware logic would make this much more difficult in search of tooling
+and infrastructure, we ignore this requirement and simply model strategies as regular functions.
+
+Before we define the types of strategies, we give a convenient notation to extend a trace
+with another (timed) transition:
+\begin{agda}\begin{code}
+_ ——→[ _ ] _ : Trace → Label → ∃TimedConfiguration → Set
+R ——→[ α ] (_ , _ , _ , tc′)
+  = proj₂ (proj₂ (proj₂ (lastCfg R))) —→[ α ] tc′
+\end{code}\end{agda}
+
 \paragraph{Honest strategies}
-...
+Each honest participant is modelled by a symbolic strategy that outputs a set of possible next
+moves with respect to the current trace. These moves have to be \textit{valid}, thus we define
+\textit{honest strategies} as a dependent record:
+\begin{agda}\begin{code}
+record HonestStrategy (A : Participant) : Set where
+  field
+    strategy  :  Trace → Labels
+
+    valid     :  A ∈ Hon                                                                         {- (1) -}
+              ×  (∀ {R : Trace} {α : Label} → α ∈ strategy (R ∗) →                               {- (2) -}
+                   ∃[ R′ ] (R ——→[ α ] R′))
+              ×  (∀ {R : Trace} {α : Label} → α ∈ strategy (R ∗) →                               {- (3) -}
+                   Allₘ (_≡ A) (authDecoration α))
+                 -- coherent secret lengths
+              ×  (∀ {R : Trace} {Δ Δ′ : List CommittedSecret} {ad : ∃Advertisement} →            {- (4) -}
+                   auth-commit[ A , ad , Δ  ] ∈ strategy (R ∗) →
+                   auth-commit[ A , ad , Δ′ ] ∈ strategy (R ∗) →
+                     Δ ≡ Δ′)
+              ×  (∀ {R : Trace} {T′ : ∃TimedConfiguration} {α : Label} → α ∈ strategy (R ∗) →    {- (5) -}
+                   ∃[ α′ ] (R ——→[ α′ ] T′) →
+                   ∃[ R″ ] (T′ ∷⟦ α ⟧ R ——→[ α ] R″) →
+                     α ∈ strategy ((T′ ∷⟦ α ⟧ R) ∗))
+\end{code}\end{agda}
+Condition $(1)$ restricts our participants to the honest subset\footnote{
+Recall that |Hon| is non-empty, i.e. there is always at least one honest participant.
+} and condition $(2)$ requires that chosen moves are in accordance to the small-step semantics of BitML.
+Condition $(3)$ states that one cannot authorize moves for other participants,
+condition $(4)$ requires that the lengths of committed secrets are \textit{coherent}
+(i.e. no different lengths for the same secrets across moves) and
+condition $(5)$ dictates that decisions are \textit{consistent}, so as moves that are not chosen will still be
+selected by the strategy in a future run (if they are still valid).
+
+All honest participants should be accompanied by such a strategy,
+so we pack all honest strategies in one single datatype:
+\begin{agda}\begin{code}
+HonestStrategies : Set
+HonestStrategies = ∀ {A} → A ∈ Hon → ParticipantStrategy A
+\end{code}\end{agda}
+
 \paragraph{Adversary strategies}
+All dishonest participant will be modelled by a single adversary |Adv|, whose strategy now additionally
+takes the moves chosen by the honest participants and makes the final decision.
+
+Naturally, the chosen move is subject to certain conditions and is again a dependent record:
+\begin{agda}\begin{code}
+record AdversarialStrategy (Adv : Participant) : Set where
+  field
+    strategy  :  Trace → List (Participant × Labels) → Label
+
+    valid     :  Adv ∉ Hon                                                {- (1) -}
+              ×  (∀ {B ad Δ} → B ∉ Hon → α ≡ auth-commit[ B , ad , Δ ] →  {- (2) -}
+                   α ≡ strategy (R ∗) [])
+              ×  ∀ {R : Trace} {moves : List (Participant × Labels)} →    {- (3) -}
+                  let α = strategy (R ∗) moves in
+                  (  ∃[ A ]
+                       (  A ∈ Hon
+                       ×  authDecoration α ≡ just A
+                       ×  α ∈ concatMap proj₂ moves )
+                  ⊎  (  authDecoration α ≡ nothing
+                     ×  (∀ δ → α ≢ delay[ δ ])
+                     ×  ∃[ R′ ] (R ——→[ α ] R′) )
+                  ⊎  (∃[ B ]
+                        (  (authDecoration α ≡ just B)
+                        ×  (B ∉ Hon)
+                        ×  (∀ s → α ≢ auth-rev[ B , s ])
+                        ×  ∃[ R′ ] (R ——→[ α ] R′) ))
+                  ⊎  ∃[ δ ]
+                       (  (α ≡ delay[ δ ])
+                       ×  All (λ{ (_ , Λ) →  (Λ ≡ []) ⊎  Any (λ{ delay[ δ′ ] → δ′ ≥ δ ; _ → ⊥ }) Λ}) moves )
+                  ⊎  ∃[ B ] ∃[ s ]
+                       (  α ≡ auth-rev[ B , s ]
+                       ×  B ∉ Hon
+                       ×  ⟨ B ∶ s ♯ nothing ⟩ ∈ (R ∗)
+                       ×  ∃[ R∗′ ] ∃[ Δ ] ∃[ ad ]
+                            (  R∗′ ∈ prefixTraces (R ∗)
+                            ×  strategy R∗′ [] ≡ auth-commit[ B , ad , Δ ]
+                            ×  (s , nothing) ∈ Δ )))
+\end{code}\end{agda}
+The first two conditions state that the adversary is not one of the honest participants
+and that committing cannot depend on the honest moves, respectively.
+The third condition constraints the move that is chosen by the adversary, such that
+one of the following conditions hold:
+\begin{enumerate}
+\item The move was chosen out of the available honest moves.
+\item It is not a |delay|, nor does it require any authorization.
+\item It is authorized by a dishonest participant, but is not a secret-revealing move.
+\item It is a |delay|, but one that does not influence the time constraints of the honest participants.
+\item It reveals a secret from a dishonest participant, in which case there is valid commit (i.e. with non-|⊥| length)
+somewhere in the previous trace.
+\end{enumerate}
+
+\paragraph{Symbolic Conformance}
 ...
 
 \subsubsection{Meta-theoretical results}
@@ -1489,7 +1647,7 @@ data Trace =
 \TODO{why symmetric?}
 
 \subsubsection{[C-AuthRev]}
-\TODO{missing |DOTS ∣∣ Γ|}
+\TODO{missing |DOTS Γ|}
 
 \subsubsection{[C-Control]}
 \TODO{Refactor to allow for ``linear'' equational reasoning}
@@ -1626,7 +1784,7 @@ and then omit them from their usage in type definitions for clarity.
 
 Below we give a complete set of all variables used throughout this thesis:
 \begin{agda}\begin{code}
-keyword variable
+variable
   ads ads′ ads″ rads adsʳ radsʳ adsˡ radsˡ : AdvertisedContracts
   cs  cs′  cs″  rcs  csʳ  rcsʳ  csˡ  rcsˡ  : ActiveContracts
   ds  ds′  ds″  rds  dsʳ  rdsʳ  dsˡ  rdsˡ  : Deposits
