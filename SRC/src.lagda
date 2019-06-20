@@ -21,7 +21,7 @@
 \newcommand\site[1]{\footnote{\url{#1}}}
 
 %include polycode.fmt
-%include stylish.lhs
+%include stylish.fmt
 \def\commentbegin{}
 \def\commentend{}
 

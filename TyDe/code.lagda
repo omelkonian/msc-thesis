@@ -1,5 +1,5 @@
 %include polycode.fmt
-%include stylish.lhs
+%include stylish.fmt
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                                  UTxO                                      %%

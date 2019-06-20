@@ -1,11 +1,18 @@
 default: all
+all: view
 
-all: build
+MAIN=tyde
+STYLE=stylish.fmt
 
-build: code.lagda
-	lhs2TeX --poly -o code.tex code.lagda
+view: $(MAIN).pdf
+	evince --class='TexEvince' $(MAIN).pdf
+
+$(MAIN).pdf: $(STYLE) $(MAIN).lagda
+	lhs2TeX --poly -o $(MAIN).tex $(MAIN).lagda
+	xelatex $(MAIN).tex
+	bibtex $(MAIN).aux
 
 clean:
-	rm -f *.aux *.log l*.out code.tex
+	rm -f *.aux *.log *.out *.bbl *.lof *.blg *.lot *.pyg *.gz *.toc *.ptb *.dvi $(MAIN).tex $(MAIN).pdf
 
-.PHONY: default all clean
+.PHONY: default all clean view
