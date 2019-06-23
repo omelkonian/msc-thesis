@@ -4,11 +4,11 @@ STYLE=stylish.fmt
 default: all
 all: $(MAIN).pdf
 
-$(MAIN).pdf: $(STYLE) $(MAIN).tex
+$(MAIN).pdf: $(STYLE) $(MAIN).tex 0.title.lagda 1.intro.lagda 2.background.lagda 3.methodology.lagda 4.utxo.lagda 5.bitml.lagda 6.related-work.lagda 7.future-work.lagda 8.conclusion.lagda 9.appendix.lagda
 	xelatex $(MAIN).tex
 	bibtex $(MAIN).aux
 
-%.tex : %.lagda 0.title.lagda 1.intro.lagda 2.background.lagda 3.methodology.lagda 4.utxo.lagda 5.bitml.lagda 6.related-work.lagda 7.future-work.lagda 8.conclusion.lagda 9.appendix.lagda
+%.tex : %.lagda
 	lhs2TeX --poly -o $@ $<
 
 clean:

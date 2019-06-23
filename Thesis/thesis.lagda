@@ -44,6 +44,24 @@
 % Line spacing
 \renewcommand{\baselinestretch}{1.15}
 
+%% Title formatting
+%% \usepackage{titlesec}
+%% \titleformat
+%% {\section} % command
+%% [display] % shape
+%% {\bfseries\Large\itshape} % format
+%% {Section \ \thesection} % label
+%% {0.5ex} % sep
+%% {
+%%     \rule{\textwidth}{1pt}
+%%     \vspace{1ex}
+%%     \centering
+%% } % before-code
+%% [
+%% \vspace{-0.5ex}%
+%% \rule{\textwidth}{0.3pt}
+%% ] % after-code
+
 \begin{document}
 \sloppy % for proper justification (no overflows to the right)
 

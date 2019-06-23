@@ -1,7 +1,7 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Extended UTxO}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Formal Model I: Extended UTxO}
 \label{sec:eutxo}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%$%%%%%%%%%%%%%%%%%%%%
 
 We now set out to model the accounting model of a UTxO-based ledger.
 We will provide a inherently-typed model of transactions and ledgers;
@@ -174,11 +174,85 @@ instead of modelling lookups as partial functions (i.e. returning |Maybe|), they
 proof as an argument moving the responsibility to the caller (as evidenced by their usage in the validity conditions).
 
 \subsection{Decision Procedure}
-\TODO{Describe how proof-by-reflection fits in here}
-...
-\TODO{Give some insight on the Dec definitions}
-...
-\TODO{Reference example}
+Intrinsically-typed ledgers are correct-by-construction, but this does not come for free;
+we now need to provide substantial proofs alongside each time we submit a new transaction.
+
+To make the proof process more ergonomic for the user of the framework,
+we prove that all involved propositions appearing in the |IsValidTx| record are \textit{decidable},
+thus defining a decision procedure for closed formulas that do not contain any free variable.
+This process is commonly referred to as \textit{proof-by-reflection}~\cite{proofbyreflection}.
+
+Most operations already come with a decidable counterpart, e.g. |_ < _| can be decided by |_ <? _| that exists
+in Agda's standard library. Therefore, what we are essentially doing is copy the initial propositions and replace
+such operators with their decision procedures. Decidability is captured by the |Dec| datatype, ensuring that we
+can answer a yes/no question over the enclosed proposition:
+\begin{agda}\begin{code}
+data Dec (P : Set) : Set where
+  yes : ( p  :   P)  → Dec P
+  no  : (¬p  : ¬ P)  → Dec P
+\end{code}\end{agda}
+
+Having a proof of decidability means we can replace a proof of proposition |P| with a simple call to |toWitness {Q = P?} tt|,
+where |P?| is the decidable counterpart of |P|.
+\begin{agda}\begin{code}
+True : Dec P → Set
+True (yes _)  = ⊤
+True (no _)   = ⊥
+##
+toWitness : {Q : Dec P} → True Q → P
+toWitness {Q = yes p}  _  = p
+toWitness {Q = no  _}  ()
+\end{code}\end{agda}
+For this to compute though, the decided formula needs to be \textit{closed}, meaning it does not contain any variables.
+One could even go beyond closed formulas by utilizing Agda's recent \textit{meta-programming} facilities (macros),
+but this is outside of the scope of this thesis.
+
+But what about universal/existential quantification?
+We certainly know that it is not possible to decide on an arbitrary quantified proposition.
+Hopefully, all our uses of the |∀| operator later constrain the quantified argument to be an element of a list.
+Therefore, we can define a specific decidable variant of this format:
+\begin{agda}\begin{code}
+∀?  :  (xs : List A)
+    →  {P : (x : A) (x∈ : x ∈ xs) → Set}
+    →  (∀ x → (x∈ : x ∈ xs) → Dec (P x x∈))
+    →  Dec (∀ x x∈ → P x x∈)
+∀? []        P?  = yes λ _ ()
+∀? (x ∷ xs)  P?  with ∀? xs (λ x′ x∈ → P? x′ (there x∈))
+... | no   ¬p    = no λ p → ¬p (λ x′ x∈ → p x′ (there x∈))
+... | yes  p′    with P? x (here refl)
+... | no   ¬p    = no λ p → ¬p (p x (here refl))
+... | yes  p     = yes λ  {  x′ (here refl) → p
+                          ;  x′ (there x∈)  → p′ x′ x∈ }
+\end{code}\end{agda}
+
+We follow a similar process for existential quantification:
+\begin{agda}\begin{code}
+∃?  :  (xs : List A)
+    →  {P : (x : A) (x∈ : x ∈ xs) → Set ℓ′}
+    →  (∀ x → (x∈ : x ∈ xs) → Dec (P x x∈))
+    →  Dec (∃[ x ] ∃ λ (x∈ : x ∈ xs) → P x x∈)
+∃? []  P?               = no λ { (x , () , p) }
+∃? (x ∷ xs) P?          with P? x (here refl)
+... | yes p             = yes (x , here refl , p)
+... | no ¬p             with ∃? xs (λ x′ x∈ → P? x′ (there x∈))
+... | yes (x′ , x∈ , p) = yes (x′ , there x∈ , p)
+... | no ¬pp            = no λ { (x′ , here refl , p) → ¬p p
+                               ; (x′ , there x∈ , p) → ¬pp (x′ , x∈ , p) }
+\end{code}\end{agda}
+
+Finally, we are ready to provide a decision procedure for each validity condition using the aforementioned operators
+for quantification and the decidable counterparts for the standard operators we use.
+Below we give an example for the |validOutputRefs| condition:
+\begin{agda}\begin{code}
+validOutputRefs? : ∀ (tx : Tx) (l : Ledger)
+  → Dec (∀ i → i ∈ inputs tx → outputRef i ∈ unspentOutputs l)
+validOutputRefs? tx l =
+  ∀? (inputs tx) λ i _ →
+    outputRef i ∈? unspentOutputs l
+\end{code}\end{agda}
+
+In Section~\ref{subsec:utxo-example} we give an example construction of a valid ledger
+and demonstrate that our decision procedure discharges all proof obligations with calls to |toWitness|.
 
 \subsection{Weakening Lemma}
 We have defined everything with respect to a fixed set of available addresses, but it would make sense to be able to include
@@ -194,47 +268,107 @@ Ledger′ as = Ledger
 VDOTS
 \end{code}\end{agda}
 
-We can now precisely define what it means to weaken an address space; one just adds more available
-addresses without removing any of the pre-existing addresses:
-
+We can now precisely define what it means to weaken an address space;
+the only necessary ingredient is a \textit{hash-preserving injection}
+from a smaller address space |𝔸| to a larger address space |𝔹|:
 \begin{agda}\begin{code}
-weakenTxOutput : Prefix as bs -> TxOutput′ as -> TxOutput′ bs
-weakenTxOutput pr txOut = txOut { address = inject≤ addr (prefix-length pr) }
-  where open import UTxO bs
+module Weakening
+  (𝔸 : Set) (_♯ SA : Hash 𝔸) (_ ≟ SA _ : Decidable {A = 𝔸} _ ≡ _)
+  (𝔹 : Set) (_♯ SB : Hash 𝔹) (_ ≟ SB _ : Decidable {A = 𝔹} _ ≡ _)
+  (A↪B : 𝔸 , _♯ SA ↪ 𝔹 , _♯ SB)
+  where
+##
+  import UTxO.Validity      𝔸 _♯ SA _ ≟ SA _ as A
+  open import UTxO.Validity 𝔹 _♯ SB _ ≟ SB _ as B
+##
+  weakenTxOutput : A.TxOutput → B.TxOutput
+  weakenTxOutput out = out { address = A↪B ⟨$⟩ (address out) }
+##
+  weakenTx : A.Tx → B.Tx
+  weakenTx tx = tx { outputs = map weakenTxOutput (outputs tx) }
+##
+  weakenLedger : A.Ledger → B.Ledger
+  weakenLedger = map weakenTx
 \end{code}\end{agda}
-For simplicity's sake, we allow extension at the end of the address space instead of anywhere in
-between\footnote{Technically, we require |Prefix as bs| instead of the more flexible |as ⊆ bs|.}.
 Notice also that the only place where weakening takes place are transaction outputs, since all other
 components do not depend on the available address space.
 
 With the weakening properly defined, we can finally prove the \textit{weakening lemma} for the available address space:
-
 \begin{agda}\begin{code}
-weakening : ∀ {as bs : List Address} {tx : Tx′ as} {l : Ledger′ as}
-  ->  (pr : Prefix as bs)
-  ->  IsValidTx′ as tx l
-      {- $\inferLarge$ -}
-  ->  IsValidTx′ bs (weakenTx pr tx) (weakenLedger pr l)
+  weakening : ∀ {tx : A.Tx} {l : A.Ledger}
 
-weakening = DOTS
+    →  A.IsValidTx tx l
+       {-\inferLine{6cm}-}
+    →  B.IsValidTx (weakenTx tx) (weakenLedger l)
+  weakening = DOTS
 \end{code}\end{agda}
 The weakening lemma states that the validity of a transaction with respect to a ledger is preserved if
 we choose to weaken the available address space, which we estimate to be useful when we later prove more
 intricate properties of the extended UTxO model.
 
+One practical use-case for weakening is moving from a bit representation of addresses to one with more available bits
+(e.g. 32-bit to 64-bit conversion).
+This, of course, preserves hashes since the numeric equivalent of the converted addresses will be the same.
+For instance, as we come closer to the quantum computing age, addresses will have to transition to other
+encryption schemes involving many more bits\footnote{
+It is believed that even 2048-bit keys will become vulnerable to rapid decryption from quantum computers.
+}.
+Since we allow the flexibility for arbitrary injective functions,
+our weakening result will hopefully prove resilient to such scenarios.
+
 \subsection{Combining}
-\TODO{disjointness}
-...
-\TODO{basic theorem}
-...
-\TODO{interplay with weakening}
+Ideally, one would wish for a modular reasoning process, where it is possible to examine subsets of
+unrelated transactions in a compositional manner.
+This has to be done in a constrained manner, since we need to preserve the proof of validity
+when combining two ledgers |l| and |l′|.
+
+First of all, the ledgers should not share any transactions with each other: |Disjoint l l′|.
+Secondly, the resulting ledger |l″| will be some interleaving of these two: |Interleaving l l′ l″|.
+These conditions are actually sufficient to preserve all validity conditions, except |allInputsValidate|.
+The issue arises from the dependence of validation results on the current state of the ledger,
+which is given as argument to each validation script.
+To remedy this, we further require that the new state, corresponding to a particular interleaving,
+does not break previous validation results:
+\begin{agda}\begin{code}
+PreserveValidations : (l : Ledger) (l″ : Ledger) → Interleaving l _ l″ → Set
+PreserveValidations l₀ _ inter =
+  ∀ tx → (p : tx ∈ l₀) →
+    let l   = ∈-tail p
+        l″  = ∈-tail (interleave⊆ inter p)
+    in ^^ ∀ {ptx i out vds}  →  runValidation ptx i out vds (getState l″)
+                             ≡  runValidation ptx i out vds (getState l)
+\end{code}\end{agda}
+
+Putting all conditions together, we are now ready to formulate a \textit{combining} operation for valid ledgers:
+\begin{agda}\begin{code}
+_ ↔ _ ∶- _ : ∀ {l l′ l″ : Ledger}
+  →  ValidLedger l
+  →  ValidLedger l′
+  →  Σ[ i ∈ Interleaving l l′ l″ ]
+  ×  Disjoint l l′
+  ×  PreserveValidations l l″ i
+  ×  PreserveValidations l′ l″ (swap i)
+     {-\inferLine{6cm}-}
+  →  ValidLedger l″
+\end{code}\end{agda}
+The proof inductively proves validity of each transaction in the interleaved ledger,
+essentially reusing the validity proofs of the ledger constituents.
+
+It is important to notice a useful interplay between weakening and combining:
+if we wish to combine ledgers that use different addresses, we can now just apply weakening
+first and then combine in a type-safe manner.
 
 \subsection{Extension I: Data Scripts}
-\TODO{More expressiveness}
-...
-\TODO{Explain how to use data scripts to simulate state}
-...
-\TODO{Showcase Marlowe's approach for compiling to eUTxO}
+The |dataScript| field in transaction outputs does not appear in the original abstract UTxO model~\cite{utxo},
+but is available in the extended version of the UTxO model used in the Cardano blockchain~\cite{eutxo}.
+This addition raises the expressive level of UTxO-based transaction, since it is now possible
+to simulate stateful behaviour, passing around state in the data scripts (i.e. |D = State|).
+
+This technique is successfully employed in \textit{Marlowe},
+a DSL for financial contracts that compiles down to eUTxO transactions~\cite{marlowe}.
+Marlowe is accompanied by a simple small-step semantics, i.e. a state transition system.
+Using data scripts, compilation is rather straightforward since we can pass around
+the state of the semantics in the data scripts.
 
 \subsection{Extension II: Multi-currency}
 \TODO{Value Generalization: Currency maps}
