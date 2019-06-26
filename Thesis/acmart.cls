@@ -5,17 +5,17 @@
 %% The original source files were:
 %%
 %% acmart.dtx  (with options: `class')
-%% 
+%%
 %% IMPORTANT NOTICE:
-%% 
+%%
 %% For the copyright see the source file.
-%% 
+%%
 %% Any modified versions of this file must be renamed
 %% with new filenames distinct from acmart.cls.
-%% 
+%%
 %% For distribution of the original source see the terms
 %% for copying and modification in the file acmart.dtx.
-%% 
+%%
 %% This generated file may be distributed as long as the
 %% original source files, as listed above, are part of the
 %% same distribution. (The sources need not necessarily be
@@ -2451,14 +2451,14 @@ Computing Machinery]
   {-.75\baselineskip \@plus -2\p@ \@minus -.2\p@}%
   {.25\baselineskip}%
   {\ACM@NRadjust\@secfont}}
-\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
-  {-.75\baselineskip \@plus -2\p@ \@minus -.2\p@}%
-  {.25\baselineskip}%
-  {\ACM@NRadjust\@subsecfont}}
-\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
-  {-.5\baselineskip \@plus -2\p@ \@minus -.2\p@}%
-  {-3.5\p@}%
-  {\ACM@NRadjust{\@subsubsecfont\@adddotafter}}}
+% \renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+%   {-.75\baselineskip \@plus -2\p@ \@minus -.2\p@}%
+%   {.25\baselineskip}%
+%   {\ACM@NRadjust\@subsecfont}}
+% \renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+%   {-.5\baselineskip \@plus -2\p@ \@minus -.2\p@}%
+%   {-3.5\p@}%
+%   {\ACM@NRadjust{\@subsubsecfont\@adddotafter}}}
 \renewcommand\paragraph{\@startsection{paragraph}{4}{\parindent}%
   {-.5\baselineskip \@plus -2\p@ \@minus -.2\p@}%
   {-3.5\p@}%
@@ -2494,10 +2494,10 @@ Computing Machinery]
 \or % sigplan
  \def\@secfont{\bfseries\Large\section@raggedright}
  \def\@subsecfont{\bfseries\section@raggedright}
- \renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
-   {-.75\baselineskip \@plus -2\p@ \@minus -.2\p@}%
-   {.25\baselineskip}%
-   {\@subsubsecfont}}
+ % \renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+ %   {-.75\baselineskip \@plus -2\p@ \@minus -.2\p@}%
+ %   {.25\baselineskip}%
+ %   {\@subsubsecfont}}
  \def\@subsubsecfont{\bfseries\section@raggedright}
  \renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
    {-.5\baselineskip \@plus -2\p@ \@minus -.2\p@}%

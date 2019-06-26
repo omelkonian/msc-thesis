@@ -45,22 +45,28 @@
 \renewcommand{\baselinestretch}{1.15}
 
 %% Title formatting
-%% \usepackage{titlesec}
-%% \titleformat
-%% {\section} % command
-%% [display] % shape
-%% {\bfseries\Large\itshape} % format
-%% {Section \ \thesection} % label
-%% {0.5ex} % sep
-%% {
-%%     \rule{\textwidth}{1pt}
-%%     \vspace{1ex}
-%%     \centering
-%% } % before-code
-%% [
-%% \vspace{-0.5ex}%
-%% \rule{\textwidth}{0.3pt}
-%% ] % after-code
+\usepackage{titlesec}
+
+\titleformat{\section} % command
+[display] % shape
+{\bfseries\huge\itshape} % format
+{\filleft\MakeUppercase{Section} \Huge\thesection} % label
+{2ex} % sep
+{\titlerule
+ \vspace{2ex}%
+ \filright
+} % before-code
+[\vspace{2ex}%
+ \titlerule
+ \vspace{4ex}%
+] % after-code
+
+\titleformat{\subsection}[block]
+{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}[block]
+{\itshape\normalsize\bfseries}{\thesubsubsection}{1em}{}
+\titleformat{\paragraph}[runin]
+{\itshape\normalsize\bfseries}{\theparagraph}{1em}{}
 
 \begin{document}
 \sloppy % for proper justification (no overflows to the right)
@@ -85,6 +91,7 @@
 }
 \email{melkon.or@@gmail.com}
 
+\pagestyle{plain}
 %include 0.title.lagda
 \newpage
 %include 1.intro.lagda
