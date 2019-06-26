@@ -8,20 +8,6 @@ and there will definitely be some surprises along the way,
 but I hope it will give realistic expectations of the final results of my thesis.
 
 \subsection{Extended UTxO}
-Many major blockchain systems today support the creation of secondary cryptocurrencies, which are independent of the main  currency.
-In Bitcoin, for instance, \textit{colored coins} allow transactions to assign additional meaning to their outputs
-(e.g. each coin could correspond to a real-world asset, such as company shares)~\cite{coloredcoins}.
-
-This approach, however, has the disadvantage of larger transactions and less efficient processing.
-One could instead bake the multi-currency feature into the base system, mitigating the need for
-larger transactions and slow processing.
-Building on the abstract UTxO model, there are current research efforts on a general framework that provides mechanisms
-to establish and enforce monetary policies for multiple currencies~\cite{multicurrency}.
-
-Fortunately, the extensions proposed by the multi-currency are orthogonal to the functionality I have currently formalized.
-In order to achieve this, one has to generalize the |Value| datatype to account for multiple currencies.
-Hence, I plan to integrate this with my current formal development of the extended UTxO model and,
-by doing so, provide the first formalization of a UTxO ledger that supports multiple cryptocurrencies.
 
 \subsubsection{2-level Multi-currency}
 \TODO{... non-fungible tokens ...}

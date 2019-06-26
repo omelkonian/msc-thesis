@@ -66,7 +66,7 @@
 \titleformat{\subsubsection}[block]
 {\itshape\normalsize\bfseries}{\thesubsubsection}{1em}{}
 \titleformat{\paragraph}[runin]
-{\itshape\normalsize\bfseries}{\theparagraph}{1em}{}
+{\itshape\normalsize\bfseries}{\theparagraph}{1em}{}[.]
 
 \begin{document}
 \sloppy % for proper justification (no overflows to the right)
