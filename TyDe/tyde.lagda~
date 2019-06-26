@@ -1,0 +1,297 @@
+\documentclass[sigplan,screen]{acmart}\settopmatter{printccs=false,printacmref=false}
+
+%% Bibliography style
+\bibliographystyle{ACM-Reference-Format}
+%\citestyle{acmauthoryear}
+
+%% Conference information
+\acmConference[TyDe'19]{}{August 18, 2019}{Berlin, Germany}
+\acmISBN{} % \acmISBN{978-x-xxxx-xxxx-x/YY/MM}
+\acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
+\acmYear{2019}
+\startPage{1}
+
+% Copyright
+\setcopyright{none}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Packages
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% URLs
+\newcommand\site[1]{\footnote{\url{#1}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Agda imports
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%include polycode.fmt
+%include stylish.fmt
+\def\commentbegin{}
+\def\commentend{}
+
+\begin{document}
+\sloppy % for proper justification (no overflows to the right)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Title
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{Formal Investigation of the Extended UTxO Model (Extended Abstract)}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Authors
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\author{Orestis Melkonian}
+\orcid{0000-0003-2182-2698}
+\affiliation{
+  \department{Information and Computing Sciences}
+  \institution{Utrecht University}
+}
+\email{melkon.or@@gmail.com}
+
+\author{Wouter Swierstra}
+%\orcid{????-????-????-????}
+\affiliation{
+  \department{Information and Computing Sciences}
+  \institution{Utrecht University}
+}
+\email{w.s.swierstra@@uu.nl}
+
+\author{Manuel M.T. Chakravarty}
+%\orcid{????-????-????-????}
+\affiliation{
+  \institution{Input Output HK}
+}
+\email{manuel.chakravarty@@iohk.io}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Abstract
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\begin{abstract}
+%\end{abstract}
+
+%% 2012 ACM Computing Classification System (CSS) concepts
+%% Generate at 'http://dl.acm.org/ccs/ccs.cfm'.
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10002978.10002986</concept_id>
+<concept_desc>Security and privacy~Formal methods and theory of security</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10002978.10002986.10002990</concept_id>
+<concept_desc>Security and privacy~Logic and verification</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10003752.10010124.10010131</concept_id>
+<concept_desc>Theory of computation~Program semantics</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Theory of computation~Program semantics}
+\ccsdesc[500]{Security and privacy~Formal methods and theory of security}
+\ccsdesc[500]{Security and privacy~Logic and verification}
+%% End of generated code
+
+%% Keywords (comma separated list)
+%\keywords{}
+
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+\label{sec:intro}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Blockchain technology has seen a plethora of applications during the past few years~\cite{mpc,zeroproof,fair},
+but has also unveiled a new source of vulnerabilities\site{
+https://en.wikipedia.org/wiki/The_DAO_(organization)
+} arising from the distributed execution of \textit{smart contracts} (programs that run on the blockchain).
+Since many of these applications deal with transactions of significant funds, it is crucial
+that we can formally reason about their (concurrent) behaviour.
+
+This opens up a lot of opportunities for novel applications of formal verification techniques.
+In particular, we believe that a language-based, type-driven approach to contract development
+constitutes an effective way to make their execution more predictable.
+To this end, we attempt to lay the foundations for a mechanized formal framework,
+where one can verify that certain undesirable scenarios are impossible.
+
+We formulate an accounting model for ledgers based on \textit{unspent transaction outputs} (UTxO),
+the ledger model underlying Bitcoin~\cite{bitcoin} and many other blockchains.
+We conduct our study in Agda~\cite{agda},
+exploiting its expressive dependent type system to mechanically enforce desired properties statically.
+An executable specification of our formal development is available on Github\site{
+https://github.com/omelkonian/formal-utxo/
+}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Formal Model}
+\label{sec:model}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Our formalization closely follows the abstract accounting model for UTxO-based cryptocurrencies presented in \cite{utxo},
+which leaves out details of other technical components of the blockchain such as cryptographic operations.
+We further extend the original formulation to cover the extensions employed by the Cardano blockchain platform~\cite{eutxo}.
+Cardano extends Bitcoin's UTxO model with data scripts on transaction outputs,
+in an effort to bring it on par with Ethereum's expressive account-based scripting model~\cite{ethereum},
+as well as support for multiple cryptocurrencies on the same ledger~\cite{multicurrency}.
+
+\paragraph{Transactions \& Ledgers.}
+For simplicity, we model monetary quantities and hashes as natural numbers.
+We treat the type of addresses as an abstract module parameter equipped with an injective hash function.
+Transactions consist of a list of outputs, transferring a monetary value to an address, and a list of inputs
+referring to previous outputs:
+\begin{agda}\begin{code}
+module UTxO (Address : Set) (UNDERL ♯ : Address → ℕ) where
+
+record OutputRef : Set where
+  field  id     : ℕ  -- hash of the transaction
+         index  : ℕ  -- index in the list of outputs
+
+record Input : Set where
+  field  outRef     : OutputRef
+         R D        : Set
+         redeemer   : State → R
+         validator  : State → R → D → Bool
+
+record Output : Set where
+  field  value    : Value
+         address  : Address
+         D        : Set
+         DATA     : State → D
+
+record Tx : Set where
+  field  inps   : List Input
+         outs   : List Output
+         forge  : Value
+         fee    : Value
+\end{code}\end{agda}
+
+Both inputs and outputs carry authorization scripts; for a transaction to consume an unspent output, the
+result of the validator script has to evaluate to |true|, given the current state of the ledger and
+additional information provided by the redeemer and data scripts\footnote{
+Note that redeemers and data scripts can have an arbitrary result type (|R| and |D|, respectively).
+}:
+\begin{agda}\begin{code}
+authorize :: Input → List Tx → Bool
+authorize i l = let s = getState l in
+  validator i s (redeemer i s) (DATA (lookup l (outRef i)) s)
+\end{code}\end{agda}
+
+A ledger consists of a list of transactions, whose \textit{unspent transaction outputs} we can recursively compute:
+\begin{agda}\begin{code}
+utxo : List Tx → List OutputRef
+utxo []         =  ∅
+utxo (tx :: l)  =  (utxo l ^^ ∖ map outRef (ins tx)) ∪ outs tx
+\end{code}\end{agda}
+
+\paragraph{Validity.}
+There are still invariants of a well-formed ledger that are not captured by the current typing as |List Tx|.
+To that end, we encode the validity of a transaction with respect to a given ledger as a dependent data type.
+For the sake of brevity, we present only two such conditions, namely that inputs refer to existing unspent outputs
+and all authorizations succeed:
+\begin{agda}\begin{code}
+record IsValidTx (tx : Tx) (l : List Tx) : Set where
+  field  validOutputRefs :
+           ∀ i → i ∈ ins tx → outRef i ∈ utxo l
+         allInputsValidate :
+           ∀ i → i ∈ ins tx → authorize i l ≡ true
+         DOTS
+\end{code}\end{agda}
+Other validity conditions include that no output is spent twice (|Unique (map outRef (ins tx))|)
+and transactions preserve total values (|forge + Σ IN ≡ fee + Σ OUT |).
+
+It is now possible to characterize a well-formed |Ledger|,
+by requiring a validity proof along with each insertion to the list of transactions.
+Exposing only this type-safe interface to the user will ensure one can only construct valid ledgers.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Meta-theory}
+\label{sec:meta}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Apart from being able to define correct-by-construction ledgers, we can prove further meta-theoretical results over our
+existing formulation.
+
+\paragraph{Weakening.}
+Given a suitable injection on addresses, we prove a weakening lemma, stating that a valid ledger
+parametrized over some addresses will remain valid even if more addresses become available:
+\begin{code}
+weakening : (f : A ↪ B) → Ledger l → Ledger (weaken f l)
+\end{code}
+Weakening consists of traversing the ledger's outputs and transporting all addresses via the supplied injection;
+in order to keep references intact, the injection has to also preserve the original hashes\footnote{
+A practical case of such weakening is migrating from a 32-bit word address space to a 64-bit one.
+}.
+
+\paragraph{Combining.}
+Ideally, one would wish for a modular reasoning process, where it is possible to examine subsets of
+unrelated transactions in a compositional manner.
+
+We provide a ledger combinator that interleaves two \textit{separate} ledgers.
+Due to lack of space, we eschew from giving the formal definition of the separation connective
+|UNDERL ** UNDER ~~ UNDERR|.
+Briefly, two ledgers are separate if they do not share any common transaction and the produced interleaving
+does not break previous validator scripts (since they will now execute on a different ledger state).
+These conditions are necessary to transfer the validity of the two sub-ledgers to a proof of validity of the merged ledger:
+\begin{code}
+_ ↔ _ ∶- _  :  Ledger l → Ledger l′ → l ** l′ ~~ l″ →  Ledger l″
+\end{code}
+The notion of weakening we previously defined proves rather useful here,
+as it allows merging two ledgers acting on different addresses.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Discussion}
+\label{sec:discussion}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Proof Automation.}
+Although we have made it possible to express desired ledger properties in the type system,
+users still need to manually discharge tedious proof obligations.
+In order to make the proof process more ergonomic, we can prove that the involved propositions are \textit{decidable},
+thus defining a decision procedure for closed formulas that do not contain any free variables~\cite{proofbyreflection};
+we have already proven decidability of the validity conditions\footnote{
+There is an example construction of a valid ledger in the code repository,
+where our decision procedure automatically discharges all required proofs.
+}
+and wish to also cover the propositions appearing in weakening and combining.
+
+\paragraph{Comparison with Ethereum.}
+It would be interesting to conduct a more formal comparison between UTxO-based and account-based ledgers,
+relying on previous work on \textit{chimeric ledgers}~\cite{chimeric} that gives a translation between these two approaches.
+Note that implementing this translation on our inherently-typed representation would
+guarantee that we only produce \textbf{valid} UTxO ledgers.
+
+\paragraph{Towards verification of smart contracts.}
+Although our framework gives a formal foundation for UTxO-based ledgers,
+reasoning about the high-level behaviour of smart contracts is still out of reach.
+The quest for a mathematical model that captures the subtleties of contract behaviour
+and is amendable to mechanized verification is still an open problem,
+but there seems to be a consensus that formal methods lead to the most promising direction~\cite{smartcontracts}.
+
+\textsc{Scilla}, an intermediate-level language for smart contracts,
+has a formal semantics based on communicating automata that has proven adequate
+to mechanically verify \textit{safety} and \textit{liveness} properties~\cite{scilla}.
+
+The Bitcoin Modelling Language (BitML), an idealistic process calculus for Bitcoin contracts,
+is accompanied by a small-step reduction semantics
+and a symbolic model of participant strategies that is intuitive to work with~\cite{bitml}.
+The authors also provide a compiler from high-level BitML contracts to low-level Bitcoin transactions,
+along with a compilation correctness theorem:
+\textit{computational attacks on compiled contracts are also observable in the symbolic model}.
+We are, in fact, currently formalizing the BitML calculus and its symbolic model in Agda\site{
+https://github.com/omelkonian/formal-bitml
+} and plan to mechanize compilation down to our formal UTxO model instead.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Acknowledgements
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{acks}
+We would like to thank Philip Wadler and Michael Peyton Jones for helpful discussion and IOHK for financial support.
+\end{acks}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Bibliography
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bibliography{sources}
+
+\end{document}

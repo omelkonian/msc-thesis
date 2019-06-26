@@ -1,14 +1,14 @@
-\documentclass[sigplan,review,screen]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
+\documentclass[sigplan,screen]{acmart}\settopmatter{printccs=false,printacmref=false}
 
 %% Bibliography style
 \bibliographystyle{ACM-Reference-Format}
 %\citestyle{acmauthoryear}
 
 %% Conference information
-\acmConference[PL'18]{ACM SIGPLAN Conference on Programming Languages}{January 01--03, 2018}{New York, NY, USA}
-\acmYear{2018}
+\acmConference[TyDe'19]{}{August 18, 2019}{Berlin, Germany}
 \acmISBN{} % \acmISBN{978-x-xxxx-xxxx-x/YY/MM}
 \acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
+\acmYear{2019}
 \startPage{1}
 
 % Copyright
@@ -21,8 +21,13 @@
 % URLs
 \newcommand\site[1]{\footnote{\url{#1}}}
 
-% Import Agda code
-\input{code}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Agda imports
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%include polycode.fmt
+%include stylish.fmt
+\def\commentbegin{}
+\def\commentend{}
 
 \begin{document}
 \sloppy % for proper justification (no overflows to the right)
@@ -41,7 +46,7 @@
   \department{Information and Computing Sciences}
   \institution{Utrecht University}
 }
-\email{melkon.or@gmail.com}
+\email{melkon.or@@gmail.com}
 
 \author{Wouter Swierstra}
 %\orcid{????-????-????-????}
@@ -49,14 +54,14 @@
   \department{Information and Computing Sciences}
   \institution{Utrecht University}
 }
-\email{w.s.swierstra@uu.nl}
+\email{w.s.swierstra@@uu.nl}
 
 \author{Manuel M.T. Chakravarty}
 %\orcid{????-????-????-????}
 \affiliation{
   \institution{Input Output HK}
 }
-\email{manuel.chakravarty@iohk.io}
+\email{manuel.chakravarty@@iohk.io}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Abstract
@@ -137,25 +142,67 @@ For simplicity, we model monetary quantities and hashes as natural numbers.
 We treat the type of addresses as an abstract module parameter equipped with an injective hash function.
 Transactions consist of a list of outputs, transferring a monetary value to an address, and a list of inputs
 referring to previous outputs:
-\basic{}
+\begin{agda}\begin{code}
+module UTxO (Address : Set) (UNDERL ♯ : Address → ℕ) where
+
+record OutputRef : Set where
+  field  id     : ℕ  -- hash of the transaction
+         index  : ℕ  -- index in the list of outputs
+
+record Input : Set where
+  field  outRef     : OutputRef
+         R D        : Set
+         redeemer   : State → R
+         validator  : State → R → D → Bool
+
+record Output : Set where
+  field  value    : Value
+         address  : Address
+         D        : Set
+         DATA     : State → D
+
+record Tx : Set where
+  field  inps   : List Input
+         outs   : List Output
+         forge  : Value
+         fee    : Value
+\end{code}\end{agda}
 
 Both inputs and outputs carry authorization scripts; for a transaction to consume an unspent output, the
-result of the validator script has to evaluate to \inlineTrue{}, given the current state of the ledger and
-additional information provided by the redeemer and data scripts:
-\auth{}
+result of the validator script has to evaluate to |true|, given the current state of the ledger and
+additional information provided by the redeemer and data scripts\footnote{
+Note that redeemers and data scripts can have an arbitrary result type (|R| and |D|, respectively).
+}:
+\begin{agda}\begin{code}
+authorize :: Input → List Tx → Bool
+authorize i l = let s = getState l in
+  validator i s (redeemer i s) (DATA (lookup l (outRef i)) s)
+\end{code}\end{agda}
 
 A ledger consists of a list of transactions, whose \textit{unspent transaction outputs} we can recursively compute:
-\utxo{}
+\begin{agda}\begin{code}
+utxo : List Tx → List OutputRef
+utxo []         =  ∅
+utxo (tx :: l)  =  (utxo l ^^ ∖ map outRef (ins tx)) ∪ outs tx
+\end{code}\end{agda}
 
 \paragraph{Validity.}
-We are now ready to encode the validity of a transaction with respect to a given ledger as a dependent data type.
+There are still invariants of a well-formed ledger that are not captured by the current typing as |List Tx|.
+To remedy this, we encode the validity of a transaction with respect to a given ledger as a dependent data type.
 For the sake of brevity, we present only two such conditions, namely that inputs refer to existing unspent outputs
 and all authorizations succeed:
-\valid{}
-Other validity conditions include that no output is spent twice (\inlineNDS{})
-and transactions preserve total values (\inlinePV{}).
+\begin{agda}\begin{code}
+record IsValidTx (tx : Tx) (l : List Tx) : Set where
+  field  validOutputRefs :
+           ∀ i → i ∈ ins tx → outRef i ∈ utxo l
+         allInputsValidate :
+           ∀ i → i ∈ ins tx → authorize i l ≡ true
+         DOTS
+\end{code}\end{agda}
+Other validity conditions include that no output is spent twice (|Unique (map outRef (ins tx))|)
+and transactions preserve total values (|forge + Σ IN ≡ fee + Σ OUT |).
 
-It is now possible to characterize a well-formed \inlineLedger{},
+It is now possible to characterize a well-formed |Ledger|,
 by requiring a validity proof along with each insertion to the list of transactions.
 Exposing only this type-safe interface to the user will ensure one can only construct valid ledgers.
 
@@ -169,22 +216,27 @@ existing formulation.
 \paragraph{Weakening.}
 Given a suitable injection on addresses, we prove a weakening lemma, stating that a valid ledger
 parametrized over some addresses will remain valid even if more addresses become available:
-\weakening{}
+\begin{code}
+weakening : (f : A ↪ B) → Ledger l → Ledger (weaken f l)
+\end{code}
 Weakening consists of traversing the ledger's outputs and transporting all addresses via the supplied injection;
 in order to keep references intact, the injection has to also preserve the original hashes\footnote{
 A practical case of such weakening is migrating from a 32-bit word address space to a 64-bit one.
 }.
 
 \paragraph{Combining.}
-Ideally, one would wish for a modular reasoning process, where it is possible to examine subsets of 
+Ideally, one would wish for a modular reasoning process, where it is possible to examine subsets of
 unrelated transactions in a compositional manner.
 
 We provide a ledger combinator that interleaves two \textit{separate} ledgers.
-Due to lack of space, we eschew from giving the formal definition of the separation connective \inlineAst{}.
-Briefly, two ledgers are separate if they do not share any common transaction and the produced interleaving 
+Due to lack of space, we eschew from giving the formal definition of the separation connective
+|UNDERL ** UNDER ~~ UNDERR|.
+Briefly, two ledgers are separate if they do not share any common transaction and the produced interleaving
 does not break previous validator scripts (since they will now execute on a different ledger state).
-These conditions are necessary to transfer the validity of the two sub-ledgers to a proof of validity of the merged ledger.
-\combining{}
+These conditions are necessary to transfer the validity of the two sub-ledgers to a proof of validity of the merged ledger:
+\begin{code}
+_ ↔ _ ∶- _  :  Ledger l → Ledger l′ → l ** l′ ~~ l″ →  Ledger l″
+\end{code}
 The notion of weakening we previously defined proves rather useful here,
 as it allows merging two ledgers acting on different addresses.
 

@@ -1,8 +1,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
 %% Agda Styling
-%%
-%% TODO: Figure out spacing!
+
+\newenvironment{agda}
+{ \par
+  \begingroup
+  \leftskip1em
+  \rightskip\leftskip }
+{ \endgroup }
 
 % Bitcoin symbol
 \def\bitcoin{%
@@ -45,15 +50,6 @@
   \begingroup
     \color#1{#2}#3%
   \endgroup
-}
-
-\newenvironment{myagda}
-{ \par
-  \vspace{.1cm}
-  \begin{minipage}{\textwidth}
-}
-{ %\vspace{.15cm}
-  \end{minipage}
 }
 
 \newcommand{\HSKeyword}[1]{\mathcolor{hsgold3}{\textbf{#1}}}
@@ -180,7 +176,7 @@
 %format eta1     = "\HSVar{\eta_1}"
 %format eta2     = "\HSVar{\eta_2}"
 %format fSq      = "\HSVar{f}"
-%format ~~       = "\HSSym{\approx}"
+%format ~~       = "\HSSym{\!\approx}"
 %format :>:      = "\HSCon{\triangleright}"
 %format :*       = "\HSCon{\times}"
 %format :*:      = "\HSCon{:\!*\!:}"
@@ -208,7 +204,6 @@
 %format ‼        = "\HSSym{\mathbin{!!}}"
 %format ♯        = "\HSSym{\ ♯}"
 %format ∶-       = "\HSSym{\dashv}"
-%format ⊢       = "\HSSym{\dashv}"
 %format ⟩∶-      = "\HSSym{\ \rangle\vdash}"
 %format ∙        = "\HSSym{\bullet}"
 %format ⊕        = "\HSSym{\mathbin{\oplus}}"
