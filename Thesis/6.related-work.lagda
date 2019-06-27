@@ -1,9 +1,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Related Work}
-\label{sec:relatedwork}
+\label{sec:related}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{Static Analysis Tools}a
+
+\subsection{Static Analysis Tools}
 \TODO{BitML Liquidity}
 ...
 \TODO{Madmax}
@@ -13,6 +14,7 @@
 
 \subsection{Scilla}
 \TODO{extrinsic}
+
 ...
 
 \subsection{Setzer's Agda model}

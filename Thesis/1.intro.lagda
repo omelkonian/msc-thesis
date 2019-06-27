@@ -48,9 +48,12 @@ about the problem at hand and some key design decisions we set upfront.
 Section~\ref{sec:eutxo} describes the formalization of an abstract model for UTxO-based blockchain ledgers.
 \item % BitML
 Section~\ref{sec:bitml} concerns the formalization of our second object of study, the Bitcoin Modelling Language.
-\item % Next steps
-Section~\ref{sec:next} discusses next steps for the remainder of the thesis, as well as a rough estimate
-on when these milestones will be completed.
+\item % Related Work
+Section~\ref{sec:related} gives an overview of relavant previous work, ranging
+from static analysis tools to type-driven verification approaches.
+\item % Future Work
+Section~\ref{sec:future} discusses possible next steps to continue the line of work
+stemming from this thesis.
 \item % Conclusion
 Section~\ref{sec:conclusion} concludes with a general overview of our contributions and reflects on the chosen methodology.
 

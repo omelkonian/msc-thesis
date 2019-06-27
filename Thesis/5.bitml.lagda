@@ -652,10 +652,10 @@ record AdversarialStrategy (Adv : Participant) : Set where
   field
     strategy  :  Trace → List (Participant × Labels) → Label
 
-    valid     :  Adv ∉ Hon                            {- \hspace{7cm} -}  {- (1) -}
-              ×  (∀ {B ad Δ} → B ∉ Hon → α ≡ auth-commit[ B , ad , Δ ] →  {- (2) -}
+    valid     :  Adv ∉ Hon                                                                    {- (1) -}
+              ×  (∀ {B ad Δ} → B ∉ Hon → α ≡ auth-commit[ B , ad , Δ ] →  {-\hspace{1.5cm}-}  {- (2) -}
                    α ≡ strategy (R ∗) [])
-              ×  ∀ {R : Trace} {moves : List (Participant × Labels)} →    {- (3) -}
+              ×  ∀ {R : Trace} {moves : List (Participant × Labels)} →                        {- (3) -}
                   let α = strategy (R ∗) moves in
                   (  ∃[ A ]
                        (  A ∈ Hon
@@ -671,7 +671,8 @@ record AdversarialStrategy (Adv : Participant) : Set where
                         ×  ∃[ R′ ] (R ——→⟦ α ⟧ R′) ))
                   ⊎  ∃[ δ ]
                        (  (α ≡ delay[ δ ])
-                       ×  All (λ{ (_ , Λ) → (Λ ≡ []) ⊎  Any (λ{ delay[ δ′ ] → δ′ ≥ δ ; _ → ⊥ }) Λ}) moves )
+                       ×  All (λ{ (_ , Λ)  →  (Λ ≡ [])
+                                           ⊎  Any (λ{ delay[ δ′ ] → δ′ ≥ δ ; _ → ⊥ }) Λ}) moves )
                   ⊎  ∃[ B ] ∃[ s ]
                        (  α ≡ auth-rev[ B , s ]
                        ×  B ∉ Hon

@@ -409,7 +409,7 @@ trees~\site{https://github.com/agda/agda-stdlib/blob/master/src/Data/AVL.agda}:
 \begin{agda}\begin{code}
 open import Data.AVL ℕ-strictTotalOrder
 ##
-CurrencyMap = Tree (MkValue (λ _ → ℕ) (subst (λ _ → ℕ)))
+CurrencyMap = Tree (MkValue (λ _ → Hash) (subst (λ _ → ℕ)))
 ##
 _ + SC _ : Value → Value → Value
 c + SC c′ = toList (foldl go (fromList c) c′)
@@ -478,7 +478,8 @@ forging? tx l v₁ v₂ =
        in (address out) ♯ ≟ c
 \end{code}\end{agda}
 
-\subsection{Example} \label{subsec:utxo-example}
+\subsection{Example}
+\label{subsec:utxo-example}
 To showcase how we can use our model to construct \textit{correct-by-construction} ledgers,
 let us revisit the example ledger presented in the Chimeric Ledgers paper~\cite{chimeric}.
 
@@ -496,7 +497,7 @@ Lastly, there is a single unspent output (coloured in red), namely the single ou
      draw,
      shape = rectangle,
      align = left,
-     %minimum width=2cm,
+     minimum width=2cm,
      minimum height=1.2cm,
      rounded corners},
    upedge/.style = {
@@ -507,7 +508,7 @@ Lastly, there is a single unspent output (coloured in red), namely the single ou
      ->,
      >=stealth',
      semithick},
-  every matrix/.style={column sep=0.9cm},
+  every matrix/.style={column sep=1cm, row sep=1cm},
   font=\footnotesize
   ]
   \matrix{
@@ -515,73 +516,66 @@ Lastly, there is a single unspent output (coloured in red), namely the single ou
       {\forge{1000}\\ \fee{0}};
     & \node[basic box, label = |t₂|] (tt)
       {\forge{0}\\ \fee{0}};
-    & \node {};
-    & \node {};
     & \node[basic box, label = |t₅|] (tfive)
       {\forge{0}\\ \fee{7}};
     & \node[basic box, label = |t₆|] (tsix)
       {\forge{0}\\ \fee{1}};
     & \node (end) {}; \\
 
-    \node {};
-    & \node {};
+    \node[basic box, label = |c₀|] (c)
+      {\forge{0}\\ \fee{0}};
     & \node[basic box, label = |t₃|] (ttt)
       {\forge{0}\\ \fee{1}};
-    & \node[basic box, label = |t₄|] (tfour)
-      {\forge{10}\\ \fee{2}};
-    & \node {};
     & \node {};
     & \node {}; \\
 
     \node {};
-    & \node[basic box, label = |c₀|] (c)
-      {\forge{0}\\ \fee{0}};
     & \node {};
-    & \node {};
-    & \node {};
+    & \node[basic box, label = |t₄|] (tfour)
+      {\forge{10}\\ \fee{2}};
     & \node {}; \\
   };
 
   \path
   (t) edge[to]
-    node[anchor=south,above]{\bitcoin ~1000}
-    node[anchor=north,below]{@@1}
+    node[above]{\bitcoin ~1000}
+    node[below]{@@1}
   (tt)
-  (tt) edge[to, bend right = 50]
-    node[anchor=south,above]{\hspace{10pt} \bitcoin ~200}
-    node[anchor=north,below]{\hspace{-10pt} @@1}
+  (tt) edge[to, bend right = 30]
+    node[left]{\bitcoin ~200}
+    node[right]{@@1}
   (ttt)
   (tt) edge[to]
-    node[anchor=south,above]{\bitcoin ~800}
-    node[anchor=north,below]{@@2}
+    node[above]{\bitcoin ~800}
+    node[below]{@@2}
   (tfive)
-  (ttt) edge[to]
-    node[anchor=south,above]{\bitcoin ~199}
-    node[anchor=north,below]{@@3}
+  (ttt) edge[to, bend right = 30]
+    node[left]{\bitcoin ~199}
+    node[right]{@@3}
   (tfour)
-  (tfour) edge[to, bend right = 50]
-    node[anchor=south,above]{\hspace{-10pt} \bitcoin ~207}
-    node[anchor=north,below]{\hspace{10pt} @@2}
+  (tfour) edge[to, bend right = 30]
+    node[left]{\bitcoin ~207}
+    node[right]{@@2}
   (tfive)
-  (tfive) edge[to, transform canvas={yshift=12pt}]
-    node[anchor=south,above]{\bitcoin ~500}
-    node[anchor=north,below]{@@2}
+  (tfive) edge[to, transform canvas={yshift=13pt}]
+    node[above]{\bitcoin ~500}
+    node[below]{@@2}
   (tsix)
-  (tfive) edge[to, transform canvas={yshift=-12pt}]
-    node[anchor=south,above]{\bitcoin ~500}
-    node[anchor=north,below]{@@3}
+  (tfive) edge[to, transform canvas={yshift=-13pt}]
+    node[above]{\bitcoin ~500}
+    node[below]{@@3}
   (tsix)
   (tsix) edge[to, red]
-    node[anchor=south,above]{\bitcoin ~999}
-    node[anchor=north,below]{@@3}
+    node[above]{\bitcoin ~999}
+    node[below]{@@3}
   (end)
-  (c) edge[to, bend left = 50, green]
-    node[anchor=south,above]{\hspace{20pt} \bitcoin-policy}
-    node[anchor=north,below]{\hspace{-10pt} @@\bitcoin}
+  (c) edge[to, bend left = 30, green]
+    node[left]{\bitcoin-policy}
+    node[right]{@@\bitcoin}
   (t)
-  (c) edge[to, bend right = 25, green]
-    node[anchor=south,above]{\hspace{-5pt} \bitcoin-policy}
-    node[anchor=north,below]{@@\bitcoin}
+  (c) edge[to, bend right = 40, green]
+    node[left]{\bitcoin-policy}
+    node[right]{\hspace{5pt} @@\bitcoin}
   (tfour)
   ;
 \end{tikzpicture}
