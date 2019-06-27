@@ -593,7 +593,7 @@ Address = ℕ
 1 SA    = 111   -- first address
 2 SA    = 222   -- second address
 3 SA    = 333   -- third address
-BIT SA  = 1234  -- BIT identifier
+BIT SA  = 1234  -- currency hash
 ##
 open import UTxO Address (λ x → x) UL ≟ UR
 \end{code}\end{agda}
@@ -676,15 +676,15 @@ t₆ = record  { inputs   = withScripts t₅₀ ∷ withScripts t₅₁ ∷ []
 In order for terms involving the \textit{postulated} hash function |UL ♯| to compute,
 we use Agda's experimental feature for user-supplied \textit{rewrite rules}:
 \begin{agda}\begin{code}
-{-# OPTIONS --rewriting #-}
+PRAGMAL OPTIONS {---rewriting-} PRAGMAR
 postulate
   eq₀    :  BIT -validator    ♯  ≡  BIT SA
   eq₁₀   : (mkValidator t₁₀)  ♯  ≡  1 SA
   VDOTS
   eq₆₀   : (mkValidator t₆₀)  ♯  ≡  3 SA
 ##
-{-# BUILTIN REWRITE UL ≡ UR #-}
-{-# REWRITE eq₀ , eq₁₀ , DOTS , eq₆₀ #-}
+PRAGMAL BUILTIN REWRITE _ ≡ _ PRAGMAR
+PRAGMAL REWRITE eq₀ , eq₁₀ , DOTS , eq₆₀ PRAGMAR
 \end{code}\end{agda}
 
 Below we give a correct-by-construction ledger containing all transactions:

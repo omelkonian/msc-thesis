@@ -86,7 +86,13 @@
 %format variable    = "\HSKeyword{variable}"
 %format macro       = "\HSKeyword{macro}"
 %format tactic      = "\HSKeyword{tactic}"
+%format BUILTIN     = "\HSKeyword{BUILTIN}"
+%format REWRITE     = "\HSKeyword{REWRITE}"
+%format OPTIONS     = "\HSKeyword{OPTIONS}"
 %%format as         = "\HSKeyword{as}"
+
+%format PRAGMAL  = "\HSSym{\lbrace-\#\ }"
+%format PRAGMAR  = "\HSSym{\ \#-\rbrace}"
 
 %% Constructors
 %format refl       = "\HSCon{refl}"
