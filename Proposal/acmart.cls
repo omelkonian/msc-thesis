@@ -1,2671 +1,2893 @@
-%%
-%% This is file `acmart.cls',
-%% generated with the docstrip utility.
-%%
-%% The original source files were:
-%%
-%% acmart.dtx  (with options: `class')
-%% 
-%% IMPORTANT NOTICE:
-%% 
-%% For the copyright see the source file.
-%% 
-%% Any modified versions of this file must be renamed
-%% with new filenames distinct from acmart.cls.
-%% 
-%% For distribution of the original source see the terms
-%% for copying and modification in the file acmart.dtx.
-%% 
-%% This generated file may be distributed as long as the
-%% original source files, as listed above, are part of the
-%% same distribution. (The sources need not necessarily be
-%% in the same archive or directory.)
-%% \CharacterTable
-%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
-%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
-%%   Digits        \0\1\2\3\4\5\6\7\8\9
-%%   Exclamation   \!     Double quote  \"     Hash (number) \#
-%%   Dollar        \$     Percent       \%     Ampersand     \&
-%%   Acute accent  \'     Left paren    \(     Right paren   \)
-%%   Asterisk      \*     Plus          \+     Comma         \,
-%%   Minus         \-     Point         \.     Solidus       \/
-%%   Colon         \:     Semicolon     \;     Less than     \<
-%%   Equals        \=     Greater than  \>     Question mark \?
-%%   Commercial at \@     Left bracket  \[     Backslash     \\
-%%   Right bracket \]     Circumflex    \^     Underscore    \_
-%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
-%%   Right brace   \}     Tilde         \~}
-\NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{acmart}
-[2018/08/12 v1.55 Typesetting articles for the Association for
-Computing Machinery]
-\def\@classname{acmart}
-\InputIfFileExists{acmart-preload-hook.tex}{%
-  \ClassWarning{\@classname}{%
-    I am loading acmart-preload-hook.tex. You are fully responsible
-    for any problems from now on.}}{}
-\RequirePackage{xkeyval}
-\RequirePackage{xstring}
-\define@choicekey*+{acmart.cls}{format}[\ACM@format\ACM@format@nr]{%
-  manuscript, acmsmall, acmlarge, acmtog, sigconf, siggraph,
-  sigplan, sigchi, sigchi-a}[manuscript]{}{%
-  \ClassError{\@classname}{The option format must be manuscript,
-    acmsmall, acmlarge, acmtog, sigconf, siggraph,
-    sigplan, sigchi or sigchi-a}}
-\def\@DeclareACMFormat#1{\DeclareOptionX{#1}{\setkeys{acmart.cls}{format=#1}}}
-\@DeclareACMFormat{manuscript}
-\@DeclareACMFormat{acmsmall}
-\@DeclareACMFormat{acmlarge}
-\@DeclareACMFormat{acmtog}
-\@DeclareACMFormat{sigconf}
-\@DeclareACMFormat{siggraph}
-\@DeclareACMFormat{sigplan}
-\@DeclareACMFormat{sigchi}
-\@DeclareACMFormat{sigchi-a}
-\ExecuteOptionsX{format}
-\define@boolkey+{acmart.cls}[@ACM@]{screen}[true]{%
-  \if@ACM@screen
-    \PackageInfo{\@classname}{Using screen mode}%
-  \else
-    \PackageInfo{\@classname}{Not using screen mode}%
-  \fi}{\PackageError{\@classname}{The option screen can be either true or
-    false}}
-\ExecuteOptionsX{screen=false}
-\define@boolkey+{acmart.cls}[@ACM@]{acmthm}[true]{%
-  \if@ACM@acmthm
-    \PackageInfo{\@classname}{Requiring acmthm}%
-  \else
-    \PackageInfo{\@classname}{Suppressing acmthm}%
-  \fi}{\PackageError{\@classname}{The option acmthm can be either true or
-    false}}
-\ExecuteOptionsX{acmthm=true}
-\define@boolkey+{acmart.cls}[@ACM@]{review}[true]{%
-  \if@ACM@review
-    \PackageInfo{\@classname}{Using review mode}%
-    \AtBeginDocument{\@ACM@printfoliostrue}%
-  \else
-    \PackageInfo{\@classname}{Not using review mode}%
-  \fi}{\PackageError{\@classname}{The option review can be either true or
-    false}}
-\ExecuteOptionsX{review=false}
-\define@boolkey+{acmart.cls}[@ACM@]{authorversion}[true]{%
-  \if@ACM@authorversion
-    \PackageInfo{\@classname}{Using authorversion mode}%
-  \else
-    \PackageInfo{\@classname}{Not using authorversion mode}%
-  \fi}{\PackageError{\@classname}{The option authorversion can be either true or
-    false}}
-\ExecuteOptionsX{authorversion=false}
-\define@boolkey+{acmart.cls}[@ACM@]{nonacm}[true]{%
-  \if@ACM@nonacm
-    \PackageInfo{\@classname}{Using nonacm mode}%
-    \AtBeginDocument{\@ACM@printacmreffalse}%
-    % in 'nonacm' mode we disable the "ACM Reference Format"
-    % printing by default, but this can be re-enabled by the
-    % user using \settopmatter{printacmref=true}
-  \else
-    \PackageInfo{\@classname}{Not using nonacm mode}%
-  \fi}{\PackageError{\@classname}{The option nonacm can be either true or
-    false}}
-\ExecuteOptionsX{nonacm=false}
-\define@boolkey+{acmart.cls}[@ACM@]{natbib}[true]{%
-  \if@ACM@natbib
-    \PackageInfo{\@classname}{Explicitly selecting natbib mode}%
-  \else
-    \PackageInfo{\@classname}{Explicitly deselecting natbib mode}%
-  \fi}{\PackageError{\@classname}{The option natbib can be either true or
-    false}}
-\ExecuteOptionsX{natbib=true}
-\define@boolkey+{acmart.cls}[@ACM@]{anonymous}[true]{%
-  \if@ACM@anonymous
-    \PackageInfo{\@classname}{Using anonymous mode}%
-  \else
-    \PackageInfo{\@classname}{Not using anonymous mode}%
-  \fi}{\PackageError{\@classname}{The option anonymous can be either true or
-    false}}
-\ExecuteOptionsX{anonymous=false}
-\define@boolkey+{acmart.cls}[@ACM@]{timestamp}[true]{%
-  \if@ACM@timestamp
-    \PackageInfo{\@classname}{Using timestamp mode}%
-  \else
-    \PackageInfo{\@classname}{Not using timestamp mode}%
-  \fi}{\PackageError{\@classname}{The option timestamp can be either true or
-    false}}
-\ExecuteOptionsX{timestamp=false}
-\define@boolkey+{acmart.cls}[@ACM@]{authordraft}[true]{%
-  \if@ACM@authordraft
-    \PackageInfo{\@classname}{Using authordraft mode}%
-    \@ACM@timestamptrue
-    \@ACM@reviewtrue
-  \else
-    \PackageInfo{\@classname}{Not using authordraft mode}%
-  \fi}{\PackageError{\@classname}{The option authordraft can be either true or
-    false}}
-\ExecuteOptionsX{authordraft=false}
-\def\ACM@fontsize{}
-\DeclareOptionX{9pt}{\edef\ACM@fontsize{\CurrentOption}}
-\DeclareOptionX{10pt}{\edef\ACM@fontsize{\CurrentOption}}
-\DeclareOptionX{11pt}{\edef\ACM@fontsize{\CurrentOption}}
-\DeclareOptionX{12pt}{\edef\ACM@fontsize{\CurrentOption}}
-\DeclareOptionX{draft}{\PassOptionsToClass{\CurrentOption}{amsart}}
-\DeclareOptionX{*}{\PassOptionsToClass{\CurrentOption}{amsart}}
-\ProcessOptionsX
-\ClassInfo{\@classname}{Using format \ACM@format, number \ACM@format@nr}
-\newif\if@ACM@manuscript
-\newif\if@ACM@journal
-\newif\if@ACM@sigchiamode
-\ifnum\ACM@format@nr=5\relax % siggraph
-  \ClassWarning{\@classname}{The format siggraph is now obsolete.
-    I am switching to sigconf.}
-  \setkeys{acmart.cls}{format=sigconf}
-\fi
-\ifnum\ACM@format@nr=0\relax
-  \@ACM@manuscripttrue
-\else
-  \@ACM@manuscriptfalse
-\fi
-\@ACM@sigchiamodefalse
-\ifcase\ACM@format@nr
-\relax % manuscript
-  \@ACM@journaltrue
-\or % acmsmall
-  \@ACM@journaltrue
-\or % acmlarge
-  \@ACM@journaltrue
-\or % acmtog
-  \@ACM@journaltrue
-\or % sigconf
-  \@ACM@journalfalse
-\or % siggraph
-  \@ACM@journalfalse
- \or % sigplan
-  \@ACM@journalfalse
- \or % sigchi
-  \@ACM@journalfalse
-\or % sigchi-a
-  \@ACM@journalfalse
-  \@ACM@sigchiamodetrue
-\fi
-\ifx\ACM@fontsize\@empty
-  \ifcase\ACM@format@nr
-  \relax % manuscript
-    \def\ACM@fontsize{9pt}%
-  \or % acmsmall
-    \def\ACM@fontsize{10pt}%
-  \or % acmlarge
-    \def\ACM@fontsize{10pt}%
-  \or % acmtog
-    \def\ACM@fontsize{9pt}%
-  \or % sigconf
-    \def\ACM@fontsize{9pt}%
-  \or % siggraph
-    \def\ACM@fontsize{9pt}%
-   \or % sigplan
-    \def\ACM@fontsize{10pt}%
-   \or % sigchi
-    \def\ACM@fontsize{10pt}%
-  \or % sigchi-a
-    \def\ACM@fontsize{10pt}%
-  \fi
-\fi
-\ClassInfo{\@classname}{Using fontsize \ACM@fontsize}
-\LoadClass[\ACM@fontsize, reqno]{amsart}
-\RequirePackage{microtype}
-\RequirePackage{etoolbox}
-\RequirePackage{refcount}
-\RequirePackage{totpages}
-\RequirePackage{environ}
-\if@ACM@manuscript
-\RequirePackage{setspace}
-\onehalfspacing
-\fi
-\RequirePackage{textcase}
-\if@ACM@natbib
-  \RequirePackage{natbib}
-  \renewcommand{\bibsection}{%
-     \section*{\refname}%
-     \phantomsection\addcontentsline{toc}{section}{\refname}%
-  }
-  \renewcommand{\bibfont}{\bibliofont}
-  \renewcommand\setcitestyle[1]{
-  \@for\@tempa:=#1\do
-  {\def\@tempb{round}\ifx\@tempa\@tempb
-     \renewcommand\NAT@open{(}\renewcommand\NAT@close{)}\fi
-   \def\@tempb{square}\ifx\@tempa\@tempb
-     \renewcommand\NAT@open{[}\renewcommand\NAT@close{]}\fi
-   \def\@tempb{angle}\ifx\@tempa\@tempb
-     \renewcommand\NAT@open{$<$}\renewcommand\NAT@close{$>$}\fi
-   \def\@tempb{curly}\ifx\@tempa\@tempb
-     \renewcommand\NAT@open{\{}\renewcommand\NAT@close{\}}\fi
-   \def\@tempb{semicolon}\ifx\@tempa\@tempb
-     \renewcommand\NAT@sep{;}\fi
-   \def\@tempb{colon}\ifx\@tempa\@tempb
-     \renewcommand\NAT@sep{;}\fi
-   \def\@tempb{comma}\ifx\@tempa\@tempb
-     \renewcommand\NAT@sep{,}\fi
-   \def\@tempb{authoryear}\ifx\@tempa\@tempb
-     \NAT@numbersfalse\fi
-   \def\@tempb{numbers}\ifx\@tempa\@tempb
-     \NAT@numberstrue\NAT@superfalse\fi
-   \def\@tempb{super}\ifx\@tempa\@tempb
-     \NAT@numberstrue\NAT@supertrue\fi
-   \def\@tempb{nobibstyle}\ifx\@tempa\@tempb
-     \let\bibstyle=\@gobble\fi
-   \def\@tempb{bibstyle}\ifx\@tempa\@tempb
-     \let\bibstyle=\@citestyle\fi
-   \def\@tempb{sort}\ifx\@tempa\@tempb
-     \def\NAT@sort{\@ne}\fi
-   \def\@tempb{nosort}\ifx\@tempa\@tempb
-     \def\NAT@sort{\z@}\fi
-   \def\@tempb{compress}\ifx\@tempa\@tempb
-     \def\NAT@cmprs{\@ne}\fi
-   \def\@tempb{nocompress}\ifx\@tempa\@tempb
-     \def\NAT@cmprs{\z@}\fi
-   \def\@tempb{sort&compress}\ifx\@tempa\@tempb
-     \def\NAT@sort{\@ne}\def\NAT@cmprs{\@ne}\fi
-   \def\@tempb{mcite}\ifx\@tempa\@tempb
-     \let\NAT@merge\@ne\fi
-   \def\@tempb{merge}\ifx\@tempa\@tempb
-     \@ifnum{\NAT@merge<\tw@}{\let\NAT@merge\tw@}{}\fi
-   \def\@tempb{elide}\ifx\@tempa\@tempb
-     \@ifnum{\NAT@merge<\thr@@}{\let\NAT@merge\thr@@}{}\fi
-   \def\@tempb{longnamesfirst}\ifx\@tempa\@tempb
-     \NAT@longnamestrue\fi
-   \def\@tempb{nonamebreak}\ifx\@tempa\@tempb
-     \def\NAT@nmfmt#1{\mbox{\NAT@up#1}}\fi
-   \expandafter\NAT@find@eq\@tempa=\relax\@nil
-   \if\@tempc\relax\else
-     \expandafter\NAT@rem@eq\@tempc
-     \def\@tempb{open}\ifx\@tempa\@tempb
-      \xdef\NAT@open{\@tempc}\fi
-     \def\@tempb{close}\ifx\@tempa\@tempb
-      \xdef\NAT@close{\@tempc}\fi
-     \def\@tempb{aysep}\ifx\@tempa\@tempb
-      \xdef\NAT@aysep{\@tempc}\fi
-     \def\@tempb{yysep}\ifx\@tempa\@tempb
-      \xdef\NAT@yrsep{\@tempc}\fi
-     \def\@tempb{notesep}\ifx\@tempa\@tempb
-      \xdef\NAT@cmt{\@tempc}\fi
-     \def\@tempb{citesep}\ifx\@tempa\@tempb
-      \xdef\NAT@sep{\@tempc}\fi
-   \fi
-  }%
-  \NAT@@setcites
-  }
-  \renewcommand\citestyle[1]{%
-    \ifcsname bibstyle@#1\endcsname%
-    \csname bibstyle@#1\endcsname\let\bibstyle\@gobble%
-    \else%
-    \@latex@error{Undefined `#1' citestyle}%
-    \fi
-  }%
-\fi
-\newcommand{\bibstyle@acmauthoryear}{%
-  \setcitestyle{%
-    authoryear,%
-    open={[},close={]},citesep={;},%
-    aysep={},yysep={,},%
-    notesep={, }}}
-\newcommand{\bibstyle@acmnumeric}{%
-  \setcitestyle{%
-    numbers,sort&compress,%
-    open={[},close={]},citesep={,},%
-    notesep={, }}}
-\if@ACM@natbib
-\citestyle{acmnumeric}
-\fi
-\def\@startsection#1#2#3#4#5#6{%
-  \if@noskipsec \leavevmode \fi
-  \par
-  \@tempskipa #4\relax
-  \@afterindenttrue
-  \ifdim \@tempskipa <\z@
-    \@tempskipa -\@tempskipa \@afterindentfalse
-  \fi
-  \if@nobreak
-    \everypar{}%
-  \else
-    \addpenalty\@secpenalty\addvspace\@tempskipa
-  \fi
-  \@ifstar
-    {\@ssect{#3}{#4}{#5}{#6}}%
-    {\@dblarg{\@sect{#1}{#2}{#3}{#4}{#5}{#6}}}}
-\def\@sect#1#2#3#4#5#6[#7]#8{%
-  \edef\@toclevel{\ifnum#2=\@m 0\else\number#2\fi}%
-  \ifnum #2>\c@secnumdepth
-    \let\@svsec\@empty
-  \else
-    \refstepcounter{#1}%
-    \protected@edef\@svsec{\@seccntformat{#1}\relax}%
-  \fi
-  \@tempskipa #5\relax
-  \ifdim \@tempskipa>\z@
-    \begingroup
-      #6{%
-        \@hangfrom{\hskip #3\relax\@svsec}%
-          \interlinepenalty \@M #8\@@par}%
-    \endgroup
-    \csname #1mark\endcsname{#7}%
-    \ifnum #2>\c@secnumdepth \else
-        \@tochangmeasure{\csname the#1\endcsname}%
-    \fi
-    \addcontentsline{toc}{#1}{%
-      \ifnum #2>\c@secnumdepth \else
-        \protect\numberline{\csname the#1\endcsname}%
-      \fi
-      #7}%
-  \else
-    \def\@svsechd{%
-      #6{\hskip #3\relax
-      \@svsec #8}%
-      \csname #1mark\endcsname{#7}%
-      \ifnum #2>\c@secnumdepth \else
-        \@tochangmeasure{\csname the#1\endcsname\space}%
-      \fi
-      \addcontentsline{toc}{#1}{%
-        \ifnum #2>\c@secnumdepth \else
-          \protect\numberline{\csname the#1\endcsname}%
-        \fi
-        #7}}%
-  \fi
-  \@xsect{#5}}
-\def\@xsect#1{%
-  \@tempskipa #1\relax
-  \ifdim \@tempskipa>\z@
-    \par \nobreak
-    \vskip \@tempskipa
-    \@afterheading
-  \else
-    \@nobreakfalse
-    \global\@noskipsectrue
-    \everypar{%
-      \if@noskipsec
-        \global\@noskipsecfalse
-       {\setbox\z@\lastbox}%
-        \clubpenalty\@M
-        \begingroup \@svsechd \endgroup
-        \unskip
-        \@tempskipa #1\relax
-        \hskip -\@tempskipa
-      \else
-        \clubpenalty \@clubpenalty
-        \everypar{}%
-      \fi}%
-  \fi
-  \ignorespaces}
-\def\@seccntformat#1{\csname the#1\endcsname\quad}
-\def\@ssect#1#2#3#4#5{%
-  \@tempskipa #3\relax
-  \ifdim \@tempskipa>\z@
-    \begingroup
-      #4{%
-        \@hangfrom{\hskip #1}%
-          \interlinepenalty \@M #5\@@par}%
-    \endgroup
-  \else
-    \def\@svsechd{#4{\hskip #1\relax #5}}%
-  \fi
-  \@xsect{#3}}
-\def\@starttoc#1#2{\begingroup\makeatletter
-  \setTrue{#1}%
-  \par\removelastskip\vskip\z@skip
-  \@startsection{section}\@M\z@{\linespacing\@plus\linespacing}%
-    {.5\linespacing}{\centering\contentsnamefont}{#2}%
-  \@input{\jobname.#1}%
-  \if@filesw
-    \@xp\newwrite\csname tf@#1\endcsname
-    \immediate\@xp\openout\csname tf@#1\endcsname \jobname.#1\relax
-  \fi
-  \global\@nobreakfalse \endgroup
-  \addvspace{32\p@\@plus14\p@}%
-}
-\def\l@section{\@tocline{1}{0pt}{1pc}{2pc}{}}
-\def\l@subsection{\@tocline{2}{0pt}{1pc}{3pc}{}}
-\def\l@subsubsection{\@tocline{2}{0pt}{1pc}{5pc}{}}
-\def\@makefntext{\noindent\@makefnmark}
-\if@ACM@sigchiamode
-\long\def\@footnotetext#1{\marginpar{%
-    \reset@font\small
-    \interlinepenalty\interfootnotelinepenalty
-    \protected@edef\@currentlabel{%
-       \csname p@footnote\endcsname\@thefnmark
-    }%
-    \color@begingroup
-      \@makefntext{%
-        \rule\z@\footnotesep\ignorespaces#1\@finalstrut\strutbox}%
-    \color@endgroup}}%
-\fi
-\long\def\@mpfootnotetext#1{%
-  \global\setbox\@mpfootins\vbox{%
-    \unvbox\@mpfootins
-    \reset@font\footnotesize
-    \hsize\columnwidth
-    \@parboxrestore
-    \protected@edef\@currentlabel
-         {\csname p@mpfootnote\endcsname\@thefnmark}%
-    \color@begingroup\centering
-      \@makefntext{%
-        \rule\z@\footnotesep\ignorespaces#1\@finalstrut\strutbox}%
-    \color@endgroup}}
-\def\@makefnmark{\hbox{\@textsuperscript{\normalfont\@thefnmark}}}
-\let\@footnotemark@nolink\@footnotemark
-\let\@footnotetext@nolink\@footnotetext
-\RequirePackage[bookmarksnumbered,unicode]{hyperref}
-\pdfstringdefDisableCommands{%
-  \def\unskip{}%
-  \def\textbullet{- }%
-  \def\textrightarrow{ -> }%
-  \def\footnotemark{}%
-}
-\urlstyle{rm}
-\ifcase\ACM@format@nr
-\relax % manuscript
-\or % acmsmall
-\or % acmlarge
-\or % acmtog
-\or % sigconf
-\or % siggraph
-\or % sigplan
-  \urlstyle{sf}
-\or % sigchi
-\or % sigchi-a
-  \urlstyle{sf}
-\fi
-\AtEndPreamble{%
-  \if@ACM@screen
-    \hypersetup{colorlinks,
-      linkcolor=ACMRed,
-      citecolor=ACMPurple,
-      urlcolor=ACMDarkBlue,
-      filecolor=ACMDarkBlue}
-    \else
-    \hypersetup{hidelinks}
-  \fi
-  \hypersetup{pdflang={English},
-    pdfdisplaydoctitle}}
-\if@ACM@natbib
-  \let\citeN\cite
-  \let\cite\citep
-  \let\citeANP\citeauthor
-  \let\citeNN\citeyearpar
-  \let\citeyearNP\citeyear
-  \let\citeNP\citealt
-  \DeclareRobustCommand\citeA
-     {\begingroup\NAT@swafalse
-       \let\NAT@ctype\@ne\NAT@partrue\NAT@fullfalse\NAT@open\NAT@citetp}%
-  \providecommand\newblock{}%
-\else
-  \AtBeginDocument{%
-    \let\shortcite\cite%
-    \providecommand\citename[1]{#1}}
-\fi
-\newcommand\shortcite[2][]{%
-  \ifNAT@numbers\cite[#1]{#2}\else\citeyearpar[#1]{#2}\fi}
-\def\bibliographystyle#1{%
-  \ifx\@begindocumenthook\@undefined\else
-    \expandafter\AtBeginDocument
-  \fi
-    {\if@filesw
-       \immediate\write\@auxout{\string\bibstyle{#1}}%
-     \fi}}
-\RequirePackage{graphicx}
-\RequirePackage[prologue]{xcolor}
-\definecolor[named]{ACMBlue}{cmyk}{1,0.1,0,0.1}
-\definecolor[named]{ACMYellow}{cmyk}{0,0.16,1,0}
-\definecolor[named]{ACMOrange}{cmyk}{0,0.42,1,0.01}
-\definecolor[named]{ACMRed}{cmyk}{0,0.90,0.86,0}
-\definecolor[named]{ACMLightBlue}{cmyk}{0.49,0.01,0,0}
-\definecolor[named]{ACMGreen}{cmyk}{0.20,0,1,0.19}
-\definecolor[named]{ACMPurple}{cmyk}{0.55,1,0,0.15}
-\definecolor[named]{ACMDarkBlue}{cmyk}{1,0.58,0,0.21}
-\if@ACM@authordraft
-  \RequirePackage{draftwatermark}
-  \SetWatermarkFontSize{0.5in}
-  \SetWatermarkColor[gray]{.9}
-  \SetWatermarkText{\parbox{12em}{\centering
-      Unpublished working draft.\\
-      Not for distribution.}}
-\fi
-\RequirePackage{geometry}
-\ifcase\ACM@format@nr
-\relax % manuscript
-   \geometry{letterpaper,head=13pt,
-   marginparwidth=6pc,heightrounded}%
-\or % acmsmall
-   \geometry{twoside=true,
-     includeheadfoot, head=13pt, foot=2pc,
-     paperwidth=6.75in, paperheight=10in,
-     top=58pt, bottom=44pt, inner=46pt, outer=46pt,
-     marginparwidth=2pc,heightrounded
-   }%
-\or % acmlarge
-   \geometry{twoside=true, head=13pt, foot=2pc,
-     paperwidth=8.5in, paperheight=11in,
-     includeheadfoot,
-     top=78pt, bottom=114pt, inner=81pt, outer=81pt,
-     marginparwidth=4pc,heightrounded
-     }%
-\or % acmtog
-   \geometry{twoside=true, head=13pt, foot=2pc,
-     paperwidth=8.5in, paperheight=11in,
-     includeheadfoot, columnsep=24pt,
-     top=52pt, bottom=75pt, inner=52pt, outer=52pt,
-     marginparwidth=2pc,heightrounded
-     }%
-\or % sigconf
-   \geometry{twoside=true, head=13pt,
-     paperwidth=8.5in, paperheight=11in,
-     includeheadfoot, columnsep=2pc,
-     top=57pt, bottom=73pt, inner=54pt, outer=54pt,
-     marginparwidth=2pc,heightrounded
-     }%
-\or % siggraph
-   \geometry{twoside=true, head=13pt,
-     paperwidth=8.5in, paperheight=11in,
-     includeheadfoot, columnsep=2pc,
-     top=57pt, bottom=73pt, inner=54pt, outer=54pt,
-     marginparwidth=2pc,heightrounded
-     }%
-\or % sigplan
-   \geometry{twoside=true, head=13pt,
-     paperwidth=8.5in, paperheight=11in,
-     includeheadfoot=false, columnsep=2pc,
-     top=1in, bottom=1in, inner=0.75in, outer=0.75in,
-     marginparwidth=2pc,heightrounded
-     }%
-\or % sigchi
-   \geometry{twoside=true, head=13pt,
-     paperwidth=8.5in, paperheight=11in,
-     includeheadfoot, columnsep=2pc,
-     top=66pt, bottom=73pt, inner=54pt, outer=54pt,
-     marginparwidth=2pc,heightrounded
-     }%
-\or % sigchi-a
-   \geometry{twoside=false, head=13pt,
-     paperwidth=11in, paperheight=8.5in,
-     includeheadfoot, marginparsep=72pt,
-     marginparwidth=170pt, columnsep=20pt,
-     top=72pt, bottom=72pt, left=314pt, right=72pt
-     }%
-     \@mparswitchfalse
-     \reversemarginpar
-\fi
-\setlength\parindent{10\p@}
-\setlength\parskip{\z@}
-\ifcase\ACM@format@nr
-\relax % manuscript
-\or % acmsmall
-\or % acmlarge
-\or % acmtog
-  \setlength\parindent{9\p@}%
-\or % sigconf
-\or % siggraph
-\or % sigplan
-\or % sigchi
-\or % sigchi-a
-\fi
-\setlength\normalparindent{\parindent}
-\def\copyrightpermissionfootnoterule{\kern-3\p@
-  \hrule \@width \columnwidth \kern 2.6\p@}
-\RequirePackage{manyfoot}
-\SelectFootnoteRule[2]{copyrightpermission}
-\DeclareNewFootnote{authorsaddresses}
-\SelectFootnoteRule[2]{copyrightpermission}
-\DeclareNewFootnote{copyrightpermission}
-\def\footnoterule{\kern-3\p@
-  \hrule \@width 4pc \kern 2.6\p@}
-\def\endminipage{%
-    \par
-    \unskip
-    \ifvoid\@mpfootins\else
-      \vskip\skip\@mpfootins
-      \normalcolor
-      \unvbox\@mpfootins
-    \fi
-    \@minipagefalse
-  \color@endgroup
-  \egroup
-  \expandafter\@iiiparbox\@mpargs{\unvbox\@tempboxa}}
-\def\@textbottom{\vskip \z@ \@plus 1pt}
-\let\@texttop\relax
-\RequirePackage{iftex}
-\ifPDFTeX
-\input{glyphtounicode}
-\pdfglyphtounicode{f_f}{FB00}
-\pdfglyphtounicode{f_f_i}{FB03}
-\pdfglyphtounicode{f_f_l}{FB04}
-\pdfglyphtounicode{f_i}{FB01}
-\pdfglyphtounicode{t_t}{0074 0074}
-\pdfglyphtounicode{f_t}{0066 0074}
-\pdfglyphtounicode{T_h}{0054 0068}
-\pdfgentounicode=1
-\fi
-\RequirePackage{cmap}
-\newif\if@ACM@newfonts
-\@ACM@newfontstrue
-\IfFileExists{libertine.sty}{}{\ClassWarning{\@classname}{You do not
-    have the libertine package installed.  Please upgrade your
-    TeX}\@ACM@newfontsfalse}
-\IfFileExists{zi4.sty}{}{\ClassWarning{\@classname}{You do not
-    have the zi4 package installed.  Please upgrade your
-    TeX}\@ACM@newfontsfalse}
-\IfFileExists{newtxmath.sty}{}{\ClassWarning{\@classname}{You do not
-    have the newtxmath package installed.  Please upgrade your
-    TeX}\@ACM@newfontsfalse}
-\if@ACM@newfonts
-  \RequirePackage[T1]{fontenc}
-\ifxetex
-  \RequirePackage[tt=false]{libertine}
-\else
-  \RequirePackage[tt=false, type1=true]{libertine}
-\fi
-\RequirePackage[varqu]{zi4}
-\RequirePackage[libertine]{newtxmath}
-\fi
-\let\liningnums\@undefined
-\AtEndPreamble{%
-  \DeclareTextFontCommand{\liningnums}{\libertineLF}}
-\if@ACM@sigchiamode
-  \renewcommand{\familydefault}{\sfdefault}
-\fi
-\RequirePackage{caption, float}
-\captionsetup[table]{position=top}
-\if@ACM@journal
-  \captionsetup{labelfont={sf, small},
-    textfont={sf, small}, margin=\z@}
-  \captionsetup[figure]{name={Fig.}}
-\else
-  \captionsetup{labelfont={bf},
-    textfont={bf}, labelsep=colon, margin=\z@}
-  \ifcase\ACM@format@nr
-  \relax % manuscript
-  \or % acmsmall
-  \or % acmlarge
-  \or % acmtog
-  \or % sigconf
-  \or % siggraph
-    \captionsetup{textfont={it}}
-  \or % sigplan
-    \captionsetup{labelfont={bf},
-      textfont={normalfont}, labelsep=period, margin=\z@}
-  \or % sigchi
-    \captionsetup[figure]{labelfont={bf, small},
-      textfont={bf, small}}
-  \or % sigchi-a
-    \captionsetup[figure]{labelfont={bf, small},
-      textfont={bf, small}}
-  \fi
-\fi
-\newfloat{sidebar}{}{sbar}
-\floatname{sidebar}{Sidebar}
-\renewenvironment{sidebar}{\Collect@Body\@sidebar}{}
-\long\def\@sidebar#1{\bgroup\captionsetup{type=sidebar}%
-  \marginpar{\small#1}\egroup}
-\newenvironment{marginfigure}{\Collect@Body\@marginfigure}{}
-\long\def\@marginfigure#1{\bgroup\captionsetup{type=figure}%
-  \marginpar{\centering\small#1}\egroup}
-\newenvironment{margintable}{\Collect@Body\@margintable}{}
-\long\def\@margintable#1{\bgroup\captionsetup{type=table}%
-  \marginpar{\centering\small#1}\egroup}
-\newdimen\fulltextwidth
-\fulltextwidth=\dimexpr(\textwidth+\marginparwidth+\marginparsep)
-\if@ACM@sigchiamode
-\def\@dblfloat{\bgroup\columnwidth=\fulltextwidth
-  \let\@endfloatbox\@endwidefloatbox
-  \def\@fpsadddefault{\def\@fps{tp}}%
-  \@float}
-\fi
-\if@ACM@sigchiamode
-\def\end@dblfloat{%
-    \end@float\egroup}
-\fi
-\def\@endwidefloatbox{%
-  \par\vskip\z@skip
-  \@minipagefalse
-  \outer@nobreak
-  \egroup
-  \color@endbox
-  \global\setbox\@currbox=\vbox{\moveleft
-    \dimexpr(\fulltextwidth-\textwidth)\box\@currbox}%
-  \wd\@currbox=\textwidth
-}
-\ifcase\ACM@format@nr
-\relax % manuscript
-\or % acmsmall
-\or % acmlarge
-\or % acmtog
-\or % sigconf
-\or % siggraph
-\or % sigplan
-\def\labelenumi{\theenumi.}
-\def\labelenumii{\theenumii.}
-\def\labelenumiii{\theenumiii.}
-\def\labelenumiv{\theenumiv.}
-\or % sigchi
-\or % sigchi-a
-\fi
-\newdimen\@ACM@labelwidth
-\AtBeginDocument{%
-  \setlength\labelsep{4pt}
-  \setlength{\@ACM@labelwidth}{6.5pt}
+%%% -*-BibTeX-*-
+%%% ====================================================================
+%%%  @BibTeX-style-file{
+%%%     author          = "Nelson H. F. Beebe, Boris Veytsman and Gerald Murray",
+%%%     version         = "2.1",
+%%%     date            = "14 June 2017",
+%%%     filename        = "ACM-Reference-Format.bst",
+%%%     email           = "borisv@lk.net, boris@varphi.com",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "ACM Transactions bibliography style; BibTeX",
+%%%     license         = "public domain",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%  }
+%%% ====================================================================
 
-  %% First-level list: when beginning after the first line of an
-  %% indented paragraph or ending before an indented paragraph, labels
-  %% should not hang to the left of the preceding/following text.
-  \setlength\leftmargini{\z@}
-  \addtolength\leftmargini{\parindent}
-  \addtolength\leftmargini{2\labelsep}
-  \addtolength\leftmargini{\@ACM@labelwidth}
+%%% Revision history:  see source in git
 
-  %% Second-level and higher lists.
-  \setlength\leftmarginii{\z@}
-  \addtolength\leftmarginii{0.5\labelsep}
-  \addtolength\leftmarginii{\@ACM@labelwidth}
-  \setlength\leftmarginiii{\leftmarginii}
-  \setlength\leftmarginiv{\leftmarginiii}
-  \setlength\leftmarginv{\leftmarginiv}
-  \setlength\leftmarginvi{\leftmarginv}
-  \@listi}
-\newskip\listisep
-\listisep\smallskipamount
-\def\@listI{\leftmargin\leftmargini
-  \labelwidth\leftmargini \advance\labelwidth-\labelsep
-  \listparindent\z@
-  \topsep\listisep}
-\let\@listi\@listI
-\def\@listii{\leftmargin\leftmarginii
-  \labelwidth\leftmarginii \advance\labelwidth-\labelsep
-  \topsep\z@skip}
-\def\@listiii{\leftmargin\leftmarginiii
-  \labelwidth\leftmarginiii \advance\labelwidth-\labelsep}
-\def\@listiv{\leftmargin\leftmarginiv
-  \labelwidth\leftmarginiv \advance\labelwidth-\labelsep}
-\def\@listv{\leftmargin\leftmarginv
-  \labelwidth\leftmarginv \advance\labelwidth-\labelsep}
-\def\@listvi{\leftmargin\leftmarginvi
-  \labelwidth\leftmarginvi \advance\labelwidth-\labelsep}
-\renewcommand{\descriptionlabel}[1]{\upshape\bfseries #1}
-\renewenvironment{description}{\list{}{%
-    \labelwidth\@ACM@labelwidth
-    \let\makelabel\descriptionlabel}%
-}{
-  \endlist
-}
-\let\enddescription=\endlist % for efficiency
-\define@choicekey*+{ACM}{acmJournal}[\@journalCode\@journalCode@nr]{%
-  CIE,%
-  CSUR,%
-  DTRAP,%
-  IMWUT,%
-  JACM,%
-  JDIQ,%
-  JEA,%
-  JERIC,%
-  JETC,%
-  JOCCH,%
-  PACMCGIT,%
-  PACMHCI,%
-  PACMPL,%
-  POMACS,%
-  TAAS,%
-  TACCESS,%
-  TACO,%
-  TALG,%
-  TALLIP,%
-  TAP,%
-  TCPS,%
-  TDSCI,%
-  TEAC,%
-  TECS,%
-  THRI,%
-  TIIS,%
-  TIOT,%
-  TISSEC,%
-  TIST,%
-  TKDD,%
-  TMIS,%
-  TOCE,%
-  TOCHI,%
-  TOCL,%
-  TOCS,%
-  TOCT,%
-  TODAES,%
-  TODS,%
-  TOG,%
-  TOIS,%
-  TOIT,%
-  TOMACS,%
-  TOMM,%
-  TOMPECS,%
-  TOMS,%
-  TOPC,%
-  TOPS,%
-  TOPLAS,%
-  TOS,%
-  TOSEM,%
-  TOSN,%
-  TRETS,%
-  TSAS,%
-  TSC,%
-  TSLP,%
-  TWEB%
-}{%
-\ifcase\@journalCode@nr
-\relax % CIE
-  \def\@journalName{ACM Computers in Entertainment}%
-  \def\@journalNameShort{ACM Comput. Entertain.}%
-  \def\@permissionCodeOne{1544-3574}%
-\or % CSUR
-  \def\@journalName{ACM Computing Surveys}%
-  \def\@journalNameShort{ACM Comput. Surv.}%
-  \def\@permissionCodeOne{0360-0300}%
-\or % DTRAP
-  \def\@journalName{Digital Threats: Research and Practice}%
-  \def\@journalNameShort{Digit. Threat. Res. Pract.}%
-  \def\@permissionCodeOne{2576-5337}%
-\or % IMWUT
-  \def\@journalName{Proceedings of the ACM on Interactive, Mobile,
-    Wearable and Ubiquitous Technologies}%
-  \def\@journalNameShort{Proc. ACM Interact. Mob. Wearable Ubiquitous Technol.}%
-  \def\@permissionCodeOne{2474-9567}%
-  \@ACM@screentrue
-  \PackageInfo{\@classname}{Using screen mode due to \@journalCode}%
-\or % JACM
-  \def\@journalName{Journal of the ACM}%
-  \def\@journalNameShort{J. ACM}%
-  \def\@permissionCodeOne{0004-5411}%
-\or % JDIQ
-  \def\@journalName{ACM Journal of Data and Information Quality}%
-  \def\@journalNameShort{ACM J. Data Inform. Quality}%
-  \def\@permissionCodeOne{1936-1955}%
-\or % JEA
-  \def\@journalName{ACM Journal of Experimental Algorithmics}%
-  \def\@journalNameShort{ACM J. Exp. Algor.}%
-  \def\@permissionCodeOne{1084-6654}%
-\or % JERIC
-  \def\@journalName{ACM Journal of Educational Resources in Computing}%
-  \def\@journalNameShort{ACM J. Edu. Resources in Comput.}%
-  \def\@permissionCodeOne{1073-0516}%
-\or % JETC
-  \def\@journalName{ACM Journal on Emerging Technologies in Computing Systems}%
-  \def\@journalNameShort{ACM J. Emerg. Technol. Comput. Syst.}%
-  \def\@permissionCodeOne{1550-4832}%
-\or % JOCCH
-  \def\@journalName{ACM Journal on Computing and Cultural Heritage}%
-  \def\@journalNameShort{ACM J. Comput. Cult. Herit.}%
-\or % PACMCGIT
-  \def\@journalName{Proceedings of the ACM on Computer Graphics and Interactive Techniques}%
-  \def\@journalNameShort{Proc. ACM Comput. Graph. Interact. Tech.}%
-  \def\@permissionCodeOne{2577-6193}%
-  \@ACM@screentrue
-  \PackageInfo{\@classname}{Using screen mode due to \@journalCode}%
-\or % PACMHCI
-  \def\@journalName{Proceedings of the ACM on Human-Computer Interaction}%
-  \def\@journalNameShort{Proc. ACM Hum.-Comput. Interact.}%
-  \def\@permissionCodeOne{2573-0142}%
-  \@ACM@screentrue
-  \PackageInfo{\@classname}{Using screen mode due to \@journalCode}%
-\or % PACMPL
-  \def\@journalName{Proceedings of the ACM on Programming Languages}%
-  \def\@journalNameShort{Proc. ACM Program. Lang.}%
-  \def\@permissionCodeOne{2475-1421}%
-  \@ACM@screentrue
-  \PackageInfo{\@classname}{Using screen mode due to \@journalCode}%
-\or % POMACS
-  \def\@journalName{Proceedings of the ACM on Measurement and Analysis of Computing Systems}%
-  \def\@journalNameShort{Proc. ACM Meas. Anal. Comput. Syst.}%
-  \def\@permissionCodeOne{2476-1249}%
-  \@ACM@screentrue
-  \PackageInfo{\@classname}{Using screen mode due to \@journalCode}%
-\or % TAAS
-  \def\@journalName{ACM Transactions on Autonomous and Adaptive Systems}%
-  \def\@journalNameShort{ACM Trans. Autonom. Adapt. Syst.}%
-  \def\@permissionCodeOne{1556-4665}%
-\or % TACCESS
-  \def\@journalName{ACM Transactions on Accessible Computing}%
-  \def\@journalNameShort{ACM Trans. Access. Comput.}%
-  \def\@permissionCodeOne{1936-7228}%
-\or % TACO
-  \def\@journalName{ACM Transactions on Architecture and Code Optimization}%
-  \def\@journalNameShort{ACM Trans. Arch. Code Optim.}%
-\or % TALG
-  \def\@journalName{ACM Transactions on Algorithms}%
-  \def\@journalNameShort{ACM Trans. Algor.}%
-  \def\@permissionCodeOne{1549-6325}%
-\or % TALLIP
-  \def\@journalName{ACM Transactions on Asian and Low-Resource Language Information Processing}%
-  \def\@journalNameShort{ACM Trans. Asian Low-Resour. Lang. Inf. Process.}%
-  \def\@permissionCodeOne{2375-4699}%
-\or % TAP
-  \def\@journalName{ACM Transactions on Applied Perception}%
-\or % TCPS
-  \def\@journalName{ACM Transactions on Cyber-Physical Systems}%
-\or % TDSCI
-  \def\@journalName{ACM Transactions on Data Science}%
-  \def\@journalNameShort{ACM Trans. Data Sci.}%
-  \def\@permissionCodeOne{2577-3224}%
-\or % TEAC
-  \def\@journalName{ACM Transactions on Economics and Computation}%
-\or % TECS
-  \def\@journalName{ACM Transactions on Embedded Computing Systems}%
-  \def\@journalNameShort{ACM Trans. Embedd. Comput. Syst.}%
-  \def\@permissionCodeOne{1539-9087}%
-\or % THRI
-  \def\@journalName{ACM Transactions on Human-Robot Interaction}%
-  \def\@journalNameShort{ACM Trans. Hum.-Robot Interact.}%
-  \def\@permissionCodeOne{2573-9522}%
-\or % TIIS
-  \def\@journalName{ACM Transactions on Interactive Intelligent Systems}%
-  \def\@journalNameShort{ACM Trans. Interact. Intell. Syst.}%
-  \def\@permissionCodeOne{2160-6455}%
-\or % TIOT
-  \def\@journalName{ACM Transactions on Internet of Things}%
-  \def\@journalNameShort{ACM Trans. Internet Things}%
-  \def\@permissionCodeOne{2577-6207}%
-\or % TISSEC
-  \def\@journalName{ACM Transactions on Information and System Security}%
-  \def\@journalNameShort{ACM Trans. Info. Syst. Sec.}%
-  \def\@permissionCodeOne{1094-9224}%
-\or % TIST
-  \def\@journalName{ACM Transactions on Intelligent Systems and Technology}%
-  \def\@journalNameShort{ACM Trans. Intell. Syst. Technol.}%
-  \def\@permissionCodeOne{2157-6904}%
-\or % TKDD
-  \def\@journalName{ACM Transactions on Knowledge Discovery from Data}%
-  \def\@journalNameShort{ACM Trans. Knowl. Discov. Data.}%
-  \def\@permissionCodeOne{1556-4681}%
-\or % TMIS
-  \def\@journalName{ACM Transactions on Management Information Systems}%
-  \def\@journalNameShort{ACM Trans. Manag. Inform. Syst.}%
-  \def\@permissionCodeOne{2158-656X}%
-\or % TOCE
-  \def\@journalName{ACM Transactions on Computing Education}%
-  \def\@journalNameShort{ACM Trans. Comput. Educ.}%
-  \def\@permissionCodeOne{1946-6226}%
-\or % TOCHI
-  \def\@journalName{ACM Transactions on Computer-Human Interaction}%
-  \def\@journalNameShort{ACM Trans. Comput.-Hum. Interact.}%
-  \def\@permissionCodeOne{1073-0516}%
-\or % TOCL
-  \def\@journalName{ACM Transactions on Computational Logic}%
-  \def\@journalNameShort{ACM Trans. Comput. Logic}%
-  \def\@permissionCodeOne{1529-3785}%
-\or % TOCS
-  \def\@journalName{ACM Transactions on Computer Systems}%
-  \def\@journalNameShort{ACM Trans. Comput. Syst.}%
-  \def\@permissionCodeOne{0734-2071}%
-\or % TOCT
-  \def\@journalName{ACM Transactions on Computation Theory}%
-  \def\@journalNameShort{ACM Trans. Comput. Theory}%
-  \def\@permissionCodeOne{1942-3454}%
-\or % TODAES
-  \def\@journalName{ACM Transactions on Design Automation of Electronic Systems}%
-  \def\@journalNameShort{ACM Trans. Des. Autom. Electron. Syst.}%
-  \def\@permissionCodeOne{1084-4309}%
-\or % TODS
-  \def\@journalName{ACM Transactions on Database Systems}%
-  \def\@journalNameShort{ACM Trans. Datab. Syst.}%
-  \def\@permissionCodeOne{0362-5915}%
-\or % TOG
-  \def\@journalName{ACM Transactions on Graphics}%
-  \def\@journalNameShort{ACM Trans. Graph.}%
-  \def\@permissionCodeOne{0730-0301}
-\or % TOIS
-  \def\@journalName{ACM Transactions on Information Systems}%
-  \def\@permissionCodeOne{1046-8188}%
-\or % TOIT
-  \def\@journalName{ACM Transactions on Internet Technology}%
-  \def\@journalNameShort{ACM Trans. Internet Technol.}%
-  \def\@permissionCodeOne{1533-5399}%
-\or % TOMACS
-  \def\@journalName{ACM Transactions on Modeling and Computer Simulation}%
-  \def\@journalNameShort{ACM Trans. Model. Comput. Simul.}%
-\or % TOMM
-  \def\@journalName{ACM Transactions on Multimedia Computing, Communications and Applications}%
-  \def\@journalNameShort{ACM Trans. Multimedia Comput. Commun. Appl.}%
-  \def\@permissionCodeOne{1551-6857}%
-  \def\@permissionCodeTwo{0100}%
-\or % TOMPECS
-  \def\@journalName{ACM Transactions on Modeling and Performance Evaluation of Computing Systems}%
-  \def\@journalNameShort{ACM Trans. Model. Perform. Eval. Comput. Syst.}%
-  \def\@permissionCodeOne{2376-3639}%
-\or % TOMS
-  \def\@journalName{ACM Transactions on Mathematical Software}%
-  \def\@journalNameShort{ACM Trans. Math. Softw.}%
-  \def\@permissionCodeOne{0098-3500}%
-\or % TOPC
-  \def\@journalName{ACM Transactions on Parallel Computing}%
-  \def\@journalNameShort{ACM Trans. Parallel Comput.}%
-  \def\@permissionCodeOne{1539-9087}%
-\or % TOPS
-  \def\@journalName{ACM Transactions on Privacy and Security}%
-  \def\@journalNameShort{ACM Trans. Priv. Sec.}%
-  \def\@permissionCodeOne{2471-2566}%
-\or % TOPLAS
-  \def\@journalName{ACM Transactions on Programming Languages and Systems}%
-  \def\@journalNameShort{ACM Trans. Program. Lang. Syst.}%
-  \def\@permissionCodeOne{0164-0925}%
-\or % TOS
-  \def\@journalName{ACM Transactions on Storage}%
-  \def\@journalNameShort{ACM Trans. Storage}%
-  \def\@permissionCodeOne{1553-3077}%
-\or % TOSEM
-  \def\@journalName{ACM Transactions on Software Engineering and Methodology}%
-  \def\@journalNameShort{ACM Trans. Softw. Eng. Methodol.}%
-  \def\@permissionCodeOne{1049-331X}%
-\or % TOSN
-  \def\@journalName{ACM Transactions on Sensor Networks}%
-  \def\@journalNameShort{ACM Trans. Sensor Netw.}%
-  \def\@permissionCodeOne{1550-4859}%
-\or % TRETS
-  \def\@journalName{ACM Transactions on Reconfigurable Technology and Systems}%
-  \def\@journalNameShort{ACM Trans. Reconfig. Technol. Syst.}%
-  \def\@permissionCodeOne{1936-7406}%
-\or % TSAS
-  \def\@journalName{ACM Transactions on Spatial Algorithms and Systems}%
-  \def\@journalNameShort{ACM Trans. Spatial Algorithms Syst.}%
-  \def\@permissionCodeOne{2374-0353}%
-\or % TSC
-  \def\@journalName{ACM Transactions on Social Computing}%
-  \def\@journalNameShort{ACM Trans. Soc. Comput.}%
-  \def\@permissionCodeOne{2469-7818}%
-\or % TSLP
-  \def\@journalName{ACM Transactions on Speech and Language Processing}%
-  \def\@journalNameShort{ACM Trans. Speech Lang. Process.}%
-  \def\@permissionCodeOne{1550-4875}%
-\or % TWEB
-  \def\@journalName{ACM Transactions on the Web}%
-  \def\@journalNameShort{ACM Trans. Web}%
-  \def\@permissionCodeOne{1559-1131}%
-\fi
-\ClassInfo{\@classname}{Using journal code \@journalCode}%
-}{%
-  \ClassError{\@classname}{Incorrect journal #1}%
-}%
-\def\acmJournal#1{\setkeys{ACM}{acmJournal=#1}}
-\def\@journalCode@nr{0}
-\def\@journalName{}%
-\def\@journalNameShort{\@journalName}%
-\def\@permissionCodeOne{XXXX-XXXX}%
-\def\@permissionCodeTwo{}%
-\newcommand\acmConference[4][]{%
-  \gdef\acmConference@shortname{#1}%
-  \gdef\acmConference@name{#2}%
-  \gdef\acmConference@date{#3}%
-  \gdef\acmConference@venue{#4}%
-  \ifx\acmConference@shortname\@empty
-    \gdef\acmConference@shortname{#2}%
-  \fi}
-\acmConference[Conference'17]{ACM Conference}{July 2017}{Washington,
-  DC, USA}
-\def\acmBooktitle#1{\gdef\@acmBooktitle{#1}}
-\acmBooktitle{Proceedings of \acmConference@name
-       \ifx\acmConference@name\acmConference@shortname\else
-         \ (\acmConference@shortname)\fi}
-\def\@editorsAbbrev{(Ed.)}
-\def\@acmEditors{}
-\def\editor#1{\ifx\@acmEditors\@empty
-    \gdef\@acmEditors{#1}%
-  \else
-    \gdef\@editorsAbbrev{(Eds.)}%
-    \g@addto@macro\@acmEditors{\and#1}%
-\fi}
-\def\subtitle#1{\def\@subtitle{#1}}
-\subtitle{}
-\newcount\num@authorgroups
-\num@authorgroups=0\relax
-\newcount\num@authors
-\num@authors=0\relax
-\newif\if@insideauthorgroup
-\@insideauthorgroupfalse
-\renewcommand\author[2][]{%
-  \global\advance\num@authors by 1\relax
-  \if@insideauthorgroup\else
-    \global\advance\num@authorgroups by 1\relax
-    \global\@insideauthorgrouptrue
-  \fi
-  \ifx\addresses\@empty
-    \if@ACM@anonymous
-      \gdef\addresses{\@author{Anonymous Author(s)%
-        \ifx\@acmSubmissionID\@empty\else\\Submission Id:
-          \@acmSubmissionID\fi}}%
-      \gdef\authors{Anonymous Author(s)}%
-    \else
-      \gdef\addresses{\@author{#2}}%
-      \gdef\authors{#2}%
-    \fi
-  \else
-    \if@ACM@anonymous\else
-      \g@addto@macro\addresses{\and\@author{#2}}%
-      \g@addto@macro\authors{\and#2}%
-    \fi
-  \fi
-  \if@ACM@anonymous
-    \ifx\shortauthors\@empty
-      \gdef\shortauthors{Anon.
-        \ifx\@acmSubmissionID\@empty\else Submission Id:
-        \@acmSubmissionID\fi}%
-    \fi
-  \else
-    \def\@tempa{#1}%
-    \ifx\@tempa\@empty
-      \ifx\shortauthors\@empty
-        \gdef\shortauthors{#2}%
-      \else
-        \g@addto@macro\shortauthors{\and#2}%
-      \fi
-    \else
-      \ifx\shortauthors\@empty
-        \gdef\shortauthors{#1}%
-      \else
-        \g@addto@macro\shortauthors{\and#1}%
-      \fi
-    \fi
-  \fi}
-\newcommand{\affiliation}[2][]{%
-  \global\@insideauthorgroupfalse
-  \if@ACM@anonymous\else
-    \g@addto@macro\addresses{\affiliation{#1}{#2}}%
-  \fi}
-\define@boolkey+{@ACM@affiliation@}[@ACM@affiliation@]{obeypunctuation}%
-[true]{}{\ClassError{\@classname}{The option obeypunctuation can be either true or false}}
-\def\additionalaffiliation#1{\authornote{\@additionalaffiliation{#1}}}
-\def\@additionalaffiliation#1{\bgroup
-  \def\position##1{\ignorespaces}%
-  \def\institution##1{##1\ignorespaces}%
-  \def\department{\@ifnextchar[{\@department}{\@department[]}}%
-  \def\@department[##1]##2{\unskip, ##2\ignorespaces}%
-  \let\streetaddress\position
-  \let\city\position
-  \let\state\position
-  \let\postcode\position
-  \let\country\position
-  Also with #1\unskip.\egroup}
-\renewcommand{\email}[2][]{%
-  \if@ACM@anonymous\else
-    \g@addto@macro\addresses{\email{#1}{#2}}%
-  \fi}
-\def\orcid#1{\unskip\ignorespaces}
-\def\authorsaddresses#1{\def\@authorsaddresses{#1}}
-\authorsaddresses{\@mkauthorsaddresses}
-\def\@titlenotes{}
-\def\titlenote#1{%
-  \g@addto@macro\@title{\footnotemark}%
-  \if@ACM@anonymous
-    \g@addto@macro\@titlenotes{%
-      \stepcounter{footnote}\footnotetext{Title note}}%
-  \else
-    \g@addto@macro\@titlenotes{\stepcounter{footnote}\footnotetext{#1}}%
-  \fi}
-\def\@subtitlenotes{}
-\def\subtitlenote#1{%
-  \g@addto@macro\@subtitle{\footnotemark}%
-  \if@ACM@anonymous
-    \g@addto@macro\@subtitlenotes{%
-      \stepcounter{footnote}\footnotetext{Subtitle note}}%
-  \else
-    \g@addto@macro\@subtitlenotes{%
-      \stepcounter{footnote}\footnotetext{#1}}%
-  \fi}
-\def\@authornotes{}
-\def\authornote#1{%
-  \if@ACM@anonymous\else
-    \g@addto@macro\addresses{\@authornotemark}%
-    \g@addto@macro\@authornotes{%
-      \stepcounter{footnote}\footnotetext{#1}}%
-  \fi}
-\newcommand\authornotemark[1][\relax]{%
-  \ifx#1\relax\relax\relax
-  \g@addto@macro\addresses{\@authornotemark}%
-  \else
-  \g@addto@macro\addresses{\@@authornotemark{#1}}%
-  \fi}
-\def\acmVolume#1{\def\@acmVolume{#1}}
-\acmVolume{1}
-\def\acmNumber#1{\def\@acmNumber{#1}}
-\acmNumber{1}
-\def\acmArticle#1{\def\@acmArticle{#1}}
-\acmArticle{}
-\def\acmArticleSeq#1{\def\@acmArticleSeq{#1}}
-\acmArticleSeq{\@acmArticle}
-\def\acmYear#1{\def\@acmYear{#1}}
-\acmYear{\the\year}
-\def\acmMonth#1{\def\@acmMonth{#1}}
-\acmMonth{\the\month}
-\def\@acmPubDate{\ifcase\@acmMonth\or
-  January\or February\or March\or April\or May\or June\or
-  July\or August\or September\or October\or November\or
-  December\fi~\@acmYear}
-\def\acmPrice#1{\def\@acmPrice{#1}}
-\acmPrice{15.00}
-\def\acmSubmissionID#1{\def\@acmSubmissionID{#1}}
-\acmSubmissionID{}
-\def\acmISBN#1{\def\@acmISBN{#1}}
-\acmISBN{978-x-xxxx-xxxx-x/YY/MM}
-\def\acmDOI#1{\def\@acmDOI{#1}}
-\acmDOI{10.1145/nnnnnnn.nnnnnnn}
-\newif\if@ACM@badge
-\@ACM@badgefalse
-\newlength\@ACM@badge@width
-\setlength\@ACM@badge@width{5pc}
-\newlength\@ACM@title@width
-\newlength\@ACM@badge@skip
-\setlength\@ACM@badge@skip{1pc}
-\newcommand\acmBadgeR[2][]{\@ACM@badgetrue
-  \def\@acmBadgeR@url{#1}%
-  \def\@acmBadgeR@image{#2}}
-\def\@acmBadgeR@url{}
-\def\@acmBadgeR@image{}
-\newcommand\acmBadgeL[2][]{\@ACM@badgetrue
-  \def\@acmBadgeL@url{#1}%
-  \def\@acmBadgeL@image{#2}}
-\def\@acmBadgeL@url{}
-\def\@acmBadgeL@image{}
-\def\startPage#1{\def\@startPage{#1}}
-\startPage{}
-\def\terms#1{\ClassWarning{\@classname}{The command \string\terms{} is
-    obsolete.  I am going to ignore it}}
-\def\keywords#1{\def\@keywords{#1}}
-\keywords{}
-\renewenvironment{abstract}{\Collect@Body\@saveabstract}{}
-\long\def\@saveabstract#1{\long\gdef\@abstract{#1}}
-\@saveabstract{}
-\long\def\@lempty{}
-\define@boolkey+{@ACM@topmatter@}[@ACM@]{printccs}[true]{%
-  \if@ACM@printccs
-    \ClassInfo{\@classname}{Printing CCS}%
-  \else
-    \ClassInfo{\@classname}{Suppressing CCS}%
-  \fi}{\ClassError{\@classname}{The option printccs can be either true or false}}
-\define@boolkey+{@ACM@topmatter@}[@ACM@]{printacmref}[true]{%
-  \if@ACM@printacmref
-    \ClassInfo{\@classname}{Printing bibformat}%
-  \else
-    \ClassInfo{\@classname}{Suppressing bibformat}%
-  \fi}{\ClassError{\@classname}{The option printacmref can be either true or false}}
-\define@boolkey+{@ACM@topmatter@}[@ACM@]{printfolios}[true]{%
-  \if@ACM@printfolios
-    \ClassInfo{\@classname}{Printing folios}%
-  \else
-    \ClassInfo{\@classname}{Suppressing folios}%
-  \fi}{\ClassError{\@classname}{The option printfolios can be either true or false}}
-\define@cmdkey{@ACM@topmatter@}[@ACM@]{authorsperrow}[0]{%
-  \IfInteger{#1}{\ClassInfo{\@classname}{Setting authorsperrow to
-      #1}}{\ClassWarning{\@classname}{The parameter authorsperrow must be
-      numerical. Ignoring the input #1}\gdef\@ACM@authorsperrow{0}}}
-\def\settopmatter#1{\setkeys{@ACM@topmatter@}{#1}}
-\settopmatter{printccs=true, printacmref=true}
-\if@ACM@manuscript
-  \settopmatter{printfolios=true}
-\else
-  \if@ACM@journal
-    \settopmatter{printfolios=true}
-  \else
-    \settopmatter{printfolios=false}
-  \fi
-\fi
-\settopmatter{authorsperrow=0}
-\def\@received{}
-\newcommand\received[2][]{\def\@tempa{#1}%
-  \ifx\@tempa\@empty
-    \ifx\@received\@empty
-      \gdef\@received{Received #2}%
-    \else
-      \g@addto@macro{\@received}{; revised #2}%
-    \fi
-  \else
-    \ifx\@received\@empty
-      \gdef\@received{#1 #2}%
-    \else
-      \g@addto@macro{\@received}{; #1 #2}%
-    \fi
-  \fi}
-\AtEndDocument{%
-  \ifx\@received\@empty\else
-    \par\bigskip\noindent\small\normalfont\@received\par
-  \fi}
-\RequirePackage{comment}
-\excludecomment{CCSXML}
-\let\@concepts\@empty
-\newcommand\ccsdesc[2][100]{%
-  \ccsdesc@parse#1~#2~~\ccsdesc@parse@end}
-\RequirePackage{textcomp}
-\def\ccsdesc@parse#1~#2~#3~{%
-  \expandafter\ifx\csname CCS@General@#2\endcsname\relax
-    \expandafter\gdef\csname CCS@General@#2\endcsname{\textbullet\
-      \textbf{#2}}%
-    \expandafter\gdef\csname CCS@Punctuation@#2\endcsname{; }%
-    \expandafter\gdef\csname CCS@Specific@#2\endcsname{}%
-  \g@addto@macro{\@concepts}{\csname CCS@General@#2\endcsname
-    \csname CCS@Punctuation@#2\endcsname
-    \csname CCS@Specific@#2\endcsname}%
-  \fi
-  \ifx#3\relax\relax\else
-    \expandafter\gdef\csname CCS@Punctuation@#2\endcsname{
-      \textrightarrow\ }%
-    \expandafter\g@addto@macro\expandafter{\csname CCS@Specific@#2\endcsname}{%
-     \ifnum#1>499\textbf{#3}; \else
-     \ifnum#1>299\textit{#3}; \else
-     #3; \fi\fi}%
-  \fi
-\ccsdesc@parse@finish}
-\def\ccsdesc@parse@finish#1\ccsdesc@parse@end{}
-\newif\if@printcopyright
-\@printcopyrighttrue
-\newif\if@printpermission
-\@printpermissiontrue
-\newif\if@acmowned
-\@acmownedtrue
-\define@choicekey*{ACM@}{acmcopyrightmode}[%
-  \acm@copyrightinput\acm@copyrightmode]{none,%
-    acmcopyright,acmlicensed,rightsretained,%
-    usgov,usgovmixed,cagov,cagovmixed,licensedusgovmixed,%
-    licensedcagov,licensedcagovmixed,othergov,licensedothergov,%
-    iw3c2w3,iw3c2w3g}{%
-  \@printpermissiontrue
-  \@printcopyrighttrue
-  \@acmownedtrue
-  \ifnum\acm@copyrightmode=0\relax % none
-   \@printpermissionfalse
-   \@printcopyrightfalse
-   \@acmownedfalse
-  \fi
-  \ifnum\acm@copyrightmode=2\relax % acmlicensed
-   \@acmownedfalse
-  \fi
-  \ifnum\acm@copyrightmode=3\relax % rightsretained
-   \@acmownedfalse
-   \AtBeginDocument{\acmPrice{}}%
-  \fi
-  \ifnum\acm@copyrightmode=4\relax % usgov
-   \@printpermissiontrue
-   \@printcopyrightfalse
-   \@acmownedfalse
-   \AtBeginDocument{\acmPrice{}}%
-  \fi
-  \ifnum\acm@copyrightmode=6\relax % cagov
-   \@acmownedfalse
-  \fi
-  \ifnum\acm@copyrightmode=8\relax % licensedusgovmixed
-   \@acmownedfalse
-  \fi
-  \ifnum\acm@copyrightmode=9\relax % licensedcagov
-   \@acmownedfalse
-  \fi
-  \ifnum\acm@copyrightmode=10\relax % licensedcagovmixed
-   \@acmownedfalse
-  \fi
-  \ifnum\acm@copyrightmode=11\relax % othergov
-   \@acmownedtrue
-  \fi
-  \ifnum\acm@copyrightmode=12\relax % licensedothergov
-   \@acmownedfalse
-  \fi
-  \ifnum\acm@copyrightmode=13\relax % iw3c2w3
-   \@acmownedfalse
-   \AtBeginDocument{\acmPrice{}}%
-  \fi
-  \ifnum\acm@copyrightmode=14\relax % iw3c2w3g
-   \@acmownedfalse
-   \AtBeginDocument{\acmPrice{}}%
-  \fi}
-\def\setcopyright#1{\setkeys{ACM@}{acmcopyrightmode=#1}}
-\setcopyright{acmcopyright}
-\def\@copyrightowner{%
-  \ifcase\acm@copyrightmode\relax % none
-  \or % acmcopyright
-  Association for Computing Machinery.
-  \or % acmlicensed
-  Copyright held by the owner/author(s). Publication rights licensed to
-  ACM\@.
-  \or % rightsretained
-  Copyright held by the owner/author(s).
-  \or % usgov
-  \or % usgovmixed
-  Association for Computing Machinery.
-  \or % cagov
-  Crown in Right of Canada.
-  \or %cagovmixed
-  Association for Computing Machinery.
-  \or %licensedusgovmixed
-  Copyright held by the owner/author(s). Publication rights licensed to
-  ACM\@.
-  \or % licensedcagov
-  Crown in Right of Canada. Publication rights licensed to
-  ACM\@.
-  \or %licensedcagovmixed
-  Copyright held by the owner/author(s). Publication rights licensed to
-  ACM\@.
-  \or % othergov
-  Association for Computing Machinery.
-  \or % licensedothergov
-  Copyright held by the owner/author(s). Publication rights licensed to
-  ACM\@.
-  \or % ic2w3www
-  IW3C2 (International World Wide Web Conference Committee), published
-  under Creative Commons CC-BY~4.0 License.
-  \or % ic2w3wwwgoogle
-  IW3C2 (International World Wide Web Conference Committee), published
-  under Creative Commons CC-BY-NC-ND~4.0 License.
-  \fi}
-\def\@formatdoi#1{\url{https://doi.org/#1}}
-\def\@copyrightpermission{%
-  \ifcase\acm@copyrightmode\relax % none
-  \or % acmcopyright
-   Permission to make digital or hard copies of all or part of this
-   work for personal or classroom use is granted without fee provided
-   that copies are not made or distributed for profit or commercial
-   advantage and that copies bear this notice and the full citation on
-   the first page. Copyrights for components of this work owned by
-   others than ACM must be honored. Abstracting with credit is
-   permitted. To copy otherwise, or republish, to post on servers or to
-   redistribute to lists, requires prior specific permission
-   and\hspace*{.5pt}/or  a fee. Request permissions from
-   permissions@acm.org.
-  \or % acmlicensed
-   Permission to make digital or hard copies of all or part of this
-   work for personal or classroom use is granted without fee provided
-   that copies are not made or distributed for profit or commercial
-   advantage and that copies bear this notice and the full citation on
-   the first page. Copyrights for components of this work owned by
-   others than the author(s) must be honored. Abstracting with credit
-   is permitted.  To copy otherwise, or republish, to post on servers
-   or to  redistribute to lists, requires prior specific permission
-   and\hspace*{.5pt}/or  a fee. Request permissions from
-   permissions@acm.org.
-  \or % rightsretained
-   Permission to make digital or hard copies of part or all of this work
-   for personal or classroom use is granted without fee provided that
-   copies are not made or distributed for profit or commercial advantage
-   and that copies bear this notice and the full citation on the first
-   page. Copyrights for third-party components of this work must be
-   honored. For all other uses, contact the
-   owner\hspace*{.5pt}/author(s).
-  \or % usgov
-   This paper is authored by an employee(s) of the United States
-   Government and is in the public domain. Non-exclusive copying or
-   redistribution is allowed, provided that the article citation is
-   given and the authors and agency are clearly identified as its
-   source.
-  \or % usgovmixed
-   ACM acknowledges that this contribution was authored or co-authored
-   by an employee, contractor, or affiliate of the United States government. As such,
-   the United States government retains a nonexclusive, royalty-free right to
-   publish or reproduce this article, or to allow others to do so, for
-   government purposes only.
-  \or % cagov
-   This article was authored by employees of the Government of Canada.
-   As such, the Canadian government retains all interest in the
-   copyright to this work and grants to ACM a nonexclusive,
-   royalty-free right to publish or reproduce this article, or to allow
-   others to do so, provided that clear attribution is given both to
-   the authors and the Canadian government agency employing them.
-   Permission to make digital or hard copies for personal or classroom
-   use is granted. Copies must bear this notice and the full citation
-   on the first page.  Copyrights for components of this work owned by
-   others than the Canadian Government must be honored. To copy
-   otherwise, distribute, republish, or post, requires prior specific
-   permission and\hspace*{.5pt}/or a fee. Request permissions from
-   permissions@acm.org.
-  \or % cagovmixed
-   ACM acknowledges that this contribution was co-authored by an
-   affiliate of the national government of Canada. As such, the Crown
-   in Right of Canada retains an equal interest in the copyright.
-   Reprints must include clear attribution to ACM and the author's
-   government agency affiliation.  Permission to make digital or hard
-   copies for personal or classroom use is granted.  Copies must bear
-   this notice and the full citation on the first page. Copyrights for
-   components of this work owned by others than ACM must be honored.
-   To copy otherwise, distribute, republish, or post, requires prior
-   specific permission and\hspace*{.5pt}/or a fee. Request permissions
-   from permissions@acm.org.
-  \or % licensedusgovmixed
-   Publication rights licensed to ACM\@. ACM acknowledges that this
-   contribution was authored or co-authored by an employee, contractor
-   or affiliate of the United States government. As such, the
-   Government retains a nonexclusive, royalty-free right to publish or
-   reproduce this article, or to allow others to do so, for Government
-   purposes only.
-  \or % licensedcagov
-   This article was authored by employees of the Government of Canada.
-   As such, the Canadian government retains all interest in the
-   copyright to this work and grants to ACM a nonexclusive,
-   royalty-free right to publish or reproduce this article, or to allow
-   others to do so, provided that clear attribution is given both to
-   the authors and the Canadian government agency employing them.
-   Permission to make digital or hard copies for personal or classroom
-   use is granted. Copies must bear this notice and the full citation
-   on the first page.  Copyrights for components of this work owned by
-   others than the Canadian Government must be honored. To copy
-   otherwise, distribute, republish, or post, requires prior specific
-   permission and\hspace*{.5pt}/or a fee. Request permissions from
-   permissions@acm.org.
-  \or % licensedcagovmixed
-   Publication rights licensed to ACM\@. ACM acknowledges that this
-   contribution was authored or co-authored by an employee, contractor
-   or affiliate of the national government of Canada. As such, the
-   Government retains a nonexclusive, royalty-free right to publish or
-   reproduce this article, or to allow others to do so, for Government
-   purposes only.
-  \or % othergov
-   ACM acknowledges that this contribution was authored or co-authored
-   by an employee, contractor or affiliate of a national government. As
-   such, the Government retains a nonexclusive, royalty-free right to
-   publish or reproduce this article, or to allow others to do so, for
-   Government purposes only.
-  \or % licensedothergov
-   Publication rights licensed to ACM\@. ACM acknowledges that this
-   contribution was authored or co-authored by an employee, contractor
-   or affiliate of a national government. As such, the Government
-   retains a nonexclusive, royalty-free right to publish or reproduce
-   this article, or to allow others to do so, for Government purposes
-   only.
- \or % iw3c2w3
-   This paper is published under the Creative Commons Attribution~4.0
-   International (CC-BY~4.0) license. Authors reserve their rights to
-   disseminate the work on their personal and corporate Web sites with
-   the appropriate attribution.
- \or % iw3c2w3g
-   This paper is published under the Creative Commons
-   Attribution-NonCommercial-NoDerivs~4.0 International
-   (CC-BY-NC-ND~4.0) license. Authors reserve their rights to
-   disseminate the work on their personal and corporate Web sites with
-   the appropriate attribution.
- \fi}
-\def\copyrightyear#1{\def\@copyrightyear{#1}}
-\copyrightyear{\@acmYear}
-\def\@teaserfigures{}
-\newenvironment{teaserfigure}{\Collect@Body\@saveteaser}{}
-\long\def\@saveteaser#1{\g@addto@macro\@teaserfigures{\@teaser{#1}}}
-\renewcommand{\thanks}[1]{%
-  \@ifnotempty{#1}{%
-    \if@ACM@anonymous
-      \g@addto@macro\thankses{\thanks{A note}}%
-   \else
-    \g@addto@macro\thankses{\thanks{#1}}%
-   \fi}}
-\newbox\mktitle@bx
-\def\maketitle{%
-  \if@ACM@anonymous
-    % Anonymize omission of \author-s
-    \ifnum\num@authorgroups=0\author{}\fi
-  \fi
-  \begingroup
-  \let\@footnotemark\@footnotemark@nolink
-  \let\@footnotetext\@footnotetext@nolink
-  \renewcommand\thefootnote{\@fnsymbol\c@footnote}%
-  \global\@topnum\z@ % this prevents floats from falling
-                     % at the top of page 1
-  \global\@botnum\z@ % we do not want them to be on the bottom either
-  \hsize=\textwidth
-  \def\@makefnmark{\hbox{\@textsuperscript{\@thefnmark}}}%
-  \@mktitle\if@ACM@sigchiamode\else\@mkauthors\fi\@mkteasers
-  \@printtopmatter
-  \if@ACM@sigchiamode\@mkauthors\fi
-  \setcounter{footnote}{0}%
-  \def\@makefnmark{\hbox{\@textsuperscript{\normalfont\@thefnmark}}}%
-  \@titlenotes
-  \@subtitlenotes
-  \@authornotes
-  \let\@makefnmark\relax
-  \let\@thefnmark\relax
-  \let\@makefntext\noindent
-  \ifx\@empty\thankses\else
-    \footnotetextauthorsaddresses{%
-      \def\par{\let\par\@par}\parindent\z@\@setthanks}%
-  \fi
-  \ifx\@empty\@authorsaddresses\else
-     \if@ACM@anonymous\else
-       \if@ACM@journal
-         \footnotetextauthorsaddresses{%
-           \def\par{\let\par\@par}\parindent\z@\@setauthorsaddresses}%
-       \fi
-     \fi
-  \fi
-  \if@ACM@nonacm\else\footnotetextcopyrightpermission{%
-    \if@ACM@authordraft
-        \raisebox{-2ex}[\z@][\z@]{\makebox[0pt][l]{\large\bfseries
-            Unpublished working draft. Not for distribution.}}%
-       \color[gray]{0.9}%
-    \fi
-    \parindent\z@\parskip0.1\baselineskip
-    \if@ACM@authorversion\else
-      \if@printpermission\@copyrightpermission\par\fi
-    \fi
-    \if@ACM@manuscript\else
-       \if@ACM@journal\else % Print the conference information
-         {\itshape \acmConference@shortname, \acmConference@date, \acmConference@venue}\par
-       \fi
-    \fi
-    \if@printcopyright
-      \copyright\ \@copyrightyear\ \@copyrightowner\\
-    \else
-      \@copyrightyear.\
-    \fi
-    \if@ACM@manuscript
-      Manuscript submitted to ACM\\
-    \else
-      \if@ACM@authorversion
-          This is the author's version of the work. It is posted here for
-          your personal use. Not for redistribution. The definitive Version
-          of Record was published in
-          \if@ACM@journal
-            \emph{\@journalName}%
-          \else
-            \emph{\@acmBooktitle}%
-          \fi
-          \ifx\@acmDOI\@empty
-          .
-          \else
-            , \@formatdoi{\@acmDOI}.
-          \fi\\
-        \else
-          \if@ACM@nonacm\else
-            \if@ACM@journal
-              \@permissionCodeOne/\@acmYear/\@acmMonth-ART\@acmArticle
-              \ifx\@acmPrice\@empty\else\ \$\@acmPrice\fi\\
-              \@formatdoi{\@acmDOI}%
-            \else % Conference
-              \ifx\@acmISBN\@empty\else ACM~ISBN~\@acmISBN
-              \ifx\@acmPrice\@empty.\else\dots\$\@acmPrice\fi\\\fi
-              \ifx\@acmDOI\@empty\else\@formatdoi{\@acmDOI}\fi%
-            \fi
-          \fi
-        \fi
-      \fi}
-    \fi
-  \endgroup
-  \setcounter{footnote}{0}%
-  \@mkabstract
-  \if@ACM@printccs
-    \ifx\@concepts\@empty\else\bgroup
-      {\@specialsection{CCS Concepts}%
-         \@concepts\par}\egroup
-     \fi
-   \fi
-   \ifx\@keywords\@empty\else\bgroup
-      {\if@ACM@journal
-         \@specialsection{Additional Key Words and Phrases}%
-       \else
-         \@specialsection{Keywords}%
-       \fi
-         \@keywords}\par\egroup
-   \fi
-  \andify\authors
-  \andify\shortauthors
-  \global\let\authors=\authors
-  \global\let\shortauthors=\shortauthors
-  \if@ACM@printacmref
-     \@mkbibcitation
-  \fi
-  \hypersetup{%
-    pdfauthor={\authors},
-    pdftitle={\@title},
-    pdfsubject={\@concepts},
-    pdfkeywords={\@keywords},
-    pdfcreator={LaTeX with acmart
-      \csname ver@acmart.cls\endcsname\space
-      and hyperref
-      \csname ver@hyperref.sty\endcsname}}%
-  \@printendtopmatter
-  \@afterindentfalse
-  \@afterheading
-}
-\def\@specialsection#1{%
-  \ifcase\ACM@format@nr
-  \relax % manuscript
-    \par\medskip\small\noindent#1: %
-  \or % acmsmall
-    \par\medskip\small\noindent#1: %
-  \or % acmlarge
-    \par\medskip\small\noindent#1: %
-  \or % acmtog
-    \par\medskip\small\noindent#1: %
-  \or % sigconf
-    \section*{#1}%
-  \or % siggraph
-    \section*{#1}%
-  \or % sigplan
-    \paragraph*{#1}%
-  \or % sigchi
-    \section*{#1}%
-  \or % sigchi-a
-    \section*{#1}%
-  \fi}
-\def\@printtopmatter{%
-  \ifx\@startPage\@empty
-     \gdef\@startPage{1}%
-  \else
-     \setcounter{page}{\@startPage}%
-  \fi
-  \thispagestyle{firstpagestyle}%
-  \noindent
-  \ifcase\ACM@format@nr
-  \relax % manuscript
-    \box\mktitle@bx\par
-  \or % acmsmall
-    \box\mktitle@bx\par
-  \or % acmlarge
-    \box\mktitle@bx\par
-  \or % acmtog
-    \twocolumn[\box\mktitle@bx]%
-  \or % sigconf
-    \twocolumn[\box\mktitle@bx]%
-  \or % siggraph
-    \twocolumn[\box\mktitle@bx]%
-  \or % sigplan
-    \twocolumn[\box\mktitle@bx]%
-  \or % sigchi
-    \twocolumn[\box\mktitle@bx]%
-  \or % sigchi-a
-    \par\box\mktitle@bx\par\bigskip
-    \if@ACM@badge
-       \marginpar{\noindent
-         \ifx\@acmBadgeL@image\@empty\else
-           \href{\@acmBadgeL@url}{%
-             \includegraphics[width=\@ACM@badge@width]{\@acmBadgeL@image}}%
-            \hskip\@ACM@badge@skip
-          \fi
-         \ifx\@acmBadgeR@image\@empty\else
-           \href{\@acmBadgeR@url}{%
-             \includegraphics[width=\@ACM@badge@width]{\@acmBadgeR@image}}%
-          \fi}%
-    \fi
-  \fi
-}
-\def\@mktitle{%
-  \ifcase\ACM@format@nr
-  \relax % manuscript
-    \@mktitle@i
-  \or % acmsmall
-    \@mktitle@i
-  \or % acmlarge
-    \@mktitle@i
-  \or % acmtog
-    \@mktitle@i
-  \or % sigconf
-    \@mktitle@iii
-  \or % siggraph
-    \@mktitle@iii
-  \or % sigplan
-    \@mktitle@iii
-  \or % sigchi
-    \@mktitle@iii
-  \or % sigchi-a
-    \@mktitle@iv
-  \fi
-}
-\def\@titlefont{%
-  \ifcase\ACM@format@nr
-  \relax % manuscript
-    \LARGE\sffamily\bfseries
-  \or % acmsmall
-    \LARGE\sffamily\bfseries
-  \or % acmlarge
-    \LARGE\sffamily\bfseries
-  \or % acmtog
-    \Huge\sffamily
-  \or % sigconf
-    \Huge\sffamily\bfseries
-  \or % siggraph
-    \Huge\sffamily\bfseries
-  \or % sigplan
-    \Huge\bfseries
-  \or % sigchi
-    \Huge\sffamily\bfseries
-  \or % sigchi-a
-     \Huge\bfseries
-  \fi}
-\def\@subtitlefont{\normalsize
-  \ifcase\ACM@format@nr
-  \relax % manuscript
-    \mdseries
-  \or % acmsmall
-    \mdseries
-  \or % acmlarge
-    \mdseries
-  \or % acmtog
-     \LARGE
-  \or % sigconf
-     \LARGE\mdseries
-  \or % siggraph
-     \LARGE\mdseries
-  \or % sigplan
-     \LARGE\mdseries
-  \or % sigchi
-     \LARGE\mdseries
-  \or % sigchi-a
-     \mdseries
-  \fi}
-\def\@mktitle@i{\hsize=\textwidth
-  \@ACM@title@width=\hsize
-  \ifx\@acmBadgeL@image\@empty\else
-    \advance\@ACM@title@width by -\@ACM@badge@width
-    \advance\@ACM@title@width by -\@ACM@badge@skip
-  \fi
-  \ifx\@acmBadgeR@image\@empty\else
-    \advance\@ACM@title@width by -\@ACM@badge@width
-    \advance\@ACM@title@width by -\@ACM@badge@skip
-  \fi
-  \setbox\mktitle@bx=\vbox{\noindent\@titlefont
-    \ifx\@acmBadgeL@image\@empty\else
-      \raisebox{-.5\baselineskip}[\z@][\z@]{\href{\@acmBadgeL@url}{%
-          \includegraphics[width=\@ACM@badge@width]{\@acmBadgeL@image}}}%
-      \hskip\@ACM@badge@skip
-    \fi
-    \parbox[t]{\@ACM@title@width}{\raggedright
-      \@titlefont\noindent
-      \@title
-  \ifx\@subtitle\@empty\else
-    \par\noindent{\@subtitlefont\@subtitle}
-  \fi}%
-  \ifx\@acmBadgeR@image\@empty\else
-    \hskip\@ACM@badge@skip
-    \raisebox{-.5\baselineskip}[\z@][\z@]{\href{\@acmBadgeR@url}{%
-        \includegraphics[width=\@ACM@badge@width]{\@acmBadgeR@image}}}%
-  \fi
-  \par\bigskip}}%
-\def\@mktitle@iii{\hsize=\textwidth
-    \setbox\mktitle@bx=\vbox{\@titlefont\centering
-      \@ACM@title@width=\hsize
-      \if@ACM@badge
-        \advance\@ACM@title@width by -2\@ACM@badge@width
-        \advance\@ACM@title@width by -2\@ACM@badge@skip
-        \parbox[b]{\@ACM@badge@width}{\strut
-          \ifx\@acmBadgeL@image\@empty\else
-            \raisebox{-.5\baselineskip}[\z@][\z@]{\href{\@acmBadgeL@url}{%
-                \includegraphics[width=\@ACM@badge@width]{\@acmBadgeL@image}}}%
-          \fi}%
-        \hskip\@ACM@badge@skip
-      \fi
-      \parbox[t]{\@ACM@title@width}{\centering\@titlefont
-        \@title
-        \ifx\@subtitle\@empty\else
-          \par\noindent{\@subtitlefont\@subtitle}
-        \fi
-      }%
-      \if@ACM@badge
-        \hskip\@ACM@badge@skip
-        \parbox[b]{\@ACM@badge@width}{\strut
-          \ifx\@acmBadgeR@image\@empty\else
-            \raisebox{-.5\baselineskip}[\z@][\z@]{\href{\@acmBadgeR@url}{%
-                \includegraphics[width=\@ACM@badge@width]{\@acmBadgeR@image}}}%
-          \fi}%
-      \fi
-      \par\bigskip}}%
-\def\@mktitle@iv{\hsize=\textwidth
-    \setbox\mktitle@bx=\vbox{\raggedright\leftskip5pc\@titlefont
-      \noindent\leavevmode\leaders\hrule height 2pt\hfill\kern0pt\par
-      \noindent\@title
-     \ifx\@subtitle\@empty\else
-       \par\noindent\@subtitlefont\@subtitle
-     \fi
-     \par\bigskip}}%
-\newbox\@ACM@commabox
-\def\@ACM@addtoaddress#1{%
-  \ifvmode\else
-    \if@ACM@affiliation@obeypunctuation\else
-    \setbox\@ACM@commabox=\hbox{, }%
-    \unskip\cleaders\copy\@ACM@commabox\hskip\wd\@ACM@commabox
-  \fi\fi
-  #1}
-\def\streetaddress#1{\unskip\ignorespaces}
-\def\postcode#1{\unskip\ignorespaces}
-\if@ACM@journal
-  \def\position#1{\unskip\ignorespaces}
-  \def\institution#1{\unskip~#1\ignorespaces}
-  \def\city#1{\unskip\ignorespaces}
-  \def\state#1{\unskip\ignorespaces}
-  \newcommand\department[2][0]{\unskip\ignorespaces}
-  \def\country#1{\if@ACM@affiliation@obeypunctuation\else, \fi#1\ignorespaces}
-\else
-  \def\position#1{\if@ACM@affiliation@obeypunctuation#1\else#1\par\fi}%
-  \def\institution#1{\if@ACM@affiliation@obeypunctuation#1\else#1\par\fi}%
-  \newcommand\department[2][0]{\if@ACM@affiliation@obeypunctuation
-    #2\else#2\par\fi}%
-  \let\city\@ACM@addtoaddress
-  \let\state\@ACM@addtoaddress
-  \let\country\@ACM@addtoaddress
-\fi
-\def\@mkauthors{\begingroup
-  \hsize=\textwidth
-  \ifcase\ACM@format@nr
-  \relax % manuscript
-    \@mkauthors@i
-  \or % acmsmall
-    \@mkauthors@i
-  \or % acmlarge
-    \@mkauthors@i
-  \or % acmtog
-    \@mkauthors@i
-  \or % sigconf
-    \@mkauthors@iii
-  \or % siggraph
-    \@mkauthors@iii
-  \or % sigplan
-    \@mkauthors@iii
-  \or % sigchi
-    \@mkauthors@iii
-  \or % sigchi-a
-    \@mkauthors@iv
-  \fi
-  \endgroup
-}
-\def\@authorfont{\Large\sffamily}
-\def\@affiliationfont{\normalsize\normalfont}
-\ifcase\ACM@format@nr
-\relax % manuscript
-\or % acmsmall
-  \def\@authorfont{\large\sffamily}
-  \def\@affiliationfont{\small\normalfont}
-\or % acmlarge
-\or % acmtog
-  \def\@authorfont{\LARGE\sffamily}
-  \def\@affiliationfont{\large}
-\or % sigconf
-  \def\@authorfont{\LARGE}
-  \def\@affiliationfont{\large}
-\or % siggraph
-  \def\@authorfont{\normalsize\normalfont}
-  \def\@affiliationfont{\normalsize\normalfont}
-\or % sigplan
-  \def\@authorfont{\Large\normalfont}
-  \def\@affiliationfont{\normalsize\normalfont}
-\or % sigchi
-  \def\@authorfont{\bfseries}
-  \def\@affiliationfont{\mdseries}
-\or % sigchi-a
-  \def\@authorfont{\bfseries}
-  \def\@affiliationfont{\mdseries}
-\fi
-\def\@typeset@author@line{%
-  \andify\@currentauthors\par\noindent
-  \@currentauthors\def\@currentauthors{}%
-  \ifx\@currentaffiliations\@empty\else
-    \andify\@currentaffiliations
-      \unskip, {\@currentaffiliations}\par
-  \fi
-  \def\@currentaffiliations{}}
-\def\@mkauthors@i{%
-  \def\@currentauthors{}%
-  \def\@currentaffiliations{}%
-  \global\let\and\@typeset@author@line
-  \def\@author##1{%
-    \ifx\@currentauthors\@empty
-      \gdef\@currentauthors{\@authorfont\MakeTextUppercase{##1}}%
-    \else
-       \g@addto@macro{\@currentauthors}{\and\MakeTextUppercase{##1}}%
-    \fi
-    \gdef\and{}}%
-  \def\email##1##2{}%
-  \def\affiliation##1##2{%
-    \def\@tempa{##2}\ifx\@tempa\@empty\else
-       \ifx\@currentaffiliations\@empty
-          \gdef\@currentaffiliations{%
-            \setkeys{@ACM@affiliation@}{obeypunctuation=false}%
-            \setkeys{@ACM@affiliation@}{##1}%
-            \@affiliationfont##2}%
-       \else
-         \g@addto@macro{\@currentaffiliations}{\and
-           \setkeys{@ACM@affiliation@}{obeypunctuation=false}%
-           \setkeys{@ACM@affiliation@}{##1}##2}%
-      \fi
-    \fi
-     \global\let\and\@typeset@author@line}%
-  \global\setbox\mktitle@bx=\vbox{\noindent\box\mktitle@bx\par\medskip
-    \noindent\addresses\@typeset@author@line
-   \par\medskip}%
-}
-\newbox\author@bx
-\newdimen\author@bx@wd
-\newskip\author@bx@sep
-\author@bx@sep=1pc\relax
-\def\@typeset@author@bx{\bgroup\hsize=\author@bx@wd\def\and{\par}%
-  \global\setbox\author@bx=\vtop{\if@ACM@sigchiamode\else\centering\fi
-    \@authorfont\@currentauthors\par\@affiliationfont
-    \@currentaffiliation}\egroup
-  \box\author@bx\hspace{\author@bx@sep}%
-  \gdef\@currentauthors{}%
-  \gdef\@currentaffiliation{}}
-\def\@mkauthors@iii{%
-  \author@bx@wd=\textwidth\relax
-  \advance\author@bx@wd by -\author@bx@sep\relax
-  \ifnum\@ACM@authorsperrow>0\relax
-    \divide\author@bx@wd by \@ACM@authorsperrow\relax
-  \else
-    \ifcase\num@authorgroups
-    \relax % 0?
-    \or  % 1=one author per row
-    \or  % 2=two authors per row
-       \divide\author@bx@wd by \num@authorgroups\relax
-    \or  % 3=three authors per row
-       \divide\author@bx@wd by \num@authorgroups\relax
-    \or  % 4=two authors per row (!)
-       \divide\author@bx@wd by 2\relax
-    \else % three authors per row
-       \divide\author@bx@wd by 3\relax
-    \fi
-  \fi
-  \advance\author@bx@wd by -\author@bx@sep\relax
-  \gdef\@currentauthors{}%
-  \gdef\@currentaffiliation{}%
-  \def\@author##1{\ifx\@currentauthors\@empty
-    \gdef\@currentauthors{\par##1}%
-  \else
-    \g@addto@macro\@currentauthors{\par##1}%
-  \fi
-  \gdef\and{}}%
-  \def\email##1##2{\ifx\@currentaffiliation\@empty
-    \gdef\@currentaffiliation{\nolinkurl{##2}}%
-  \else
-    \g@addto@macro\@currentaffiliation{\par\nolinkurl{##2}}%
-  \fi}%
-  \def\affiliation##1##2{\ifx\@currentaffiliation\@empty
-    \gdef\@currentaffiliation{%
-      \setkeys{@ACM@affiliation@}{obeypunctuation=false}%
-      \setkeys{@ACM@affiliation@}{##1}##2}%
-  \else
-    \g@addto@macro\@currentaffiliation{\par
-      \setkeys{@ACM@affiliation@}{obeypunctuation=false}%
-      \setkeys{@ACM@affiliation@}{##1}##2}%
-  \fi
-  \global\let\and\@typeset@author@bx
-}%
-  \hsize=\textwidth
-  \global\setbox\mktitle@bx=\vbox{\noindent
-    \box\mktitle@bx\par\medskip\leavevmode
-    \lineskip=1pc\relax\centering\hspace*{-1em}%
-    \addresses\let\and\@typeset@author@bx\and\par\bigskip}}
-\def\@mkauthors@iv{%
-  \author@bx@wd=\columnwidth\relax
-  \advance\author@bx@wd by -\author@bx@sep\relax
-  \ifnum\@ACM@authorsperrow>0\relax
-    \divide\author@bx@wd by \@ACM@authorsperrow\relax
-  \else
-    \ifcase\num@authorgroups
-    \relax % 0?
-    \or  % 1=one author per row
-    \else  % 2=two authors per row
-       \divide\author@bx@wd by 2\relax
-    \fi
-  \fi
-  \advance\author@bx@wd by -\author@bx@sep\relax
-  \gdef\@currentauthors{}%
-  \gdef\@currentaffiliation{}%
-  \def\@author##1{\ifx\@currentauthors\@empty
-    \gdef\@currentauthors{\par##1}%
-  \else
-    \g@addto@macro\@currentauthors{\par##1}%
-  \fi
-  \gdef\and{}}%
-  \def\email##1##2{\ifx\@currentaffiliation\@empty
-    \gdef\@currentaffiliation{\nolinkurl{##2}}%
-  \else
-    \g@addto@macro\@currentaffiliation{\par\nolinkurl{##2}}%
-  \fi}%
-  \def\affiliation##1##2{\ifx\@currentaffiliation\@empty
-    \gdef\@currentaffiliation{%
-      \setkeys{@ACM@affiliation@}{obeypunctuation=false}%
-           \setkeys{@ACM@affiliation@}{##1}##2}%
-  \else
-    \g@addto@macro\@currentaffiliation{\par
-      \setkeys{@ACM@affiliation@}{obeypunctuation=false}%
-      \setkeys{@ACM@affiliation@}{##1}##2}%
-  \fi
-  \global\let\and\@typeset@author@bx}%
-    \bgroup\hsize=\columnwidth
-    \par\raggedright\leftskip=\z@
-    \lineskip=1pc\noindent
-    \addresses\let\and\@typeset@author@bx\and\par\bigskip\egroup}
-\def\@mkauthorsaddresses{%
-  \ifnum\num@authors>1\relax
-  Authors' \else Author's \fi
-  \ifnum\num@authorgroups>1\relax
-  addresses: \else address: \fi
-  \bgroup
-  \def\streetaddress##1{\unskip\@addpunct, ##1}%
-  \def\postcode##1{\unskip\@addpunct, ##1}%
-  \def\position##1{\unskip\ignorespaces}%
-  \def\institution##1{\unskip\@addpunct, ##1}%
-  \def\city##1{\unskip\@addpunct, ##1}%
-  \def\state##1{\unskip\@addpunct, ##1}%
-  \renewcommand\department[2][0]{\unskip\@addpunct, ##2}%
-  \def\country##1{\unskip\@addpunct, ##1}%
-  \def\and{\unskip\@addpunct; }%
-  \def\@author##1{##1}%
-  \def\email##1##2{\unskip\@addpunct, \nolinkurl{##2}}%
-  \addresses
-  \egroup}
-\def\@setaddresses{}
-\def\@authornotemark{\g@addto@macro\@currentauthors{\footnotemark\relax}}
-\def\@@authornotemark#1{\g@addto@macro\@currentauthors{\footnotemark[#1]}}
-\def\@mkteasers{%
-  \ifx\@teaserfigures\@empty\else
-    \def\@teaser##1{\par\bigskip\bgroup
-      \captionsetup{type=figure}##1\egroup\par}
-    \global\setbox\mktitle@bx=\vbox{\noindent\box\mktitle@bx\par
-    \noindent\@teaserfigures\par\medskip}%
-  \fi}
-\def\@mkabstract{\bgroup
-  \ifx\@abstract\@lempty\else
-  {\phantomsection\addcontentsline{toc}{section}{Abstract}%
-    \if@ACM@journal
-       \everypar{\setbox\z@\lastbox\everypar{}}\small
-    \else
-      \section*{Abstract}%
-    \fi
-   \ignorespaces\@abstract\par}%
-  \fi\egroup}
-\def\@mkbibcitation{\bgroup
-  \def\@pages@word{\ifnum\getrefnumber{TotPages}=1\relax page\else pages\fi}%
-  \def\footnotemark{}%
-  \def\\{\unskip{} \ignorespaces}%
-  \def\footnote{\ClassError{\@classname}{Please do not use footnotes
-      inside a \string\title{} or \string\author{} command! Use
-      \string\titlenote{} or \string\authornote{} instead!}}%
-  \def\@article@string{\ifx\@acmArticle\@empty{\ }\else,
-    Article~\@acmArticle\ \fi}%
-  \par\medskip\small\noindent{\bfseries ACM Reference Format:}\par\nobreak
-  \noindent\bgroup
-    \def\\{\unskip{}, \ignorespaces}\authors\egroup. \@acmYear. \@title
-  \ifx\@subtitle\@empty. \else: \@subtitle. \fi
-  \if@ACM@nonacm\else
-    % The 'nonacm' option disables 'printacmref' by default,
-    % and the present \@mkbibcitation definition is never used
-    % in this case. The conditional remains useful if the user
-    % explicitly sets \settopmatter{printacmref=true}.
-    \if@ACM@journal
-       \textit{\@journalNameShort}
-       \@acmVolume, \@acmNumber \@article@string (\@acmPubDate),
-       \ref{TotPages}~\@pages@word.
-    \else
-       In \textit{\@acmBooktitle}%
-       \ifx\@acmEditors\@empty\textit{.}\else
-         \andify\@acmEditors\textit{, }\@acmEditors~\@editorsAbbrev.%
-       \fi\
-       ACM, New York, NY, USA%
-         \@article@string\unskip, \ref{TotPages}~\@pages@word.
-    \fi
-  \fi
-  \ifx\@acmDOI\@empty\else\@formatdoi{\@acmDOI}\fi
-\par\egroup}
-\def\@printendtopmatter{\par\bigskip}
-\def\@setthanks{\long\def\thanks##1{\par##1\@addpunct.}\thankses}
-\def\@setauthorsaddresses{\@authorsaddresses\unskip\@addpunct.}
-\RequirePackage{fancyhdr}
-\if@ACM@review
-  \newsavebox{\ACM@linecount@bx}
-  \newlength\ACM@linecount@bxht
-  \newcount\ACM@linecount
-  \ACM@linecount\@ne\relax
-  \def\ACM@mk@linecount{%
-    \savebox{\ACM@linecount@bx}[4em][t]{\parbox[t]{4em}{%
-        \setlength{\ACM@linecount@bxht}{0pt}%
-        \loop{\color{red}\scriptsize\the\ACM@linecount}\\
-        \global\advance\ACM@linecount by \@ne
-        \addtolength{\ACM@linecount@bxht}{\baselineskip}%
-        \ifdim\ACM@linecount@bxht<\textheight\repeat
-        {\color{red}\scriptsize\the\ACM@linecount}\hfill
-        \global\advance\ACM@linecount by \@ne}}}
-\fi
-\def\ACM@linecountL{%
-  \if@ACM@review
-  \ACM@mk@linecount
-  \begin{picture}(0,0)%
-    \put(-26,-22){\usebox{\ACM@linecount@bx}}%
-  \end{picture}%
-  \fi}
-\def\ACM@linecountR{%
-  \if@ACM@review
-  \ACM@mk@linecount
-  \begin{picture}(0,0)%
-    \put(20,-22){\usebox{\ACM@linecount@bx}}%
-  \end{picture}%
-  \fi}
-\if@ACM@timestamp
-  % Subtracting 30 from \time gives us the effect of rounding down despite
-  % \numexpr rounding to nearest
-  \newcounter{ACM@time@hours}
-  \setcounter{ACM@time@hours}{\numexpr (\time - 30) / 60 \relax}
-  \newcounter{ACM@time@minutes}
-  \setcounter{ACM@time@minutes}{\numexpr \time - \theACM@time@hours * 60 \relax}
-  \newcommand\ACM@timestamp{%
-    \footnotesize%
-    \ifx\@acmSubmissionID\@empty\relax\else
-    Submission ID: \@acmSubmissionID.{ }%
-    \fi
-    \the\year-\two@digits{\the\month}-\two@digits{\the\day}{ }%
-    \two@digits{\theACM@time@hours}:\two@digits{\theACM@time@minutes}{. }%
-    Page \thepage\ of \@startPage--\pageref*{TotPages}.%
+ENTRY
+  { address
+    advisor
+    archiveprefix
+    author
+    booktitle
+    chapter
+    city
+    date
+    edition
+    editor
+    eprint
+    eprinttype
+    eprintclass
+    howpublished
+    institution
+    journal
+    key
+    month
+    note
+    number
+    organization
+    pages
+    primaryclass
+    publisher
+    school
+    series
+    title
+    type
+    volume
+    year
+        % New keys recognized
+        issue         % UTAH: used in, e.g., ACM SIGSAM Bulletin and ACM Communications in Computer Algebra
+        articleno
+        eid
+        day           % UTAH: needed for newspapers, weeklies, bi-weeklies
+        doi           % UTAH
+        url           % UTAH
+        bookpages     % UTAH
+        numpages
+        lastaccessed  % UTAH: used only for @Misc{...}
+        coden         % UTAH
+        isbn          % UTAH
+        isbn-13       % UTAH
+        issn          % UTAH
+        lccn          % UTAH
   }
-\fi
-\def\@shortauthors{%
-  \if@ACM@anonymous
-    Anon.
-    \ifx\@acmSubmissionID\@empty\else Submission Id: \@acmSubmissionID\fi
-  \else\shortauthors\fi}
-\def\@headfootfont{\sffamily}
-\fancypagestyle{standardpagestyle}{%
-  \fancyhf{}%
-  \renewcommand{\headrulewidth}{\z@}%
-  \renewcommand{\footrulewidth}{\z@}%
-  \def\@acmArticlePage{%
-    \ifx\@acmArticle\empty%
-      \if@ACM@printfolios\thepage\fi%
-    \else%
-      \@acmArticle\if@ACM@printfolios:\thepage\fi%
-    \fi%
-  }
-  \ifcase\ACM@format@nr
-  \relax % manuscript
-    \fancyhead[LE]{\ACM@linecountL\if@ACM@printfolios\thepage\fi}%
-    \fancyhead[RO]{\if@ACM@printfolios\thepage\fi}%
-    \fancyhead[RE]{\@shortauthors}%
-    \fancyhead[LO]{\ACM@linecountL\shorttitle}%
-    \if@ACM@nonacm\else%
-      \fancyfoot[RO,LE]{\footnotesize Manuscript submitted to ACM}
-    \fi%
-  \or % acmsmall
-    \fancyhead[LE]{\ACM@linecountL\@headfootfont\@acmArticlePage}%
-    \fancyhead[RO]{\@headfootfont\@acmArticlePage}%
-    \fancyhead[RE]{\@headfootfont\@shortauthors}%
-    \fancyhead[LO]{\ACM@linecountL\@headfootfont\shorttitle}%
-    \if@ACM@nonacm\else%
-      \fancyfoot[RO,LE]{\footnotesize \@journalNameShort, Vol. \@acmVolume, No.
-      \@acmNumber, Article \@acmArticle.  Publication date: \@acmPubDate.}%
-    \fi%
-  \or % acmlarge
-    \fancyhead[LE]{\ACM@linecountL\@headfootfont
-      \@acmArticlePage\quad\textbullet\quad\@shortauthors}%
-    \fancyhead[LO]{\ACM@linecountL}%
-    \fancyhead[RO]{\@headfootfont
-      \shorttitle\quad\textbullet\quad\@acmArticlePage}%
-    \if@ACM@nonacm\else%
-      \fancyfoot[RO,LE]{\footnotesize \@journalNameShort, Vol. \@acmVolume, No.
-      \@acmNumber, Article \@acmArticle.  Publication date: \@acmPubDate.}%
-    \fi%
-  \or % acmtog
-    \fancyhead[LE]{\ACM@linecountL\@headfootfont
-      \@acmArticlePage\quad\textbullet\quad\@shortauthors}%
-    \fancyhead[LO]{\ACM@linecountL}%
-    \fancyhead[RE]{\ACM@linecountR}%
-    \fancyhead[RO]{\@headfootfont
-      \shorttitle\quad\textbullet\quad\@acmArticlePage\ACM@linecountR}%
-    \if@ACM@nonacm\else%
-      \fancyfoot[RO,LE]{\footnotesize \@journalNameShort, Vol. \@acmVolume, No.
-      \@acmNumber, Article \@acmArticle.  Publication date: \@acmPubDate.}%
-    \fi%
-  \else % Proceedings
-    \fancyfoot[C]{\if@ACM@printfolios\footnotesize\thepage\fi}%
-    \fancyhead[LO]{\ACM@linecountL\@headfootfont\shorttitle}%
-    \fancyhead[RE]{\@headfootfont\@shortauthors\ACM@linecountR}%
-    \if@ACM@nonacm\else%
-      \fancyhead[LE]{\ACM@linecountL\@headfootfont\acmConference@shortname,
-        \acmConference@date, \acmConference@venue}%
-      \fancyhead[RO]{\@headfootfont\acmConference@shortname,
-        \acmConference@date, \acmConference@venue\ACM@linecountR}%
-    \fi%
-  \fi
-  \if@ACM@sigchiamode
-     \fancyheadoffset[L]{\dimexpr(\marginparsep+\marginparwidth)}%
-  \fi
-  \if@ACM@timestamp
-     \fancyfoot[LO,RE]{\ACM@timestamp}
-  \fi
-}
-\pagestyle{standardpagestyle}
-\newdimen\@folio@wd
-\@folio@wd=\z@
-\newdimen\@folio@ht
-\@folio@ht=\z@
-\newdimen\@folio@voffset
-\@folio@voffset=\z@
-\def\@folio@max{1}
-\ifcase\ACM@format@nr
-\relax % manuscript
-\or % acmsmall
-  \@folio@wd=45.75pt\relax
-  \@folio@ht=1.25in\relax
-  \@folio@voffset=.2in\relax
-  \def\@folio@max{8}
-\or % acmlarge
-  \@folio@wd=43.25pt\relax
-  \@folio@ht=79pt\relax
-  \@folio@voffset=.55in\relax
-  \def\@folio@max{10}
-\fi
-\def\@folioblob{\@tempcnta=0\@acmArticleSeq\relax
-  \ifnum\@tempcnta=0\relax\else
-  \loop
-     \ifnum\@tempcnta>\@folio@max\relax
-      \advance\@tempcnta by - \@folio@max
-   \repeat
-    \advance\@tempcnta by -1\relax
-    \@tempdima=\@folio@ht\relax
-    \multiply\@tempdima by \the\@tempcnta\relax
-    \advance\@tempdima by -\@folio@voffset\relax
-    \begin{picture}(0,0)
-    \makebox[\z@]{\raisebox{-\@tempdima}{%
-        \rlap{%
-          \raisebox{-0.45\@folio@ht}[\z@][\z@]{%
-            \rule{\@folio@wd}{\@folio@ht}}}%
-        \parbox{\@folio@wd}{%
-          \centering
-          \textcolor{white}{\LARGE\sffamily\bfseries\@acmArticle}}}}
-  \end{picture}\fi}
+  {}
+  { label.year extra.label sort.year sort.label basic.label.year}
 
-\fancypagestyle{firstpagestyle}{%
-  \fancyhf{}%
-  \renewcommand{\headrulewidth}{\z@}%
-  \renewcommand{\footrulewidth}{\z@}%
-  \ifcase\ACM@format@nr
-  \relax % manuscript
-    \fancyhead[L]{\ACM@linecountL}%
-    \fancyfoot[RO,LE]{\if@ACM@printfolios\small\thepage\fi}%
-    \if@ACM@nonacm\else%
-      \fancyfoot[RE,LO]{\footnotesize Manuscript submitted to ACM}%
-    \fi%
-  \or % acmsmall
-    \if@ACM@nonacm\else%
-      \fancyfoot[RO,LE]{\footnotesize \@journalNameShort, Vol. \@acmVolume, No.
-      \@acmNumber, Article \@acmArticle.  Publication date:
-      \@acmPubDate.}%
-    \fi%
-    \fancyhead[LE]{\ACM@linecountL\@folioblob}%
-    \fancyhead[LO]{\ACM@linecountL}%
-    \fancyhead[RO]{\@folioblob}%
-    \fancyheadoffset[RO,LE]{0.6\@folio@wd}%
-  \or % acmlarge
-    \if@ACM@nonacm\else%
-      \fancyfoot[RO,LE]{\footnotesize \@journalNameShort, Vol. \@acmVolume, No.
-      \@acmNumber, Article \@acmArticle.  Publication date:
-      \@acmPubDate.}%
-    \fi%
-    \fancyhead[RO]{\@folioblob}%
-    \fancyhead[LE]{\ACM@linecountL\@folioblob}%
-    \fancyhead[LO]{\ACM@linecountL}%
-    \fancyheadoffset[RO,LE]{1.4\@folio@wd}%
-  \or % acmtog
-    \if@ACM@nonacm\else%
-      \fancyfoot[RO,LE]{\footnotesize \@journalNameShort, Vol. \@acmVolume, No.
-      \@acmNumber, Article \@acmArticle.  Publication date:
-      \@acmPubDate.}%
-    \fi%
-    \fancyhead[L]{\ACM@linecountL}%
-    \fancyhead[R]{\ACM@linecountR}%
-  \else % Conference proceedings
-    \fancyhead[L]{\ACM@linecountL}%
-    \fancyhead[R]{\ACM@linecountR}%
-    \fancyfoot[C]{\if@ACM@printfolios\footnotesize\thepage\fi}%
-  \fi
-  \if@ACM@timestamp
-    \ifnum\ACM@format@nr=0\relax % Manuscript
-    \fancyfoot[LO,RE]{\ACM@timestamp\quad
-      \if@ACM@nonacm\else
-        \footnotesize Manuscript submitted to ACM
-      \fi}
-    \else
-    \fancyfoot[LO,RE]{\ACM@timestamp}
-    \fi
-  \fi
+INTEGERS { output.state before.all mid.sentence after.sentence after.block }
+
+INTEGERS { show-isbn-10-and-13 }  % initialized below in begin.bib
+
+INTEGERS { nameptr namesleft numnames }
+
+INTEGERS { multiresult }
+
+INTEGERS { len }
+
+INTEGERS { last.extra.num }
+
+STRINGS { s t t.org u }
+
+STRINGS { last.label next.extra }
+
+STRINGS { p1 p2 p3 page.count }
+
+
+FUNCTION { not }
+{
+    { #0 }
+    { #1 }
+  if$
 }
-\let\ACM@ps@plain\ps@plain
-\let\ACM@ps@myheadings\ps@myheadings
-\let\ACM@ps@headings\ps@headings
-\def\ACM@restore@pagestyle{%
-  \let\ps@plain\ACM@ps@plain
-  \let\ps@myheadings\ACM@ps@myheadings
-  \let\ps@headings\ACM@ps@headings}
-\AtBeginDocument{\ACM@restore@pagestyle}
-\def\ACM@NRadjust#1{%
- \begingroup
-  \expandafter\ifx\csname Sectionformat\endcsname\relax
-  % do nothing when  \Sectionformat  is unknown
-   \def\next{\endgroup #1}%
- \else
-  \def\next{\endgroup
-   \let\realSectionformat\Sectionformat
-   \def\ACM@sect@format@{#1}%
-   \let\Sectionformat\ACM@NR@adjustedSectionformat
- %%  next lines added 2018-06-17 to ensure section number is styled
-   \let\real@adddotafter\@adddotafter
-   \let\@adddotafter\ACM@adddotafter
-   #1{}% imposes the styles, but nullifies  \MakeUppercase
-   \let\@adddotafter\real@adddotafter
-  }%
- \fi \next
+
+FUNCTION { and }
+{
+    'skip$
+    { pop$ #0 }
+  if$
 }
-\def\ACM@NR@adjustedSectionformat#1#2{%
- \realSectionformat{\ACM@sect@format{#1}}{#2}%
- \let\Sectionformat\realSectionformat}
-\DeclareRobustCommand{\ACM@sect@format}{\ACM@sect@format@}
-\def\ACM@sect@format@null#1{#1}
-\let\ACM@sect@format@\ACM@sect@format@null
-\AtBeginDocument{%
- \expandafter\ifx\csname LTX@adddotafter\endcsname\relax
-  \let\LTX@adddotafter\@adddotafter
- \fi
+
+FUNCTION { or }
+{
+   { pop$ #1 }
+    'skip$
+  if$
 }
-\def\ACM@adddotafter#1{\ifx\relax#1\relax\else\LTX@adddotafter{#1}\fi}
-\renewcommand\section{\@startsection{section}{1}{\z@}%
-  {-.75\baselineskip \@plus -2\p@ \@minus -.2\p@}%
-  {.25\baselineskip}%
-  {\ACM@NRadjust\@secfont}}
-\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
-  {-.75\baselineskip \@plus -2\p@ \@minus -.2\p@}%
-  {.25\baselineskip}%
-  {\ACM@NRadjust\@subsecfont}}
-\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
-  {-.5\baselineskip \@plus -2\p@ \@minus -.2\p@}%
-  {-3.5\p@}%
-  {\ACM@NRadjust{\@subsubsecfont\@adddotafter}}}
-\renewcommand\paragraph{\@startsection{paragraph}{4}{\parindent}%
-  {-.5\baselineskip \@plus -2\p@ \@minus -.2\p@}%
-  {-3.5\p@}%
-  {\ACM@NRadjust{\@parfont\@adddotafter}}}
-\renewcommand\part{\@startsection{part}{9}{\z@}%
-  {-10\p@ \@plus -4\p@ \@minus -2\p@}%
-  {4\p@}%
-  {\ACM@NRadjust\@parfont}}
-\def\section@raggedright{\@rightskip\@flushglue
-  \rightskip\@rightskip
-  \leftskip\z@skip
-  \parindent\z@}
-\def\@secfont{\sffamily\bfseries\section@raggedright\MakeTextUppercase}
-\def\@subsecfont{\sffamily\bfseries\section@raggedright}
-\def\@subsubsecfont{\sffamily\itshape}
-\def\@parfont{\itshape}
-\setcounter{secnumdepth}{3}
-\ifcase\ACM@format@nr
-\relax % manuscript
-\or % acmsmall
-\or % acmlarge
- \def\@secfont{\sffamily\large\section@raggedright\MakeTextUppercase}
- \def\@subsecfont{\sffamily\large\section@raggedright}
-\or % acmtog
- \def\@secfont{\sffamily\large\section@raggedright\MakeTextUppercase}
- \def\@subsecfont{\sffamily\large\section@raggedright}
-\or % sigconf
- \def\@secfont{\bfseries\Large\section@raggedright\MakeTextUppercase}
- \def\@subsecfont{\bfseries\Large\section@raggedright}
-\or % siggraph
- \def\@secfont{\sffamily\bfseries\Large\section@raggedright\MakeTextUppercase}
- \def\@subsecfont{\sffamily\bfseries\Large\section@raggedright}
-\or % sigplan
- \def\@secfont{\bfseries\Large\section@raggedright}
- \def\@subsecfont{\bfseries\section@raggedright}
- \renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
-   {-.75\baselineskip \@plus -2\p@ \@minus -.2\p@}%
-   {.25\baselineskip}%
-   {\@subsubsecfont}}
- \def\@subsubsecfont{\bfseries\section@raggedright}
- \renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
-   {-.5\baselineskip \@plus -2\p@ \@minus -.2\p@}%
-   {-3.5\p@}%
-   {\@parfont\@addspaceafter}}
- \def\@parfont{\bfseries\itshape}
- \renewcommand\subparagraph{\@startsection{subparagraph}{5}{\z@}%
-   {-.5\baselineskip \@plus -2\p@ \@minus -.2\p@}%
-   {-3.5\p@}%
-   {\@subparfont\@addspaceafter}}
- \def\@subparfont{\itshape}
-\or % sigchi
- \setcounter{secnumdepth}{1}
- \def\@secfont{\sffamily\bfseries\section@raggedright\MakeTextUppercase}
- \def\@subsecfont{\sffamily\bfseries\section@raggedright}
-\or % sigchi-a
- \setcounter{secnumdepth}{0}
- \def\@secfont{\sffamily\bfseries\section@raggedright\MakeTextUppercase}
- \def\@subsecfont{\sffamily\bfseries\section@raggedright}
-\fi
-\def\@adddotafter#1{#1\@addpunct{.}}
-\def\@addspaceafter#1{#1\@addpunct{\enspace}}
-\providecommand*\@dotsep{4.5}
-\def\@acmplainbodyfont{\itshape}
-\def\@acmplainindent{\parindent}
-\def\@acmplainheadfont{\scshape}
-\def\@acmplainnotefont{\@empty}
-\ifcase\ACM@format@nr
-\relax % manuscript
-\or % acmsmall
-\or % acmlarge
-\or % acmtog
-\or % sigconf
-\or % siggraph
-\or % sigplan
-  \def\@acmplainbodyfont{\itshape}
-  \def\@acmplainindent{\z@}
-  \def\@acmplainheadfont{\bfseries}
-  \def\@acmplainnotefont{\normalfont}
-\or % sigchi
-\or % sigchi-a
-\fi
-\newtheoremstyle{acmplain}%
-  {.5\baselineskip\@plus.2\baselineskip
-    \@minus.2\baselineskip}% space above
-  {.5\baselineskip\@plus.2\baselineskip
-    \@minus.2\baselineskip}% space below
-  {\@acmplainbodyfont}% body font
-  {\@acmplainindent}% indent amount
-  {\@acmplainheadfont}% head font
-  {.}% punctuation after head
-  {.5em}% spacing after head
-  {\thmname{#1}\thmnumber{ #2}\thmnote{ {\@acmplainnotefont(#3)}}}% head spec
-\def\@acmdefinitionbodyfont{\normalfont}
-\def\@acmdefinitionindent{\parindent}
-\def\@acmdefinitionheadfont{\itshape}
-\def\@acmdefinitionnotefont{\@empty}
-\ifcase\ACM@format@nr
-\relax % manuscript
-\or % acmsmall
-\or % acmlarge
-\or % acmtog
-\or % sigconf
-\or % siggraph
-\or % sigplan
-  \def\@acmdefinitionbodyfont{\normalfont}
-  \def\@acmdefinitionindent{\z@}
-  \def\@acmdefinitionheadfont{\bfseries}
-  \def\@acmdefinitionnotefont{\normalfont}
-\or % sigchi
-\or % sigchi-a
-\fi
-\newtheoremstyle{acmdefinition}%
-  {.5\baselineskip\@plus.2\baselineskip
-    \@minus.2\baselineskip}% space above
-  {.5\baselineskip\@plus.2\baselineskip
-    \@minus.2\baselineskip}% space below
-  {\@acmdefinitionbodyfont}% body font
-  {\@acmdefinitionindent}% indent amount
-  {\@acmdefinitionheadfont}% head font
-  {.}% punctuation after head
-  {.5em}% spacing after head
-  {\thmname{#1}\thmnumber{ #2}\thmnote{ {\@acmdefinitionnotefont(#3)}}}% head spec
-\theoremstyle{acmplain}
-\AtEndPreamble{%
-  \if@ACM@acmthm
-  \theoremstyle{acmplain}
-  \@ifundefined{theorem}{%
-  \newtheorem{theorem}{Theorem}[section]
-  }{}
-  \@ifundefined{conjecture}{%
-  \newtheorem{conjecture}[theorem]{Conjecture}
-  }{}
-  \@ifundefined{proposition}{%
-  \newtheorem{proposition}[theorem]{Proposition}
-  }{}
-  \@ifundefined{lemma}{%
-  \newtheorem{lemma}[theorem]{Lemma}
-  }{}
-  \@ifundefined{corollary}{%
-  \newtheorem{corollary}[theorem]{Corollary}
-  }{}
-  \theoremstyle{acmdefinition}
-  \@ifundefined{example}{%
-  \newtheorem{example}[theorem]{Example}
-  }{}
-  \@ifundefined{definition}{%
-  \newtheorem{definition}[theorem]{Definition}
-  }{}
-  \fi
-  \theoremstyle{acmplain}
+
+
+FUNCTION { dump.stack.1 }
+{
+    duplicate$ "STACK[top] = [" swap$ * "]" * warning$
 }
-\def\@proofnamefont{\scshape}
-\def\@proofindent{\indent}
-\ifcase\ACM@format@nr
-\relax % manuscript
-\or % acmsmall
-\or % acmlarge
-\or % acmtog
-\or % sigconf
-\or % siggraph
-\or % sigplan
-  \def\@proofnamefont{\itshape}
-  \def\@proofindent{\noindent}
-\or % sigchi
-\or % sigchi-a
-\fi
-\renewenvironment{proof}[1][\proofname]{\par
-  \pushQED{\qed}%
-  \normalfont \topsep6\p@\@plus6\p@\relax
-  \trivlist
-  \item[\@proofindent\hskip\labelsep
-        {\@proofnamefont #1\@addpunct{.}}]\ignorespaces
-}{%
-  \popQED\endtrivlist\@endpefalse
+
+FUNCTION { dump.stack.2 }
+{
+    duplicate$ "STACK[top  ] = [" swap$ * "]" * warning$
+    swap$
+    duplicate$ "STACK[top-1] = [" swap$ * "]" * warning$
+    swap$
 }
-\specialcomment{acks}{%
-  \begingroup
-  \section*{Acknowledgments}
-  \phantomsection\addcontentsline{toc}{section}{Acknowledgments}
-}{%
-  \endgroup
+
+FUNCTION { empty.or.unknown }
+{
+  %% Examine the top stack entry, and push 1 if it is empty, or
+  %% consists only of whitespace, or is a string beginning with two
+  %% queries (??), and otherwise, push 0.
+  %%
+  %% This function provides a replacement for empty$, with the
+  %% convenient feature that unknown values marked by two leading
+  %% queries are treated the same as missing values, and thus, do not
+  %% appear in the output .bbl file, and yet, their presence in .bib
+  %% file(s) serves to mark values which are temporarily missing, but
+  %% are expected to be filled in eventually once more data is
+  %% obtained.  The TeX User Group and BibNet bibliography archives
+  %% make extensive use of this practice.
+  %%
+  %% An empty string cannot serve the same purpose, because just as in
+  %% statistics data processing, an unknown value is not the same as an
+  %% empty value.
+  %%
+  %% At entry: stack = ... top:[string]
+  %% At exit:  stack = ... top:[0 or 1]
+
+  duplicate$ empty$
+    { pop$ #1 }
+    { #1 #2 substring$ "??" = }
+  if$
 }
-\def\grantsponsor#1#2#3{#2}
-\newcommand\grantnum[3][]{#3%
-  \def\@tempa{#1}\ifx\@tempa\@empty\else\space(\url{#1})\fi}
-\AtEndPreamble{%
-\if@ACM@screen
-  \includecomment{screenonly}
-  \excludecomment{printonly}
-\else
-  \excludecomment{screenonly}
-  \includecomment{printonly}
-\fi
-\if@ACM@anonymous
-  \excludecomment{anonsuppress}
-  \excludecomment{acks}
-\else
-  \includecomment{anonsuppress}
-\fi}
-\newcommand\showeprint[2][arxiv]{%
-  \def\@tempa{#1}%
-  \ifx\@tempa\@empty\def\@tempa{arxiv}\fi
-  \def\@tempb{arxiv}%
-  \ifx\@tempa\@tempb
-     arXiv:\href{http://arxiv.org/abs/#2}{#2}\else arXiv:#2%
-  \fi}
-\normalsize\normalfont\frenchspacing
-\endinput
-%%
-%% End of file `acmart.cls'.
+
+FUNCTION { writeln }
+{
+  %% In BibTeX style files, the sequences
+  %%
+  %%     ... "one" "two" output
+  %%     ... "one" "two" output.xxx
+  %%
+  %% ship "one" to the output file, possibly following by punctuation,
+  %% leaving the stack with
+  %%
+  %%     ... "two"
+  %%
+  %% There is thus a one-string lag in output processing that must be
+  %% carefully handled to avoid duplicating a string in the output
+  %% file.  Unless otherwise noted, all output.xxx functions leave
+  %% just one new string on the stack, and that model should be born
+  %% in mind when reading or writing function code.
+  %%
+  %% BibTeX's asynchronous buffering of output from strings from the
+  %% stack is confusing because newline$ bypasses the buffer.  It
+  %% would have been so much easier for newline to be a character
+  %% rather than a state of the output-in-progress.
+  %%
+  %% The documentation in btxhak.dvi is WRONG:  it says
+  %%
+  %%    newline$ Writes onto the bbl file what's accumulated in the
+  %%             output buffer. It writes a blank line if and only
+  %%             if the output buffer is empty. Since write$ does
+  %%             reasonable line breaking, you should use this
+  %%             function only when you want a blank line or an
+  %%             explicit line break.
+  %%
+  %%    write$   Pops the top (string) literal and writes it on the
+  %%             output buffer (which will result in stuff being
+  %%             written onto the bbl file when the buffer fills
+  %%             up).
+  %%
+  %% Examination of the BibTeX source code shows that write$ does
+  %% indeed behave as claimed, but newline$ sends a newline character
+  %% directly to the output file, leaving the stack unchanged.  The
+  %% first line "Writes onto ... buffer." is therefore wrong.
+  %%
+  %% The original BibTeX style files almost always use "write$ newline$"
+  %% in that order, so it makes sense to hide that pair in a private
+  %% function like this one, named after a statement in Pascal,
+  %% the programming language embedded in the BibTeX Web program.
+
+  write$                % output top-of-stack string
+  newline$              % immediate write of newline (not via stack)
+}
+
+FUNCTION { init.state.consts }
+{
+  #0 'before.all :=
+  #1 'mid.sentence :=
+  #2 'after.sentence :=
+  #3 'after.block :=
+}
+
+FUNCTION { output.nonnull }
+{ % Stack in: ... R S T  Stack out: ... R T   File out: S<comma><space>
+  's :=
+  output.state mid.sentence =
+    {
+      ", " * write$
+    }
+    {
+      output.state after.block =
+        {
+          add.period$ writeln
+          "\newblock " write$
+        }
+        {
+          output.state before.all =
+            {
+              write$
+            }
+            {
+              add.period$ " " * write$
+            }
+          if$
+        }
+      if$
+      mid.sentence 'output.state :=
+    }
+  if$
+  s
+}
+
+FUNCTION { output.nonnull.dot.space }
+{ % Stack in: ... R S T  Stack out: ... R T   File out: S<dot><space>
+  's :=
+  output.state mid.sentence =           % { "<DEBUG output.nonnull.dot.space>. " * write$ }
+    {
+      ". " * write$
+    }
+    {
+      output.state after.block =
+        {
+          add.period$ writeln "\newblock " write$
+        }
+        {
+          output.state before.all =
+            {
+              write$
+            }
+            {
+              add.period$ " " * write$
+            }
+          if$
+        }
+      if$
+      mid.sentence 'output.state :=
+    }
+  if$
+  s
+}
+
+FUNCTION { output.nonnull.remove }
+{ % Stack in: ... R S T  Stack out: ... R T   File out: S<space>
+  's :=
+  output.state mid.sentence =
+    {
+      " " * write$
+    }
+    {
+      output.state after.block =
+        {
+          add.period$ writeln "\newblock " write$
+        }
+        {
+          output.state before.all =
+            {
+              write$
+            }
+            {
+              add.period$ " " * write$
+            }
+          if$
+        }
+      if$
+      mid.sentence 'output.state :=
+    }
+  if$
+  s
+}
+
+FUNCTION { output.nonnull.removenospace }
+{ % Stack in: ... R S T  Stack out: ... R T   File out: S
+  's :=
+  output.state mid.sentence =
+    {
+      "" * write$
+    }
+    {
+      output.state after.block =
+        {
+          add.period$ writeln "\newblock " write$
+        }
+        {
+          output.state before.all =
+            {
+              write$
+            }
+            {
+              add.period$ " " * write$
+            }
+          if$
+        }
+      if$
+      mid.sentence 'output.state :=
+    }
+  if$
+  s
+}
+
+FUNCTION { output }
+{ % discard top token if empty, else like output.nonnull
+  duplicate$ empty.or.unknown
+    'pop$
+    'output.nonnull
+  if$
+}
+
+FUNCTION { output.dot.space }
+{ % discard top token if empty, else like output.nonnull.dot.space
+  duplicate$ empty.or.unknown
+    'pop$
+    'output.nonnull.dot.space
+  if$
+}
+
+FUNCTION { output.removenospace }
+{ % discard top token if empty, else like output.nonnull.removenospace
+  duplicate$ empty.or.unknown
+    'pop$
+    'output.nonnull.removenospace
+  if$
+}
+
+FUNCTION { output.check }
+{ % like output, but warn if key name on top-of-stack is not set
+  't :=
+  duplicate$ empty.or.unknown
+    { pop$ "empty " t * " in " * cite$ * warning$ }
+    'output.nonnull
+  if$
+}
+
+FUNCTION { bibinfo.output.check }
+{ % like output.check, adding bibinfo field
+  't :=
+  duplicate$ empty.or.unknown
+    { pop$ "empty " t * " in " * cite$ * warning$ }
+    { "\bibinfo{" t "}{" * * swap$ * "}" *
+      output.nonnull }
+  if$
+}
+
+FUNCTION { output.check.dot.space }
+{ % like output.dot.space, but warn if key name on top-of-stack is not set
+  't :=
+  duplicate$ empty.or.unknown
+    { pop$ "empty " t * " in " * cite$ * warning$ }
+    'output.nonnull.dot.space
+  if$
+}
+
+FUNCTION { fin.block }
+{ % functionally, but not logically, identical to fin.entry
+   add.period$
+   writeln
+}
+
+FUNCTION { fin.entry }
+{
+   add.period$
+   writeln
+}
+
+FUNCTION { new.sentence }
+{ % update sentence state, with neither output nor stack change
+  output.state after.block =
+    'skip$
+    {
+      output.state before.all =
+        'skip$
+        { after.sentence 'output.state := }
+      if$
+    }
+  if$
+}
+
+FUNCTION { fin.sentence }
+{
+   add.period$
+   write$
+   new.sentence
+   ""
+}
+
+FUNCTION { new.block }
+{
+  output.state before.all =
+    'skip$
+    { after.block 'output.state := }
+  if$
+}
+
+FUNCTION { output.coden }       % UTAH
+{ % output non-empty CODEN as one-line sentence (stack untouched)
+  coden empty.or.unknown
+    { }
+    { "\showCODEN{" coden * "}" * writeln }
+  if$
+}
+
+FUNCTION { format.articleno }
+{
+  articleno empty.or.unknown not eid empty.or.unknown not and
+     { "Both articleno and eid are defined for " cite$ * warning$ }
+     'skip$
+  if$
+  articleno empty.or.unknown eid empty.or.unknown and
+     { "" }
+     {
+        numpages empty.or.unknown
+          { "articleno or eid field, but no numpages field, in "
+            cite$ * warning$ }
+          { }
+        if$
+        eid empty.or.unknown
+          { "Article \bibinfo{articleno}{" articleno * "}" * }
+          { "Article \bibinfo{articleno}{" eid * "}" * }
+        if$
+     }
+  if$
+}
+
+FUNCTION { format.year }
+{ % push year string or "[n.\,d.]" onto output stack
+  %% Because year is a mandatory field, we always force SOMETHING
+  %% to be output
+  "\bibinfo{year}{"
+  year empty.or.unknown
+    { "[n.\,d.]" }
+    { year }
+  if$
+  *  "}" *
+}
+
+FUNCTION { format.day.month }
+{ % push "day month " or "month " or "" onto output stack
+  day empty.or.unknown
+    {
+      month empty.or.unknown
+        { "" }
+        { "\bibinfo{date}{" month * "} " *}
+      if$
+    }
+    {
+      month empty.or.unknown
+        { "" }
+        { "\bibinfo{date}{" day * " " * month * "} " *}
+      if$
+    }
+  if$
+}
+
+FUNCTION { format.day.month.year }     % UTAH
+{ % if month is empty, push "" else push "(MON.)" or "(DD MON.)"
+  % Needed for frequent periodicals: 2008. ... New York Times C-1, C-2, C-17 (23 Oct.)
+  % acm-*.bst addition: prefix parenthesized date string with
+  % ", Article nnn "
+  articleno empty.or.unknown eid empty.or.unknown and
+    { "" }
+    { output.state after.block =
+       {", " format.articleno * }
+       { format.articleno  }
+      if$
+    }
+  if$
+  " (" * format.day.month * format.year * ")" *
+}
+
+FUNCTION { output.day.month.year }     % UTAH
+{ % if month is empty value, do nothing; else output stack top and
+  % leave with new top string "(MON.)" or "(DD MON.)"
+  % Needed for frequent periodicals: 2008. ... New York Times C-1, C-2, C-17 (23 Oct.)
+  format.day.month.year
+  output.nonnull.remove
+}
+
+FUNCTION { strip.doi } % UTAH
+{ % Strip any Web address prefix to recover the bare DOI, leaving the
+  % result on the output stack, as recommended by CrossRef DOI
+  % documentation.
+  % For example, reduce "http://doi.acm.org/10.1145/1534530.1534545" to
+  % "10.1145/1534530.1534545".  A suitable URL is later typeset and
+  % displayed as the LAST item in the reference list entry.  Publisher Web
+  % sites wrap this with a suitable link to a real URL to resolve the DOI,
+  % and the master https://doi.org/ address is preferred, since publisher-
+  % specific URLs can disappear in response to economic events.  All
+  % journals are encouraged by the DOI authorities to use that typeset
+  % format and link procedures for uniformity across all publications that
+  % include DOIs in reference lists.
+  % The numeric prefix is guaranteed to start with "10.", so we use
+  % that as a test.
+  % 2017-02-04 Added stripping of https:// (Boris)
+  doi #1 #3 substring$ "10." =
+    { doi }
+    {
+      doi 't :=  % get modifiable copy of DOI
+
+      % Change https:// to http:// to strip both prefixes (BV)
+
+      t #1 #8 substring$ "https://" =
+        { "http://"  t #9 t text.length$ #8 - substring$ * 't := }
+        { }
+      if$
+
+      t #1 #7 substring$ "http://" =
+        {
+            t #8 t text.length$ #7 - substring$ 't :=
+
+            "INTERNAL STYLE-FILE ERROR" 's :=
+
+            % search for next "/" and assign its suffix to s
+
+            { t text.length$ }
+            {
+              t #1 #1 substring$ "/" =
+                {
+                  % save rest of string as true DOI (should be 10.xxxx/yyyy)
+                  t #2 t text.length$ #1 - substring$ 's :=
+                  "" 't :=    % empty string t terminates the loop
+                }
+                {
+                  % discard first character and continue loop: t <= substring(t,2,last)
+                  t #2 t text.length$ #1 - substring$ 't :=
+                }
+              if$
+            }
+            while$
+
+            % check for valid DOI (should be 10.xxxx/yyyy)
+            s #1 #3 substring$ "10." =
+              { }
+              { "unrecognized DOI substring " s * " in DOI value [" * doi * "]" * warning$ }
+            if$
+
+            s   % push the stripped DOI on the output stack
+
+        }
+        {
+          "unrecognized DOI value [" doi * "]" * warning$
+          doi   % push the unrecognized original DOI on the output stack
+        }
+      if$
+    }
+  if$
+}
+
+%
+% Change by BV: added standard prefix to URL
+%
+FUNCTION { output.doi } % UTAH
+{ % output non-empty DOI as one-line sentence (stack untouched)
+  doi empty.or.unknown
+    { }
+    {
+      %% Use \urldef here for the same reason it is used in output.url,
+      %% see output.url for further discussion.
+      "\urldef\tempurl%" writeln
+      "\url{https://doi.org/" strip.doi * "}" * writeln
+      "\showDOI{\tempurl}" writeln
+    }
+  if$
+}
+
+FUNCTION { output.isbn }                % UTAH
+{ % output non-empty ISBN-10 and/or ISBN-13 as one-line sentences (stack untouched)
+  show-isbn-10-and-13
+    {
+      %% show both 10- and 13-digit ISBNs
+      isbn empty.or.unknown
+        { }
+        {
+          "\showISBNx{" isbn * "}" * writeln
+        }
+      if$
+      isbn-13 empty.or.unknown
+        { }
+        {
+          "\showISBNxiii{" isbn-13 * "}" * writeln
+        }
+      if$
+    }
+    {
+      %% show 10-digit ISBNs only if 13-digit ISBNs not available
+      isbn-13 empty.or.unknown
+        {
+          isbn empty.or.unknown
+            { }
+            {
+              "\showISBNx{" isbn * "}" * writeln
+            }
+          if$
+        }
+        {
+          "\showISBNxiii{" isbn-13 * "}" * writeln
+        }
+      if$
+    }
+  if$
+}
+
+FUNCTION { output.issn } % UTAH
+{ % output non-empty ISSN as one-line sentence (stack untouched)
+  issn empty.or.unknown
+    { }
+    { "\showISSN{" issn * "}" * writeln }
+  if$
+}
+
+FUNCTION { output.issue }
+{ % output non-empty issue number as a one-line sentence (stack untouched)
+  issue empty.or.unknown
+    { }
+    { "Issue " issue * "." * writeln }
+  if$
+}
+
+FUNCTION { output.lccn } % UTAH
+{ % return with stack untouched
+  lccn empty.or.unknown
+    { }
+    { "\showLCCN{" lccn * "}" * writeln }
+  if$
+}
+
+FUNCTION { output.note } % UTAH
+{ % return with stack empty
+  note empty.or.unknown
+    { }
+    { "\shownote{" note add.period$ * "}" * writeln }
+  if$
+}
+
+FUNCTION { output.note.check } % UTAH
+{ % return with stack empty
+  note empty.or.unknown
+    { "empty note in " cite$ * warning$ }
+    { "\shownote{" note add.period$ * "}" * writeln }
+  if$
+}
+
+FUNCTION { output.eprint } %
+{ % return with stack empty
+  eprint empty.or.unknown
+    { }
+    { "\showeprint"
+         archiveprefix empty.or.unknown
+           { eprinttype empty.or.unknown
+               { }
+               { "[" eprinttype "]" * * * }
+             if$
+           }
+           { "[" archiveprefix "l" change.case$ "]" * * * }
+         if$
+         "{" *
+         primaryclass empty.or.unknown
+           { eprintclass empty.or.unknown
+             { }
+             { eprintclass "/" * * }
+             if$
+           }
+           { primaryclass "/" * * }
+         if$
+         eprint "}" * *
+         writeln
+    }
+  if$
+}
+
+
+%
+% Changes by BV 2011/04/15.  Do not output
+% url if doi is defined
+%
+FUNCTION { output.url } % UTAH
+{ % return with stack untouched
+  % output URL and associated lastaccessed fields
+  doi empty.or.unknown
+  {
+    url empty.or.unknown
+      { }
+      {
+          %% Use \urldef, outside \showURL, so that %nn, #, etc in URLs work
+          %% correctly.  Put the actual URL on its own line to reduce the
+          %% likelihood of BibTeX's nasty line wrapping after column 79.
+          %% \url{} can undo this, but if that doesn't work for some reason
+          %% the .bbl file would have to be repaired manually.
+          "\urldef\tempurl%" writeln
+          "\url{" url * "}" * writeln
+
+          "\showURL{%" writeln
+          lastaccessed empty.or.unknown
+            { "" }
+            { "Retrieved " lastaccessed * " from " * }
+          if$
+          "\tempurl}" * writeln
+      }
+      if$
+  }
+  { }
+  if$
+}
+
+FUNCTION { output.year.check }
+{ % warn if year empty, output top string and leave " YEAR<label>" on stack in mid-sentence
+  year empty.or.unknown
+     { "empty year in " cite$ * warning$
+       write$
+       " \bibinfo{year}{[n.d.]}"
+       "\natexlab{" extra.label * "}" * *
+       mid.sentence 'output.state :=
+     }
+     { write$
+       " \bibinfo{year}{" year * "}"  *
+       "\natexlab{" extra.label * "}" * *
+       mid.sentence 'output.state :=
+     }
+  if$
+}
+
+
+FUNCTION { le }
+{
+  %% test whether first number is less than or equal to second number
+  %% stack in:  n1 n2
+  %% stack out: if n1 <= n2 then 1 else 0
+
+  %% "DEBUG: le " cite$ * warning$
+  > { #0 } { #1 } if$
+}
+
+FUNCTION { ge }
+{
+  %% test whether first number is greater than or equal to second number
+  %% stack in:  n1 n2
+  %% stack out: if n1 >= n2 then 1 else 0
+
+  %% "DEBUG: ge " cite$ * warning$
+  < { #0 } { #1 } if$
+}
+
+FUNCTION { is.leading.digit }
+{
+  %% test whether first character of string is a digit
+  %% stack in:  string
+  %% stack out: if first-char-is-digit then 1 else 0
+
+  #1 #1 substring$                      % replace string by string[1:1]
+  duplicate$                            % string[1:1] string[1:1]
+  chr.to.int$
+  "0" chr.to.int$ swap$ le              % "0" <= string[1:1] --> 0-or-1
+  swap$                                 % 0-or-1 string[1:1]
+  chr.to.int$
+  "9" chr.to.int$ le                    % string[1:1} <= "9" --> 0-or-1
+  and
+}
+
+FUNCTION { skip.digits }
+{
+  %% skip over leading digits in string
+  %% stack in:  string
+  %% stack out: rest-of-string leading-digits
+
+  %% "DEBUG: enter skip.digits " cite$ * warning$
+
+  %% dump.stack.1
+
+  duplicate$
+  't :=
+  't.org :=
+  "" 'u :=
+
+  { t text.length$ }
+  {
+    %% "=================DEBUG: skip.digits   t = [" t * "]" * warning$
+    t is.leading.digit
+      { t #2 t text.length$ #1 - substring$ }
+      {
+        t 'u :=
+        ""
+      }
+    if$
+    't :=
+  }
+  while$
+
+  u                                                             % rest of string
+  t.org #1 t.org text.length$ u text.length$ - substring$       % leading digits
+
+  %% "DEBUG: t.org = [" t.org * "]" * warning$
+  %% "DEBUG: u     = [" u * "]" * warning$
+
+  %% dump.stack.2
+
+  %% "DEBUG: leave skip.digits " cite$ * warning$
+}
+
+FUNCTION { skip.nondigits }
+{
+  %% skip over leading nondigits in string
+  %% stack in:  string
+  %% stack out: rest-of-string
+
+  %% "DEBUG: enter skip.nondigits " cite$ * warning$
+
+  't :=
+  "" 'u :=
+
+  { t text.length$ }
+  {
+    %% "=================DEBUG: skip.nondigits   t = [" t * "]" * warning$
+    t is.leading.digit
+      {
+        t 'u :=
+        ""
+      }
+      { t #2 t text.length$ #1 - substring$ }
+    if$
+    't :=
+  }
+  while$
+
+  u                     % rest of string
+
+  %% dump.stack.1
+  %% "DEBUG: leave skip.nondigits " cite$ * warning$
+}
+
+FUNCTION { parse.next.number }
+{
+  %% stack in:  string
+  %% stack out: rest-of-string next-numeric-part-of-string
+  %% Example:
+  %% stack in:  "123:1--123:59"
+  %% stack out: ":1--123:59" "123"
+
+  's :=
+  s skip.nondigits 's :=
+  s skip.digits
+}
+
+FUNCTION { reduce.pages.to.page.count }
+{
+  %% Stack in:  arbitrary-and-unused
+  %% Stack out: unchanged
+  %%
+  %% For the new-style pagination with article number and numpages or
+  %% pages, we expect to have BibTeX entries containing something like
+  %%     articleno = "17",
+  %%     pages     = "1--23",
+  %% with output "Article 17, 23 pages",
+  %% or
+  %%     articleno = "17",
+  %%     numpages  = "23",
+  %% with output "Article 17, 23 pages",
+  %% or
+  %%     articleno = "17",
+  %%     pages     = "17:1--17:23",
+  %% with output "Article 17, 23 pages",
+  %%
+  %% If articleno is missing or empty, then we should output "1--23",
+  %% "23" (with a warning of a missing articleno), or "17:1--17:23",
+  %% respectively.
+
+  %% "DEBUG: enter reduce.pages.to.page.count " cite$ * warning$
+
+  %% "DEBUG: pages = [" pages * "]" * warning$
+
+  pages
+  parse.next.number 'p1 :=
+  parse.next.number 'p2 :=
+  parse.next.number 'p3 :=
+  parse.next.number 'page.count :=
+
+  duplicate$
+  empty.or.unknown
+    {  }
+    {
+      duplicate$ "unexpected trailing garbage [" swap$ *
+      "] after n:p1--n:p2 in pages = [" *
+      pages *
+      "] in " *
+      cite$ *
+      warning$
+    }
+  if$
+
+  pop$
+
+  %% "DEBUG: reduce.pages.to.page.count: "
+  %% " p1 = " p1 * *
+  %% " p2 = " p2 * *
+  %% " p3 = " p3 * *
+  %% " p4 = " page.count * *
+  %% " in " cite$ * * warning$
+
+  p1 p3 =   p2 "1" =   and   numpages empty.or.unknown   and
+    { "INFO: reduced pages = [" pages * "] to numpages = [" * page.count * "]" * warning$ }
+    {
+      numpages empty.or.unknown
+        { pages }
+        { numpages }
+      if$
+      'page.count :=
+    }
+  if$
+
+  p1 "1" =   p3 empty.or.unknown   and   numpages empty.or.unknown   and
+    {
+      p2 'page.count :=
+      "INFO: reduced pages = [" pages * "] to numpages = [" * page.count * "]" * warning$
+    }
+    {
+      numpages empty.or.unknown
+        { pages }
+        { numpages }
+      if$
+      'page.count :=
+    }
+  if$
+
+  %% "DEBUG: leave reduce.pages.to.page.count " cite$ * warning$
+}
+
+FUNCTION { new.block.checkb }
+{ % issue a new.block only if at least one of top two stack strings is not empty
+  empty.or.unknown
+  swap$ empty.or.unknown
+  and
+    'skip$
+    'new.block
+  if$
+}
+
+FUNCTION { field.or.null }
+{ % convert empty value to null string, else return value
+  duplicate$ empty.or.unknown
+    { pop$ "" }
+    'skip$
+  if$
+}
+
+
+
+FUNCTION { emphasize }
+{ % emphasize a non-empty top string on the stack
+  duplicate$ empty.or.unknown
+    { pop$ "" }
+    { "\emph{" swap$ * "}" * }
+  if$
+}
+
+FUNCTION { comma }
+{ % convert empty string to null string, or brace string and add trailing comma
+  duplicate$ empty.or.unknown
+    { pop$ "" }
+    { "{" swap$ * "}," * }
+  if$
+}
+
+FUNCTION { format.names }
+{
+  % Format bibliographical entries with the first author last name first,
+  % and subsequent authors with initials followed by last name.
+  % All names are formatted in this routine.
+
+  's :=
+  #1 'nameptr :=               % nameptr = 1;
+  s num.names$ 'numnames :=    % numnames = num.name$(s);
+  numnames 'namesleft :=
+    { namesleft #0 > }
+    { nameptr #1 =
+        %NO: BAD ORDER: {"{" s nameptr "{ff~}{ll}{, jj}{, vv}" format.name$ * "}" * 't := }
+        %NO: BAD ORDER: {"{" s nameptr "{ff~}{ll}{, jj}{, vv}" format.name$ * "}" * 't := }
+        {"\bibinfo{person}{" s nameptr "{ff }{vv }{ll}{, jj}" format.name$ * "}" * 't := }
+        {"\bibinfo{person}{" s nameptr "{ff }{vv }{ll}{, jj}" format.name$ * "}" * 't := }
+      if$
+      nameptr #1 >
+        {
+          namesleft #1 >
+            { ", " * t * }
+            {
+              numnames #2 >
+                { "," * }
+                'skip$
+              if$
+              t "\bibinfo{person}{others}" =
+                { " {et~al\mbox{.}}" * } % jrh: avoid spacing problems
+                { " {and} " * t * } % from Chicago Manual of Style
+              if$
+            }
+          if$
+        }
+        't
+      if$
+      nameptr #1 + 'nameptr :=          % nameptr += 1;
+      namesleft #1 - 'namesleft :=      % namesleft =- 1;
+    }
+  while$
+}
+
+FUNCTION { my.full.label }
+{
+  's :=
+  #1 'nameptr :=               % nameptr = 1;
+  s num.names$ 'numnames :=    % numnames = num.name$(s);
+  numnames 'namesleft :=
+    { namesleft #0 > }
+
+    { s nameptr "{vv~}{ll}" format.name$ 't :=  % get the next name
+      nameptr #1 >
+        {
+          namesleft #1 >
+            { ", " * t * }
+            {
+              numnames #2 >
+                { "," * }
+                'skip$
+              if$
+              t "others" =
+                { " et~al\mbox{.}" * } % jrh: avoid spacing problems
+                { " and " * t * } % from Chicago Manual of Style
+              if$
+            }
+          if$
+        }
+        't
+      if$
+      nameptr #1 + 'nameptr :=          % nameptr += 1;
+      namesleft #1 - 'namesleft :=      % namesleft =- 1;
+    }
+  while$
+
+}
+
+FUNCTION { format.names.fml }
+{
+  % Format names in "familiar" format, with first initial followed by
+  % last name. Like format.names, ALL names are formatted.
+  % jtb: The names are NOT put in small caps
+
+  's :=
+  #1 'nameptr :=               % nameptr = 1;
+  s num.names$ 'numnames :=    % numnames = num.name$(s);
+  numnames 'namesleft :=
+    { namesleft #0 > }
+
+    {
+      "\bibinfo{person}{" s nameptr "{ff~}{vv~}{ll}{, jj}" format.name$ * "}" * 't :=
+
+      nameptr #1 >
+        {
+          namesleft #1 >
+            { ", " * t * }
+            {
+              numnames #2 >
+                { "," * }
+                'skip$
+              if$
+              t "\bibinfo{person}{others}" =
+                { " {et~al\mbox{.}}" * }
+                { " {and} " * t * }
+              if$
+            }
+          if$
+        }
+        't
+      if$
+      nameptr #1 + 'nameptr :=          % nameptr += 1;
+      namesleft #1 - 'namesleft :=      % namesleft =- 1;
+    }
+  while$
+}
+
+FUNCTION { format.authors }
+{
+  author empty.or.unknown
+    { "" }
+    {
+      "\bibfield{author}{"
+      author format.names add.period$ * "}" *} % jtb: add period if none before
+  if$
+}
+
+FUNCTION { format.key }
+{
+  empty.or.unknown
+    { key field.or.null }
+    { "" }
+  if$
+}
+
+FUNCTION { format.no.key }
+{
+  empty.or.unknown
+    { "" }
+    { "" }
+  if$
+}
+
+FUNCTION { format.editors.fml }
+{
+  % Format editor names for use in the "in" types: inbook, incollection,
+  % inproceedings: first initial, then last names. When editors are the
+  % LABEL for an entry, then format.editor is used which lists editors
+  % by last name first.
+
+  editor empty.or.unknown
+    { "" }
+    {
+      "\bibfield{editor}{"
+      editor format.names.fml
+      *  "}" *
+      editor num.names$ #1 >
+        { " (Eds.)" * }
+        { " (Ed.)" * }
+      if$
+    }
+  if$
+}
+
+FUNCTION { format.editors }
+{ % format editor names for use in labels, last names first.
+  editor empty.or.unknown
+    { "" }
+    {
+      "\bibfield{editor}{"
+      editor format.names
+      *  "}" *
+      editor num.names$ #1 >
+        { " (Eds.)." * }
+        { " (Ed.)." * }
+      if$
+    }
+  if$
+}
+
+FUNCTION { format.articletitle }
+{
+  title empty.or.unknown
+    { "" }
+    % Use this to preserve lettercase in titles:
+    { "\showarticletitle{" title * "}" * }
+    % Use this for downcase title style:
+    % { \showarticletitle{" title "t" change.case$ * "}" * }
+  if$
+}
+
+FUNCTION { format.title }
+{
+  title empty.or.unknown
+    { "" }
+    % Use this to preserve lettercase in titles:
+    { "\bibinfo{title}{" title * "}" * }
+    % Use this for downcase title style:
+    % { title "t" change.case$ }
+  if$
+}
+
+FUNCTION { n.dashify }
+{
+  't :=
+  ""
+    { t empty.or.unknown not }
+    {
+      t #1 #1 substring$ "-" =
+        {
+          t #1 #2 substring$ "--" = not
+            { "--" *
+              t #2 global.max$ substring$ 't :=
+            }
+            {
+              { t #1 #1 substring$ "-" = }
+              {
+                "-" *
+                t #2 global.max$ substring$ 't :=
+              }
+              while$
+            }
+          if$
+        }
+        {
+          t #1 #1 substring$ *
+          t #2 global.max$ substring$ 't :=
+        }
+      if$
+    }
+  while$
+}
+
+FUNCTION { format.a.title.with.edition }
+{
+  "\bibinfo{booktitle}{"
+  swap$ emphasize *
+  edition empty.or.unknown
+    'skip$
+    { " (\bibinfo{edition}{" * edition "l" change.case$ *
+      "} ed.)" * } % jtb: no parens for ed.
+  if$
+  "}" *
+}
+
+FUNCTION { format.btitle }
+{ title format.a.title.with.edition }
+
+FUNCTION { format.emphasize.booktitle }
+{ booktitle format.a.title.with.edition }
+
+FUNCTION { format.city }
+{
+  % jtb: if the preceding string (the title of the conference) is non-empty,
+  % jtb: append the location, otherwise leave empty (so as to trigger the
+  % jtb: error message in output.check
+
+  duplicate$ empty.or.unknown
+    { }
+    {
+      city empty.or.unknown
+        {
+          date empty.or.unknown
+            { }
+            { " (" * date * ")" * }
+          if$
+        }
+        {
+          date empty.or.unknown
+            { " (" * city * ")" * }
+            { " (" * city * ", " * date * ")" * }
+          if$
+        }
+      if$
+    }
+  if$
+}
+
+FUNCTION { tie.or.space.connect }
+{
+  duplicate$ text.length$ #3 <
+    { "~" }
+    { " " }
+  if$
+  swap$ * *
+}
+
+FUNCTION { either.or.check }
+{
+  empty.or.unknown
+    'pop$
+    { "can't use both " swap$ * " fields in " * cite$ * warning$ }
+  if$
+}
+
+FUNCTION { format.bvolume }
+{
+  % jtb: If there is a series, this is added and the volume trails after it.
+  % jtb: Otherwise, "Vol" is Capitalized.
+
+  volume empty.or.unknown
+    { "" }
+    {
+      series empty.or.unknown
+        { "Vol.~\bibinfo{volume}{" volume "}" * *}
+        { "\bibinfo{series}{" series "}, " * *
+          "Vol.~\bibinfo{volume}{" volume "}" * * *}
+      if$
+      "volume and number" number either.or.check
+    }
+  if$
+}
+
+FUNCTION { format.bvolume.noseries }
+{
+  volume empty.or.unknown
+    { "" }
+    { "Vol.~\bibinfo{volume}{" volume "}" * *
+      "volume and number" number either.or.check
+    }
+  if$
+}
+
+FUNCTION { format.series }
+{
+  series empty.or.unknown
+    {""}
+    {" \emph{(\bibinfo{series}{" * series "})}" *}
+  if$
+}
+
+FUNCTION { format.number.series }
+{
+  volume empty.or.unknown
+    {
+      number empty.or.unknown
+        {
+          volume empty.or.unknown
+          { "" }
+          {
+            series empty.or.unknown
+              { "" }
+              { " (\bibinfo{series}{" series * "})" * }
+            if$
+          }
+          if$
+        }                                       %    { series field.or.null }
+        {
+          output.state mid.sentence =
+            { "Number" }                        % gnp - changed to mixed case always
+            { "Number" }
+          if$
+          number tie.or.space.connect series empty.or.unknown
+            { "there's a number but no series in " cite$ * warning$ }
+            { " in \bibinfo{series}{" * series * "}" * }
+          if$
+        }
+      if$
+    }
+    {
+      ""
+    }
+  if$
+}
+
+FUNCTION { multi.page.check }
+{
+  't :=
+  #0 'multiresult :=
+    { multiresult not
+      t empty.or.unknown not
+      and
+    }
+    { t #1 #1 substring$
+      duplicate$ "-" =
+      swap$ duplicate$ "," =
+      swap$ "+" =
+      or or
+    { #1 'multiresult := }
+    { t #2 global.max$ substring$ 't := }
+      if$
+    }
+  while$
+  multiresult
+}
+
+FUNCTION { format.pages }
+{
+  pages empty.or.unknown
+    { "" }
+    { "\bibinfo{pages}{"
+      pages multi.page.check
+        { pages n.dashify } % gnp - removed () % jtb: removed pp.
+        { pages }
+      if$
+      * "}" *
+    }
+  if$
+}
+
+FUNCTION { format.pages.check.without.articleno }
+{ %% format pages field only if articleno is absent
+  %% Stack out: pages-specification
+  numpages missing$ pages missing$ and
+    { "page numbers missing in both pages and numpages fields in " cite$ * warning$ }
+    { }
+  if$
+
+  articleno empty.or.unknown eid empty.or.unknown and
+    {
+      pages missing$
+        { numpages }
+        { format.pages }
+      if$
+    }
+    { "" }
+  if$
+}
+
+FUNCTION { format.pages.check }
+{
+  pages empty.or.unknown
+    { "page numbers missing in " cite$ * warning$ "" }
+    { pages n.dashify }
+  if$
+}
+
+FUNCTION { format.bookpages }
+{
+  bookpages empty.or.unknown
+    { "" }
+    { bookpages "book pages" tie.or.space.connect }
+  if$
+}
+
+FUNCTION { format.named.pages }
+{
+  pages empty.or.unknown
+    { "" }
+    { format.pages "pages" tie.or.space.connect }
+  if$
+}
+
+%
+% Changed by Boris Veytsman, 2011-03-13
+% Now the word "pages" is printed even if
+% there field pages is not empty.
+%
+
+FUNCTION { format.page.count }
+{
+  page.count empty.or.unknown
+    { "" }
+    { "\bibinfo{numpages}{" page.count * "}~pages" * }
+  if$
+}
+
+FUNCTION { format.articleno.numpages }
+{
+  %% There are seven possible outputs, depending on which fields are set.
+  %%
+  %% These four are handled here:
+  %%
+  %%     articleno, numpages, pages     -> "Article articleno-value, numpages-value pages"
+  %%     articleno, numpages            -> "Article articleno-value, numpages-value pages"
+  %%     articleno, pages               -> "Article articleno-value, reduced-pages-value pages"
+  %%     articleno                      -> "Article articleno-value" and warn about missing numpages
+  %%
+  %% The remaining three have already been handled by
+  %% format.pages.check.without.articleno:
+  %%
+  %%     numpages, pages                -> "pages-value"
+  %%     numpages                       -> "numpages-value"
+  %%     pages                          -> "pages-value"
+  %%
+  %% We no longer issue warninig when missing articleno, but having numpages
+
+  articleno empty.or.unknown eid empty.or.unknown and
+    {
+%%      numpages empty.or.unknown
+%%        { }
+%%        { "numpages field, but no articleno or eid field, in "
+%%          cite$ * warning$ }
+%%      if$
+      ""
+    }
+    {
+      numpages empty.or.unknown
+        {
+          pages empty.or.unknown
+            {
+              "articleno or eid, but no pages or numpages field in "
+                 cite$ * warning$
+              "" 'page.count :=
+            }
+            { reduce.pages.to.page.count }
+          if$
+        }
+        { numpages 'page.count := }
+      if$
+
+      %% The Article number is now handled in format.day.month.year because
+      %% ACM prefers the style "Digital Libraries 12, 3, Article 5 (July 2008)"
+      %% over "Digital Libraries 12, 3 (July 2008), Article 5"
+      %% format.articleno output
+      format.page.count
+    }
+  if$
+}
+
+FUNCTION {calc.format.page.count}
+{
+  numpages empty.or.unknown
+   {
+     pages empty.or.unknown
+        {
+        "" 'page.count :=
+        }
+        { reduce.pages.to.page.count }
+     if$
+   }
+   { numpages 'page.count := }
+  if$
+  format.page.count
+}
+
+
+FUNCTION { journal.canon.abbrev }
+{
+  % Returns a canonical abbreviation for 'journal', or else 'journal'
+  % unchanged.
+  journal "ACM Computing Surveys"                                                                       = { "Comput. Surveys"                                 } {
+  journal "{ACM} Computing Surveys"                                                                     = { "Comput. Surveys"                                 } {
+  journal "ACM Transactions on Mathematical Software"                                                   = { "ACM Trans. Math. Software"                       } {
+  journal "{ACM} Transactions on Mathematical Software"                                                 = { "ACM Trans. Math. Software"                       } {
+  journal "ACM SIGNUM Newsletter"                                                                       = { "ACM SIGNUM Newslett."                            } {
+  journal "ACM {SIGNUM} Newsletter"                                                                     = { "ACM SIGNUM Newslett."                            } {
+  journal "{ACM} SIGNUM Newsletter"                                                                     = { "ACM SIGNUM Newslett."                            } {
+  journal "{ACM} {SIGNUM} Newsletter"                                                                   = { "ACM SIGNUM Newslett."                            } {
+  journal "American Journal of Sociology"                                                               = { "Amer. J. Sociology"                              } {
+  journal "American Mathematical Monthly"                                                               = { "Amer. Math. Monthly"                             } {
+  journal "American Mathematical Society Translations"                                                  = { "Amer. Math. Soc. Transl."                        } {
+  journal "Applied Mathematics and Computation"                                                         = { "Appl. Math. Comput."                             } {
+  journal "British Journal of Mathematical and Statistical Psychology"                                  = { "Brit. J. Math. Statist. Psych."                  } {
+  journal "Bulletin of the American Mathematical Society"                                               = { "Bull. Amer. Math. Soc."                          } {
+  journal "Canadian Mathematical Bulletin"                                                              = { "Canad. Math. Bull."                              } {
+  journal "Communications of the ACM"                                                                   = { "Commun. ACM"                                     } {
+  journal "Communications of the {ACM}"                                                                 = { "Commun. ACM"                                     } {
+  journal "Computers and Structures"                                                                    = { "Comput. \& Structures"                           } {
+  journal "Contemporary Mathematics"                                                                    = { "Contemp. Math."                                  } {
+  journal "Crelle's Journal"                                                                            = { "Crelle's J."                                     } {
+  journal "Giornale di Mathematiche"                                                                    = { "Giorn. Mat."                                     } {
+  journal "IEEE Transactions on Aerospace and Electronic Systems"                                       = { "IEEE Trans. Aerospace Electron. Systems"         } {
+  journal "{IEEE} Transactions on Aerospace and Electronic Systems"                                     = { "IEEE Trans. Aerospace Electron. Systems"         } {
+  journal "IEEE Transactions on Automatic Control"                                                      = { "IEEE Trans. Automat. Control"                    } {
+  journal "{IEEE} Transactions on Automatic Control"                                                    = { "IEEE Trans. Automat. Control"                    } {
+  journal "IEEE Transactions on Computers"                                                              = { "IEEE Trans. Comput."                             } {
+  journal "{IEEE} Transactions on Computers"                                                            = { "IEEE Trans. Comput."                             } {
+  journal "IMA Journal of Numerical Analysis"                                                           = { "IMA J. Numer. Anal."                             } {
+  journal "{IMA} Journal of Numerical Analysis"                                                         = { "IMA J. Numer. Anal."                             } {
+  journal "Information Processing Letters"                                                              = { "Inform. Process. Lett."                          } {
+  journal "International Journal for Numerical Methods in Engineering"                                  = { "Internat. J. Numer. Methods Engrg."              } {
+  journal "International Journal of Control"                                                            = { "Internat. J. Control"                            } {
+  journal "International Journal of Supercomputing Applications"                                        = { "Internat. J. Supercomputing Applic."             } {
+  journal "Journal of Computational Physics"                                                            = { "J. Comput. Phys."                                } {
+  journal "Journal of Computational and Applied Mathematics"                                            = { "J. Comput. Appl. Math."                          } {
+  journal "Journal of Computer and System Sciences"                                                     = { "J. Comput. System Sci."                          } {
+  journal "Journal of Mathematical Analysis and Applications"                                           = { "J. Math. Anal. Appl."                            } {
+  journal "Journal of Mathematical Physics"                                                             = { "J. Math. Phys."                                  } {
+  journal "Journal of Parallel and Distributed Computing"                                               = { "J. Parallel and Distrib. Comput."                } {
+  journal "Journal of Research of the National Bureau of Standards"                                     = { "J. Res. Nat. Bur. Standards"                     } {
+  journal "Journal of VLSI and Computer Systems"                                                        = { "J. VLSI Comput. Syst."                           } {
+  journal "Journal of {VLSI} and Computer Systems"                                                      = { "J. VLSI Comput. Syst."                           } {
+  journal "Journal of the ACM"                                                                          = { "J. ACM"                                          } {
+  journal "Journal of the American Statistical Association"                                             = { "J. Amer. Statist. Assoc."                        } {
+  journal "Journal of the Institute of Mathematics and its Applications"                                = { "J. Inst. Math. Appl."                            } {
+  journal "Journal of the Society for Industrial and Applied Mathematics"                               = { "J. Soc. Indust. Appl. Math."                     } {
+  journal "Journal of the Society for Industrial and Applied Mathematics, Series B, Numerical Analysis" = { "J. Soc. Indust. Appl. Math. Ser. B Numer. Anal." } {
+  journal "Linear Algebra and its Applications"                                                         = { "Linear Algebra Appl."                            } {
+  journal "Mathematica Scandinavica"                                                                    = { "Math. Scand."                                    } {
+  journal "Mathematical Tables and Other Aids to Computation"                                           = { "Math. Tables Aids Comput."                       } {
+  journal "Mathematics of Computation"                                                                  = { "Math. Comp."                                     } {
+  journal "Mathematische Annalen"                                                                       = { "Math. Ann."                                      } {
+  journal "Numerische Mathematik"                                                                       = { "Numer. Math."                                    } {
+  journal "Pacific Journal of Mathematics"                                                              = { "Pacific J. Math."                                } {
+  journal "Parallel Computing"                                                                          = { "Parallel Comput."                                } {
+  journal "Philosophical Magazine"                                                                      = { "Philos. Mag."                                    } {
+  journal "Proceedings of the American Mathematical Society"                                            = { "Proc. Amer. Math. Soc."                          } {
+  journal "Proceedings of the IEEE"                                                                     = { "Proc. IEEE"                                      } {
+  journal "Proceedings of the {IEEE}"                                                                   = { "Proc. IEEE"                                      } {
+  journal "Proceedings of the National Academy of Sciences of the USA"                                  = { "Proc. Nat. Acad. Sci. U. S. A."                  } {
+  journal "Quarterly Journal of Mathematics, Oxford, Series (2)"                                        = { "Quart. J. Math. Oxford Ser. (2)"                 } {
+  journal "Quarterly of Applied Mathematics"                                                            = { "Quart. Appl. Math."                              } {
+  journal "Review of the International Statisical Institute"                                            = { "Rev. Inst. Internat. Statist."                   } {
+  journal "SIAM Journal on Algebraic and Discrete Methods"                                              = { "SIAM J. Algebraic Discrete Methods"              } {
+  journal "{SIAM} Journal on Algebraic and Discrete Methods"                                            = { "SIAM J. Algebraic Discrete Methods"              } {
+  journal "SIAM Journal on Applied Mathematics"                                                         = { "SIAM J. Appl. Math."                             } {
+  journal "{SIAM} Journal on Applied Mathematics"                                                       = { "SIAM J. Appl. Math."                             } {
+  journal "SIAM Journal on Computing"                                                                   = { "SIAM J. Comput."                                 } {
+  journal "{SIAM} Journal on Computing"                                                                 = { "SIAM J. Comput."                                 } {
+  journal "SIAM Journal on Matrix Analysis and Applications"                                            = { "SIAM J. Matrix Anal. Appl."                      } {
+  journal "{SIAM} Journal on Matrix Analysis and Applications"                                          = { "SIAM J. Matrix Anal. Appl."                      } {
+  journal "SIAM Journal on Numerical Analysis"                                                          = { "SIAM J. Numer. Anal."                            } {
+  journal "{SIAM} Journal on Numerical Analysis"                                                        = { "SIAM J. Numer. Anal."                            } {
+  journal "SIAM Journal on Scientific and Statistical Computing"                                        = { "SIAM J. Sci. Statist. Comput."                   } {
+  journal "{SIAM} Journal on Scientific and Statistical Computing"                                      = { "SIAM J. Sci. Statist. Comput."                   } {
+  journal "SIAM Review"                                                                                 = { "SIAM Rev."                                       } {
+  journal "{SIAM} Review"                                                                               = { "SIAM Rev."                                       } {
+  journal "Software Practice and Experience"                                                            = { "Software Prac. Experience"                       } {
+  journal "Statistical Science"                                                                         = { "Statist. Sci."                                   } {
+  journal "The Computer Journal"                                                                        = { "Comput. J."                                      } {
+  journal "Transactions of the American Mathematical Society"                                           = { "Trans. Amer. Math. Soc."                         } {
+  journal "USSR Computational Mathematics and Mathematical Physics"                                     = { "U. S. S. R. Comput. Math. and Math. Phys."       } {
+  journal "{USSR} Computational Mathematics and Mathematical Physics"                                   = { "U. S. S. R. Comput. Math. and Math. Phys."       } {
+  journal "Zeitschrift fur Angewandte Mathematik und Mechanik"                                          = { "Z. Angew. Math. Mech."                           } {
+  journal "Zeitschrift fur Angewandte Mathematik und Physik"                                            = { "Z. Angew. Math. Phys."                           } {
+  journal
+  } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$
+  } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$
+  } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$
+  } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$
+  } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$
+  } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$
+  } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$
+  } if$ } if$ } if$ } if$ } if$ } if$ } if$ } if$
+}
+
+FUNCTION { format.journal.volume.number.day.month.year }
+{
+  % By Young (and Spencer)
+  % GNP - fixed bugs with missing volume, number, and/or pages
+  %
+  % Format journal, volume, number, pages for article types.
+  %
+  journal empty.or.unknown
+    { "no journal in " cite$ * warning$ "" }
+    { "\bibinfo{journal}{"
+      journal.canon.abbrev emphasize *
+      "}" * }
+  if$
+
+  number empty.or.unknown
+    {
+      volume empty.or.unknown
+        { "no number and no volume in " cite$ * warning$ "" * }
+        { " " * " \bibinfo{volume}{" * volume * "}" * }
+      if$
+    }
+    {
+      volume empty.or.unknown
+        {
+          "unusual to have number, but no volume, for " cite$ * warning$
+          " \bibinfo{number}{" * number * "}" *
+        }
+        { " \bibinfo{volume}{" * volume  * "}, \bibinfo{number}{" *
+          number * "}" *}
+      if$
+    }
+  if$
+  after.block 'output.state :=
+
+  % Sometimes proceedings are published in journals
+  % In this case we do not want to put year, day and month here
+
+  type$ "inproceedings" =
+    { }
+    {format.day.month.year * }
+  if$
+}
+
+FUNCTION { format.chapter.pages }
+{
+  chapter empty.or.unknown
+    'format.pages
+    { type empty.or.unknown
+        { "Chapter" } % gnp - changed to mixed case
+        { type "t" change.case$ }
+      if$
+      chapter tie.or.space.connect
+      pages empty.or.unknown
+        {"page numbers missing in " cite$ * warning$} % gnp - added check
+        { ", " * format.pages * }
+      if$
+    }
+  if$
+}
+
+FUNCTION { format.in.emphasize.booktitle }
+{ % jtb: format for collections or proceedings not appearing in a journal
+  booktitle empty.or.unknown
+  { "" }
+  { "In " format.emphasize.booktitle * }
+  if$
+}
+
+FUNCTION { format.in.booktitle }
+{ % jtb: format for proceedings appearing in a journal
+  booktitle empty.or.unknown
+  { "" }
+  { "In \bibinfo{booktitle}{" booktitle * "}" * }
+  if$
+}
+
+FUNCTION { format.in.ed.booktitle }
+{
+  booktitle empty.or.unknown
+  { "" }
+  { editor empty.or.unknown
+    { "In " format.emphasize.booktitle * }
+                % jtb: swapped editor location
+    { "In " format.emphasize.booktitle * ", " * format.editors.fml * }
+    if$
+  }
+  if$
+}
+
+FUNCTION { format.thesis.type }
+{ % call with default type on stack top
+  type empty.or.unknown
+    'skip$    % use default type
+    {
+      pop$    % discard default type
+      % NO: it is silly to have to brace protect every degree type!:  type "t" change.case$
+      type
+    }
+  if$
+}
+
+FUNCTION { format.tr.number }
+{
+  "\bibinfo{type}{"
+  type empty.or.unknown
+    { "{T}echnical {R}eport" }
+    'type
+  if$
+  "}" * *
+  number empty.or.unknown
+    { "t" change.case$ }
+    %% LOOKS BAD: { "." * number tie.or.space.connect }
+    %% Prefer "Research report RJ687." to "Research report. RJ687."
+    { number tie.or.space.connect }
+  if$
+}
+
+FUNCTION { format.advisor }
+{
+  advisor empty.or.unknown
+    { "" }
+    { "Advisor(s) " advisor * }
+  if$
+}
+
+FUNCTION { format.article.crossref }
+{ "See"
+  "\citeN{" * crossref * "}" *
+}
+
+FUNCTION { format.crossref.editor }
+{
+  editor #1 "{vv~}{ll}" format.name$
+  editor num.names$ duplicate$
+  #2 >
+    { pop$ " et~al\mbox{.}" * }         % jrh: avoid spacing problems
+    { #2 <
+    'skip$
+    { editor #2 "{ff }{vv }{ll}{ jj}" format.name$ "others" =
+        { " et~al\mbox{.}" * }          % jrh: avoid spacing problems
+        { " and " * editor #2 "{vv~}{ll}" format.name$ * }
+      if$
+    }
+      if$
+    }
+  if$
+}
+
+FUNCTION { format.book.crossref }
+{
+  volume empty.or.unknown
+    { "empty volume in " cite$ * "'s crossref of " * crossref * warning$
+      "In "
+    }
+    { "Volume" volume tie.or.space.connect % gnp - changed to mixed case
+      " of " *
+    }
+  if$
+  editor empty.or.unknown
+  editor field.or.null author field.or.null =
+  or
+    { key empty.or.unknown
+    { series empty.or.unknown
+        { "need editor, key, or series for " cite$ * " to crossref " *
+          crossref * warning$
+          "" *
+        }
+        { series emphasize * }
+      if$
+    }
+    { key * }
+      if$
+    }
+    { format.crossref.editor * }
+  if$
+  " \citeN{" * crossref * "}" *
+}
+
+FUNCTION { format.incoll.inproc.crossref }
+{ "See"
+  " \citeN{" * crossref * "}" *
+}
+
+FUNCTION { format.lab.names }
+{
+  % format.lab.names:
+  %
+  % determines "short" names for the abbreviated author information.
+  % "Long" labels are created in calc.label, using the routine my.full.label
+  % to format author and editor fields.
+  %
+  % There are 4 cases for labels.   (n=3 in the example)
+  % a) one author             Foo
+  % b) one to n               Foo, Bar and Baz
+  % c) use of "and others"    Foo, Bar et al.
+  % d) more than n            Foo et al.
+
+  's :=
+  s num.names$ 'numnames :=
+  numnames #2 >    % change number to number of others allowed before
+                   % forcing "et al".
+    { s #1 "{vv~}{ll}" format.name$ " et~al\mbox{.}" * } % jrh: \mbox{} added
+    {
+      numnames #1 - 'namesleft :=
+      #2 'nameptr :=
+      s #1 "{vv~}{ll}" format.name$
+        { namesleft #0 > }
+        { nameptr numnames =
+            { s nameptr "{ff }{vv }{ll}{ jj}" format.name$ "others" =
+                { " et~al\mbox{.}" * }          % jrh: avoid spacing problems
+                { " and " * s nameptr "{vv~}{ll}" format.name$ * }
+              if$
+            }
+            { ", " * s nameptr "{vv~}{ll}" format.name$ * }
+          if$
+          nameptr #1 + 'nameptr :=
+          namesleft #1 - 'namesleft :=
+        }
+      while$
+    }
+  if$
+}
+
+FUNCTION { author.key.label }
+{
+  author empty.or.unknown
+    { key empty.or.unknown
+          { "no key, author in " cite$ * warning$
+            cite$ #1 #3 substring$ }
+         'key
+      if$
+    }
+    { author format.lab.names }
+  if$
+}
+
+FUNCTION { editor.key.organization.label }
+{ % added - gnp. Provide label formatting by organization if editor is null.
+  editor empty.or.unknown
+    { organization empty.or.unknown
+        { key empty.or.unknown
+            { "no key, editor or organization in " cite$ * warning$
+              cite$ #1 #3 substring$ }
+            'key
+          if$
+        }
+        { organization }
+      if$
+    }
+    { editor format.lab.names }
+  if$
+}
+
+FUNCTION { author.editor.key.label }
+{
+  author empty.or.unknown
+    { editor empty.or.unknown
+          { key empty.or.unknown
+               { "no key, author, or editor in " cite$ * warning$
+                 cite$ #1 #3 substring$ }
+             'key
+           if$
+         }
+          { editor format.lab.names }
+      if$
+    }
+    { author format.lab.names }
+  if$
+}
+
+FUNCTION { author.editor.key.organization.label }
+{ % added - gnp. Provide label formatting by organization if author is null.
+  author empty.or.unknown
+    { editor empty.or.unknown
+        { organization empty.or.unknown
+            { key empty.or.unknown
+               { "no key, author, editor or organization in " cite$ * warning$
+                 cite$ #1 #3 substring$ }
+               'key
+              if$
+            }
+            { organization }
+          if$
+        }
+        { editor format.lab.names }
+      if$
+    }
+    { author format.lab.names }
+  if$
+}
+
+% Calculate label and leave it on stack
+FUNCTION { calc.basic.label }
+{
+  type$ "book" =
+  type$ "inbook" =
+  or
+  type$ "article" =
+  or
+    'author.editor.key.label
+    { type$ "proceedings" =
+      type$ "periodical" =
+      or
+        'editor.key.organization.label
+        { type$ "manual" =
+            'author.editor.key.organization.label
+            'author.key.label
+          if$
+        }
+      if$
+    }
+  if$
+  duplicate$
+  year empty.or.unknown
+    { "[n.d.]" }
+    { year field.or.null purify$ #-1 #4 substring$}
+  if$
+  *
+  'basic.label.year :=
+}
+
+FUNCTION { calc.label }
+{
+  % Changed - GNP. See also author.editor.organization.sort, editor.organization.sort
+  % Form label for BibTeX entry. The classification of which fields are used
+  % for which type of entry (book, inbook, etc.) are taken from alpha.bst.
+  % The change here from newapa is to also include organization as a
+  % citation label if author or editor is missing.
+
+  calc.basic.label
+
+  author empty.or.unknown  % generate the full label citation information.
+    {
+      editor empty.or.unknown
+        {
+          organization empty.or.unknown
+            {
+              key empty.or.unknown
+                {
+                  "no author, editor, organization, or key in " cite$ * warning$
+                  "??"
+                }
+                { key }
+              if$
+            }
+            { organization }
+          if$
+        }
+        { editor my.full.label }
+      if$
+    }
+    { author my.full.label }
+  if$
+
+  % leave label on the stack, to be popped when required.
+
+  "}{" * swap$ * "}{" *
+  %  year field.or.null purify$ #-1 #4 substring$ *
+  %
+  % save the year for sort processing afterwards (adding a, b, c, etc.)
+  %
+  year empty.or.unknown
+    { "[n.d.]" }
+    { year field.or.null purify$ #-1 #4 substring$}
+  if$
+  'label.year :=
+}
+
+
+FUNCTION { output.bibitem }
+{
+  newline$
+  "\bibitem[\protect\citeauthoryear{" write$
+  calc.label write$
+  sort.year write$
+  "}]%" writeln
+  "        {" write$
+  cite$ write$
+  "}" writeln
+  ""
+  before.all 'output.state :=
+}
+
+
+FUNCTION { output.issue.doi.coden.isxn.lccn.url.eprint }
+{ % enter and return with stack empty
+  %% We switch now from buffered output to output of complete lines, so
+  %% that the Issue .. URL data have their own lines, and are less likely
+  %% to be line-wrapped by BibTeX's short-sighted algorithm, which wraps
+  %% lines longer than 79 characters, backtracking to what it thinks is
+  %% a break point in the string.  Any such wrapping MUST be undone to
+  %% prevent percent-newline from appearing in DOIs and URLs.  The
+  %% output data are intentionally wrapped in \showxxx{} macros at
+  %% beginning of line, and that supply their own punctuation (if they
+  %% are not defined to suppress output entirely), to make it easier for
+  %% other software to recover them from .bbl files.
+  %%
+  %% It also makes it possible to later change the macro definitions
+  %% to suppress particular output values, or alter their appearance.
+  %%
+  %% Note that it is possible for theses, technical reports, and
+  %% manuals to have ISBNs, and anything that has an ISBN may also
+  %% have an ISSN.  When there are no values for these keys, there
+  %% is no output generated for them here.
+
+  "\newblock" writeln
+  after.block 'output.state :=
+
+  output.issue
+  output.isbn
+  output.coden  % CODEN is functionally like ISSN, so output them sequentially
+  output.issn
+  output.lccn
+  output.doi    % DOI is ALWAYS last according to CrossRef DOI documentation
+  output.eprint
+  output.url    % but ACM wants URL last
+}
+
+FUNCTION { output.issue.doi.coden.isxn.lccn.url.eprint.note }
+{ % enter with stack empty, return with empty string on stack
+  output.issue.doi.coden.isxn.lccn.url.eprint
+  note empty.or.unknown
+    { }
+    {
+      "\newblock" writeln
+      output.note
+    }
+  if$
+  ""
+}
+
+FUNCTION { output.issue.doi.coden.isxn.lccn.url.eprint.note.check }
+{ % enter with stack empty, return with empty string on stack
+  output.issue.doi.coden.isxn.lccn.url.eprint
+  note empty.or.unknown
+    { }
+    {
+      "\newblock" writeln
+      output.note.check
+    }
+  if$
+  ""
+}
+
+FUNCTION { article }
+{
+  output.bibitem
+
+  author empty.or.unknown
+    {
+      editor empty.or.unknown
+        { "neither author and editor supplied for " cite$ * warning$ }
+        { format.editors "editor" output.check }
+      if$
+    }
+    { format.authors "author" output.check }
+  if$
+
+  author format.no.key output       % added
+  output.year.check                 % added
+  new.block
+  format.articletitle "title" output.check
+  new.block
+  howpublished empty.or.unknown
+    { }
+    { "\bibinfo{howpublished}{" howpublished "}" * * output }
+  if$
+
+  crossref missing$
+    { format.journal.volume.number.day.month.year output}
+    {
+      "cross reference in @Article{...} is unusual" warning$
+      format.article.crossref output.nonnull
+    }
+  if$
+
+  format.pages.check.without.articleno output
+  format.articleno.numpages output
+  fin.block
+  output.issue.doi.coden.isxn.lccn.url.eprint.note
+  fin.entry
+}
+
+FUNCTION { book }
+{
+  output.bibitem
+  author empty.or.unknown
+    { format.editors "author and editor" output.check }
+    { format.authors output.nonnull
+      crossref missing$
+        { "author and editor" editor either.or.check }
+        'skip$
+      if$
+    }
+  if$
+  output.year.check       % added
+  new.block
+  format.btitle "title" output.check
+  crossref missing$
+    { new.sentence              % jtb: start a new sentence for series/volume
+      format.bvolume output
+      new.block
+      format.number.series output
+      new.sentence
+      publisher "publisher" bibinfo.output.check
+      address "address" bibinfo.output.check    % jtb: require address
+      fin.sentence
+      pages empty.or.unknown
+        { format.bookpages }    % use bookpages when pages empty
+        { format.pages.check "pages" tie.or.space.connect }
+      if$
+      output
+    }
+    { new.block
+      format.book.crossref output.nonnull
+    }
+  if$
+  fin.block
+  output.issue.doi.coden.isxn.lccn.url.eprint.note
+  fin.entry
+}
+
+FUNCTION { booklet }
+{
+  output.bibitem
+  format.authors output
+  author format.key output          % added
+  output.year.check                 % added
+  new.block
+  format.title "title" output.check
+  new.block
+    howpublished empty.or.unknown
+    { }
+    { "\bibinfo{howpublished}{" howpublished "}" * * output }
+  if$
+  address output
+  fin.block
+  output.issue.doi.coden.isxn.lccn.url.eprint.note
+  fin.entry
+}
+
+FUNCTION { inbook }
+{
+  output.bibitem
+  author empty.or.unknown
+    { format.editors
+      "author and editor" output.check
+    }
+    { format.authors output.nonnull
+      crossref missing$
+    { "author and editor" editor either.or.check }
+    'skip$
+      if$
+    }
+  if$
+  output.year.check                 % added
+  new.block
+  format.btitle "title" output.check
+  crossref missing$
+    { new.sentence              % jtb: start a new sentence for series/volume
+      format.bvolume output
+      new.block
+      format.number.series output
+      new.sentence
+      publisher "publisher" bibinfo.output.check
+      address "address" bibinfo.output.check    % jtb: require address
+      format.bookpages output
+      format.chapter.pages
+      "chapter and pages" output.check  % jtb: moved from before publisher
+    }
+    {
+      format.bookpages output
+      format.chapter.pages "chapter and pages" output.check
+      new.block
+      format.book.crossref output.nonnull
+    }
+  if$
+  fin.block
+  output.issue.doi.coden.isxn.lccn.url.eprint.note
+  fin.entry
+}
+
+FUNCTION { incollection }
+{
+  output.bibitem
+  format.authors "author" output.check
+  author format.key output       % added
+  output.year.check              % added
+  new.block
+  format.articletitle "title" output.check
+  new.block
+  crossref missing$
+    { format.in.ed.booktitle "booktitle" output.check
+      new.sentence                % jtb: start a new sentence for series/volume
+      format.bvolume output
+      format.number.series output
+      new.sentence
+      publisher "publisher" bibinfo.output.check
+      address "address" bibinfo.output.check      % jtb: require address
+      format.bookpages output
+      format.chapter.pages output % gnp - was special.output.nonnull
+                                  % left out comma before page numbers
+                                  % jtb: moved from before publisher
+    }
+    {
+      format.incoll.inproc.crossref output.nonnull
+      format.chapter.pages output
+    }
+  if$
+  fin.block
+  output.issue.doi.coden.isxn.lccn.url.eprint.note
+  fin.entry
+}
+
+FUNCTION { inproceedings }
+{
+  output.bibitem
+  format.authors "author" output.check
+  author format.key output            % added
+  output.year.check                   % added
+  new.block
+  format.articletitle "title" output.check
+  howpublished empty.or.unknown
+    { }
+    { "\bibinfo{howpublished}{" howpublished "}" * * output.dot.space }
+  if$
+  crossref missing$
+    {
+      journal missing$          % jtb: proceedings appearing in journals
+        { format.in.emphasize.booktitle format.city "booktitle"  output.check.dot.space
+          format.series output.removenospace
+          format.editors.fml output % BV 2011/09/27 Moved dot to comma
+          format.bvolume.noseries output
+          new.sentence
+          organization output
+          publisher "publisher" bibinfo.output.check % jtb: require publisher (?)
+          address "address" bibinfo.output.check  % jtb: require address
+          format.bookpages output
+        }
+        {
+           format.in.booktitle format.city "booktitle" output.check
+           format.editors.fml output
+           new.sentence
+           format.journal.volume.number.day.month.year output
+        }
+      if$
+      format.articleno output
+      format.pages.check.without.articleno output
+    }
+    {
+      format.incoll.inproc.crossref output.nonnull
+      format.articleno output
+      format.pages.check.without.articleno output
+    }
+  if$
+  format.articleno.numpages output
+  fin.block
+  output.issue.doi.coden.isxn.lccn.url.eprint.note
+  fin.entry
+}
+
+FUNCTION { conference } { inproceedings }
+
+FUNCTION { manual }
+{
+  output.bibitem
+  author empty.or.unknown
+    { editor empty.or.unknown
+      { organization "organization" output.check
+        organization format.key output }  % if all else fails, use key
+      { format.editors "author and editor" output.check }
+      if$
+    }
+    { format.authors output.nonnull }
+    if$
+  output.year.check                 % added
+  new.block
+  format.btitle "title" output.check
+  organization address new.block.checkb
+  % jtb: back to normal style: organization, address
+  organization "organization" output.check
+  address output
+  fin.block
+  output.issue.doi.coden.isxn.lccn.url.eprint.note
+  fin.entry
+}
+
+FUNCTION { mastersthesis }
+{
+  output.bibitem
+  format.authors "author" output.check
+  author format.key output          % added
+  output.year.check                 % added
+  new.block
+  format.title emphasize "title" output.check  % NB: ACM style requires emphasized thesis title
+  new.block
+  "\bibinfo{thesistype}{Master's\ thesis}" format.thesis.type output
+  new.sentence
+  school "school" bibinfo.output.check
+  address empty.or.unknown
+     { }
+     { "\bibinfo{address}{" address * "}" * output }
+  if$
+  new.block
+  format.advisor output
+  fin.block
+  output.issue.doi.coden.isxn.lccn.url.eprint.note
+  fin.entry
+}
+
+FUNCTION { misc }
+{
+  output.bibitem
+  format.authors "author" output.check
+  author format.key output            % added
+  output.year.check                   % added
+  title howpublished new.block.checkb
+  format.title output
+  new.block
+  howpublished empty.or.unknown
+    { }
+    { "\bibinfo{howpublished}{" howpublished "}" * * output }
+  if$
+  "" output.nonnull.dot.space
+  calc.format.page.count output
+  fin.block
+  output.issue.doi.coden.isxn.lccn.url.eprint.note
+  fin.entry
+}
+
+FUNCTION { online } { misc }
+
+FUNCTION { game } { misc }
+
+
+FUNCTION { phdthesis }
+{
+  output.bibitem
+  format.authors "author" output.check
+  author format.key output          % added
+  output.year.check                 % added
+  new.block
+  format.title emphasize "title" output.check  % NB: ACM style requires emphasized thesis title
+  new.block
+  "\bibinfo{thesistype}{Ph.D. Dissertation}" format.thesis.type output
+  new.sentence
+  school "school" bibinfo.output.check
+  address empty.or.unknown
+     { }
+     { "\bibinfo{address}{" address * "}" * output }
+  if$
+  new.block
+  format.advisor output
+  fin.block
+  output.issue.doi.coden.isxn.lccn.url.eprint.note
+  fin.entry
+}
+
+FUNCTION {format.date}
+{ year empty.or.unknown
+    { month empty.or.unknown
+        {
+          ""                    % output empty date if year/month both empty
+          day empty.or.unknown
+            {  }
+            { "there's a day but no month or year in " cite$ * warning$ }
+          if$
+        }
+        { "there's a month but no year in " cite$ * warning$
+          month
+          day empty.or.unknown
+            { }
+            { " " * day * }
+          if$
+        }
+      if$
+    }
+    { month empty.or.unknown
+        {
+          year                  % output only year if month empty
+          day empty.or.unknown
+            {  }
+            { "there's a day and year but no month in " cite$ * warning$ }
+          if$
+        }
+        {
+          month " " *
+          day empty.or.unknown
+            { }
+            { day * ", " * }
+          if$
+          year *
+        }
+      if$
+    }
+  if$
+}
+
+FUNCTION {new.block.checka}
+{
+  empty.or.unknown
+    'skip$
+    'new.block
+  if$
+}
+
+FUNCTION { periodical }
+{
+  output.bibitem
+  editor empty.or.unknown
+    { organization output }
+    { format.editors output.nonnull }
+  if$
+  new.block
+  output.year.check
+  new.sentence
+  format.articletitle "title" output.check
+  format.journal.volume.number.day.month.year output
+  calc.format.page.count output
+  fin.entry
+}
+
+FUNCTION { proceedings }
+{
+  output.bibitem
+  editor empty.or.unknown
+    { organization output
+      organization format.key output }  % gnp - changed from author format.key
+    { format.editors output.nonnull }
+  if$
+  % author format.key output             % gnp - removed (should be either
+  %                                        editor or organization
+  output.year.check                    % added (newapa)
+  new.block
+  format.btitle format.city "title" output.check        % jtb: added city
+  new.sentence
+  format.bvolume output
+  format.number.series output
+  new.sentence
+  organization output
+  % jtb: normal order: publisher, address
+  publisher empty.or.unknown
+     { }
+     { "\bibinfo{publisher}{" publisher * "}" * output }
+  if$
+  address empty.or.unknown
+     { }
+     { "\bibinfo{address}{" address * "}" * output }
+  if$
+  fin.block
+  output.issue.doi.coden.isxn.lccn.url.eprint.note
+  fin.entry
+}
+
+FUNCTION { collection } { proceedings }
+
+FUNCTION { techreport }
+{
+  output.bibitem
+  format.authors "author" output.check
+  author format.key output             % added
+  output.year.check                    % added
+  new.block
+  format.btitle "title" output.check
+  new.block
+%   format.tr.number output               % jtb: moved month ...
+  format.tr.number output new.sentence    % Gerry  - need dot 2011/09/28
+  institution "institution" bibinfo.output.check
+  address empty.or.unknown
+    { }
+    { "\bibinfo{address}{" address "}" * * output }
+  if$
+  new.sentence
+  format.named.pages output
+  % ACM omits year at end in transactions style
+  % format.day.month.year output.nonnull.dot.space  % jtb: ... to here (no parens)
+  fin.block
+  output.issue.doi.coden.isxn.lccn.url.eprint.note
+  fin.entry
+}
+
+FUNCTION { unpublished }
+{
+  output.bibitem
+  format.authors
+  "author" output.check
+  author format.key output              % added
+  output.year.check                     % added
+  new.block
+  format.title "title" output.check
+  fin.sentence
+  output.day.month.year                 % UTAH
+  calc.format.page.count output
+  fin.block
+  output.issue.doi.coden.isxn.lccn.url.eprint.note.check
+  fin.entry
+}
+
+FUNCTION { default.type } { misc }
+
+%%% ACM journal-style month definitions: full name if 1--5 letters, else
+%%% abbreviation of 3 or 4 characters and a dot
+
+MACRO {jan}             {"Jan."}
+
+MACRO {feb}             {"Feb."}
+
+MACRO {mar}             {"March"}
+
+MACRO {apr}             {"April"}
+
+MACRO {may}             {"May"}
+
+MACRO {jun}             {"June"}
+
+MACRO {jul}             {"July"}
+
+MACRO {aug}             {"Aug."}
+
+MACRO {sep}             {"Sept."}
+
+MACRO {oct}             {"Oct."}
+
+MACRO {nov}             {"Nov."}
+
+MACRO {dec}             {"Dec."}
+
+
+
+READ
+
+FUNCTION { sortify }
+{
+  purify$
+  "l" change.case$
+}
+
+FUNCTION { chop.word }
+{
+  's :=
+  'len :=
+  s #1 len substring$ =
+    { s len #1 + global.max$ substring$ }
+    's
+  if$
+}
+
+FUNCTION { sort.format.names }
+{
+  's :=
+  #1 'nameptr :=
+  ""
+  s num.names$ 'numnames :=
+  numnames 'namesleft :=
+    { namesleft #0 > }
+    { nameptr #1 >
+          { "   " * }
+         'skip$
+      if$
+      s nameptr "{vv{ } }{ll{ }}{  f{ }}{  jj{ }}" format.name$ 't :=
+      nameptr numnames = t "others" = and
+          { " et~al" * }
+          { t sortify * }
+      if$
+      nameptr #1 + 'nameptr :=
+      namesleft #1 - 'namesleft :=
+    }
+  while$
+}
+
+FUNCTION { sort.format.title }
+{
+  't :=
+  "A " #2
+    "An " #3
+      "The " #4 t chop.word
+    chop.word
+  chop.word
+  sortify
+  #1 global.max$ substring$
+}
+
+FUNCTION { author.sort }
+{
+  author empty.or.unknown
+    { key empty.or.unknown
+         { "to sort, need author or key in " cite$ * warning$
+           "" }
+         { key sortify }
+      if$
+    }
+    { author sort.format.names }
+  if$
+}
+
+FUNCTION { author.editor.sort }
+{
+  author empty.or.unknown
+    {
+      editor empty.or.unknown
+         {
+           key empty.or.unknown
+             { "to sort, need author, editor, or key in " cite$ * warning$
+               ""
+             }
+             { key sortify }
+           if$
+         }
+         { editor sort.format.names }
+      if$
+    }
+    { author sort.format.names }
+  if$
+}
+
+FUNCTION { editor.organization.sort }
+{
+  % added - GNP. Stack editor or organization for sorting (from alpha.bst).
+  % Unlike alpha.bst, we need entire names, not abbreviations
+
+  editor empty.or.unknown
+    { organization empty.or.unknown
+        { key empty.or.unknown
+            { "to sort, need editor, organization, or key in " cite$ * warning$
+              ""
+            }
+            { key sortify }
+          if$
+        }
+        { organization sortify }
+      if$
+    }
+    { editor sort.format.names }
+  if$
+}
+
+FUNCTION { author.editor.organization.sort }
+{
+  % added - GNP. Stack author or organization for sorting (from alpha.bst).
+  % Unlike alpha.bst, we need entire names, not abbreviations
+
+  author empty.or.unknown
+    {
+      editor empty.or.unknown
+        { organization empty.or.unknown
+            { key empty.or.unknown
+                { "to sort, need author, editor, or key in " cite$ * warning$
+                ""
+                }
+                { key sortify }
+              if$
+            }
+            { organization sortify }
+          if$
+        }
+        { editor sort.format.names }
+      if$
+    }
+    { author sort.format.names }
+  if$
+}
+
+FUNCTION { presort }
+{
+  % Presort creates the bibentry's label via a call to calc.label, and then
+  % sorts the entries based on entry type. Chicago.bst adds support for
+  % including organizations as the sort key; the following is stolen from
+  % alpha.bst.
+
+  calc.label
+  basic.label.year
+  swap$
+  "    "
+  swap$
+  * *
+  "    "
+  *
+  sortify
+  year field.or.null purify$ #-1 #4 substring$ * % add year
+  "    "
+  *
+  type$ "book" =
+  type$ "inbook" =
+  or
+  type$ "article" =
+  or
+    'author.editor.sort
+    { type$ "proceedings" =
+      type$ "periodical" =
+      or
+        'editor.organization.sort
+        { type$ "manual" =
+            'author.editor.organization.sort
+            'author.sort
+          if$
+        }
+      if$
+    }
+  if$
+  #1 entry.max$ substring$        % added for newapa
+  'sort.label :=                  % added for newapa
+  sort.label                      % added for newapa
+  *
+  "    "
+  *
+  title field.or.null
+  sort.format.title
+  *
+  #1 entry.max$ substring$
+  'sort.key$ :=
+}
+
+
+
+ITERATE { presort }
+
+SORT             % by label, year, author/editor, title
+
+% From plainnat.bst
+STRINGS { longest.label }
+
+INTEGERS { longest.label.width number.label }
+
+FUNCTION {initialize.longest.label}
+{ "" 'longest.label :=
+  #0 int.to.chr$ 'last.label :=
+  "" 'next.extra :=
+  #0 'longest.label.width :=
+  #0 'last.extra.num :=
+  #0 'number.label :=
+}
+
+
+
+FUNCTION { initialize.extra.label.stuff }
+{ #0 int.to.chr$ 'last.label :=
+  "" 'next.extra :=
+  #0 'last.extra.num :=
+}
+
+FUNCTION { forward.pass }
+{
+  % Pass through all entries, comparing current entry to last one.
+  % Need to concatenate year to the stack (done by calc.label) to determine
+  % if two entries are the same (see presort)
+
+  last.label
+  calc.basic.label year field.or.null purify$ #-1 #4 substring$ * % add year
+  #1 entry.max$ substring$ =     % are they equal?
+     { last.extra.num #1 + 'last.extra.num :=
+       last.extra.num int.to.chr$ 'extra.label :=
+     }
+     { "a" chr.to.int$ 'last.extra.num :=
+       "" 'extra.label :=
+       calc.basic.label year field.or.null purify$ #-1 #4 substring$ * % add year
+       #1 entry.max$ substring$ 'last.label := % assign to last.label
+     }
+  if$
+  number.label #1 + 'number.label :=
+}
+
+FUNCTION { reverse.pass }
+{
+  next.extra "b" =
+    { "a" 'extra.label := }
+     'skip$
+  if$
+  label.year extra.label * 'sort.year :=
+  extra.label 'next.extra :=
+}
+
+EXECUTE {initialize.extra.label.stuff}
+EXECUTE {initialize.longest.label}
+
+
+ITERATE {forward.pass}
+
+REVERSE {reverse.pass}
+
+FUNCTION { bib.sort.order }
+{
+  sort.label
+  "    "
+  *
+  year field.or.null sortify
+  *
+  "    "
+  *
+  title field.or.null
+  sort.format.title
+  *
+  #1 entry.max$ substring$
+  'sort.key$ :=
+}
+
+ITERATE { bib.sort.order }
+
+SORT             % by sort.label, year, title --- giving final bib. order.
+
+FUNCTION { begin.bib }
+{
+  %% Set to #0 show 13-digit ISBN in preference to 10-digit ISBN.
+  %% Set to #1 to show both 10-digit and 13-digit ISBNs.
+  #1 'show-isbn-10-and-13 :=
+
+  "%%% -*-BibTeX-*-" writeln
+  "%%% Do NOT edit. File created by BibTeX with style" writeln
+  "%%% ACM-Reference-Format-Journals [18-Jan-2012]." writeln
+  "" writeln
+
+  preamble$ empty.or.unknown
+    'skip$
+    { preamble$ writeln }
+  if$
+  "\begin{thebibliography}{" number.label int.to.str$ * "}" * writeln
+  ""                                                                         writeln
+  "%%% ====================================================================" writeln
+  "%%% NOTE TO THE USER: you can override these defaults by providing"       writeln
+  "%%% customized versions of any of these macros before the \bibliography"  writeln
+  "%%% command.  Each of them MUST provide its own final punctuation,"       writeln
+  "%%% except for \shownote{}, \showDOI{}, and \showURL{}.  The latter two"  writeln
+  "%%% do not use final punctuation, in order to avoid confusing it with"    writeln
+  "%%% the Web address."                                                     writeln
+  "%%%"                                                                      writeln
+  "%%% To suppress output of a particular field, define its macro to expand" writeln
+  "%%% to an empty string, or better, \unskip, like this:"                   writeln
+  "%%%"                                                                      writeln
+  "%%% \newcommand{\showDOI}[1]{\unskip}   % LaTeX syntax"                   writeln
+  "%%%"                                                                      writeln
+  "%%% \def \showDOI #1{\unskip}           % plain TeX syntax"               writeln
+  "%%%"                                                                      writeln
+  "%%% ====================================================================" writeln
+  ""                                                                         writeln
+
+  %% ACM publications do not use CODEN, ISSN, and LCCN data, so their default
+  %% macro wrappers expand to \unskip, discarding their values and unwanted
+  %% space.
+  %%
+  %% For other publications, prior definitions like these may be useful:
+  %%
+  %%     Plain TeX:
+  %%         \def \showCODEN     #1{CODEN #1.}
+  %%         \def \showISSN      #1{ISSN #1.}
+  %%         \def \showLCCN      #1{LCCN #1.}
+  %%
+  %%     LaTeX:
+  %%         \newcommand{\showCODEN}[1]{CODEN #1.}
+  %%         \newcommand{\showISSN}[1]#1{ISSN #1.}
+  %%         \newcommand{\showLCCN}[1]{LCCN #1.}
+
+  "\ifx \showCODEN    \undefined \def \showCODEN     #1{\unskip}     \fi" writeln
+  "\ifx \showDOI      \undefined \def \showDOI       #1{#1}\fi" writeln
+  % ACM styles omit ISBNs, but they can be included by suitable definitions of
+  % \showISBNx and \showISBNxiii before the .bbl file is read
+  "\ifx \showISBNx    \undefined \def \showISBNx     #1{\unskip}     \fi" writeln
+  "\ifx \showISBNxiii \undefined \def \showISBNxiii  #1{\unskip}     \fi" writeln
+  "\ifx \showISSN     \undefined \def \showISSN      #1{\unskip}     \fi" writeln
+  "\ifx \showLCCN     \undefined \def \showLCCN      #1{\unskip}     \fi" writeln
+  "\ifx \shownote     \undefined \def \shownote      #1{#1}          \fi" writeln % NB: final period supplied by add.period$ above
+  "\ifx \showarticletitle \undefined \def \showarticletitle #1{#1}   \fi" writeln
+  "\ifx \showURL      \undefined \def \showURL       {\relax}        \fi" writeln
+  "% The following commands are used for tagged output and should be " writeln
+  "% invisible to TeX" writeln
+  "\providecommand\bibfield[2]{#2}" writeln
+  "\providecommand\bibinfo[2]{#2}" writeln
+  "\providecommand\natexlab[1]{#1}" writeln
+  "\providecommand\showeprint[2][]{arXiv:#2}" writeln
+}
+
+EXECUTE {begin.bib}
+
+EXECUTE {init.state.consts}
+
+ITERATE {call.type$}
+
+FUNCTION { end.bib }
+{
+  newline$
+  "\end{thebibliography}"
+  writeln
+}
+
+EXECUTE {end.bib}
