@@ -14,13 +14,11 @@ We start with the basic types, keeping them abstract since we do not care about 
 actual implementation:
 \begin{agda}\begin{code}
 postulate
-  Address : Set
-  Value : Set
-  BIT : ℕ → Value
+  Value  : Set
+  Hash   : Set
 \end{code}\end{agda}
-We assume there are types representing addresses and bitcoin values, but also require the ability to construct
-a value out of a natural number. In the examples that follow, we assume the simplest representation, where
-both types are the natural numbers.
+For simplicity, we can represent both cryptocurrency values and hashes as natural numbers,
+but we will later provide a more extensive datatype for values, as we shall see in Section~\ref{multicurrency}.
 
 There is also the notion of the \textit{state} of a ledger, which will be provided to transaction scripts and allow
 them to have stateful behaviour for more complicated schemes (e.g. imposing time constraints).
@@ -32,54 +30,103 @@ record State : Set where
 The state components have not been finalized yet, but can easily be extended later when we actually investigate
 examples with expressive scripts that make use of state information, such as the current length of the ledger (\textit{height}).
 
-As mentioned previously, we will not dive into the verification of the cryptological components of the model,
+As mentioned previously, we will not dive into the verification of the cryptographic components of the model,
 hence we postulate an \textit{irreversible} hashing function which, given any value of any type,
-gives back an address (i.e. a natural number) and is furthermore injective (i.e. it is highly unlikely for two different
+gives back an address (i.e. a natural number) and is furthermore \textit{injective} (i.e. it is highly unlikely for two different
 values to have the same hash).
 \begin{agda}\begin{code}
+record HashFunction (A : Set) : Set where
+  field  hashF      : A → Hash
+         injective  : ∀ {x y} → x ♯ ≡ y ♯ → x ≡ y
+
 postulate
-  UL ♯ : ∀ {A : Set} → A → Address
-  ♯-injective : ∀ {x y : A} → x ♯ ≡ y ♯ → x ≡ y
+  UL ♯ : ∀ {A : Set} → HashFunction A
 \end{code}\end{agda}
+For convenience, we postulate a hash function |_♯| that works for all types and
+denote functional application of the first field to an element |x| simply as |x ♯|.
 
 \subsection{Transactions}
+\label{subsec:transactions}
 In order to model transactions that are part of a distributed ledger, we need to first define
 transaction \textit{inputs} and \textit{outputs}.
 \begin{agda}\begin{code}
 record TxOutputRef : Set where
   constructor UL at UR
-  field  id     : Address
+  field  id     : Hash
          index  : ℕ
 
 record TxInput : Set where
   field  outputRef  : TxOutputRef
 ##
-         R  D       : Set
-         redeemer   : State → R
-         validator  : State →  Value →  R →  D →  Bool
+         R  D       : 𝕌
+         redeemer   : State → el R
+         validator  : State → Value → PendingTx → el R → el D → Bool
 \end{code}\end{agda}
 \textit{Output references} consist of the address that a transaction hashes to,
 as well as the index in this transaction's list of outputs.
 \textit{Transaction inputs} refer to some previous output in the ledger, but also contain two types of scripts.
 The \textit{redeemer} provides evidence of authorization to spend the output.
-The \textit{validator} then checks whether this is so, having access to the current state of the ledger, the bitcoin output
+The \textit{validator} then checks whether this is so, having access to the current state of the ledger, the bitcoin output,
+an overview of the current transaction (|PendingTx|)
 and data provided by the redeemer and the \textit{data script} (residing in outputs).
 It is also noteworthy that we immediately model scripts by their \textit{denotational semantics},
 omitting unnecessary details relating to concrete syntax, lexing and parsing.
 
+Notice that the result types of redeemers and data scripts are not any Agda type (|Set|), but rather
+resides in a more restricted universe 𝕌, which can only represent \textit{first-order} data:
+\begin{agda}\begin{code}
+data 𝕌 : Set where
+  UNIT BOOL NAT  : 𝕌
+  LIST           : 𝕌 → 𝕌
+  PRODUCT SUM    : 𝕌 → 𝕌 → 𝕌
+##
+el : 𝕌 → Set
+el  UNIT           = ⊤
+el  BOOL           = Bool
+el  NAT            = ℕ
+el  (PRODUCT x y)  = el x × el y
+el  (SUM x y)      = el x ⊎ el y
+el  (LIST x)       = List (el x)
+\end{code}\end{agda}
+This construction is crucial when we later need to check equality between types,
+since functions would lead to undecidable equality.
+
+\textit{Pending transactions} are collections of hashes, which are involved in the current transaction.
+These consist of the hash of the transaction itself, as well as the hashes for all scripts residing
+in inputs or outputs:
+\begin{agda}\begin{code}
+record PendingTxInput : Set where
+  field
+    validatorHash : Hash
+    redeemerHash  : Hash
+##
+record PendingTxOutput : Set where
+  field
+    dataHash      : Hash
+##
+record PendingTx : Set where
+  field
+    txHash   : Hash
+    inputs   : List PendingTxInput
+    outputs  : List PendingTxOutput
+\end{code}\end{agda}
+
 Transaction outputs send a bitcoin amount to a particular address, which either corresponds to a public key hash of a
 blockchain participant (P2PKH) or a hash of a next transaction's script (P2SH).
-Here, we opt to embrace the \textit{inherently-typed} philosophy of Agda and model available addresses as module parameters.
-That is, we package the following definitions in a module with such a parameter, as shown below:
+Here, we opt to embrace the \textit{inherently-typed} philosophy of Agda and model the type of addresses as
+an \textit{abstract datatype}.
+That is, we package the following definitions in a module with such a parameter, hence allowing whoever
+imports the |UTxO| library to use a custom datatype,
+as long as it is equipped with a hash function and decidable equality:
 \begin{agda}\begin{code}
-module UTxO (addresses : List Address) where
-
+module UTxO (Address : Set) (_ ♯ ^^ SUBA : Hash Address) (_ ≟ SUBA _ : Decidable {A = Address} _ ≡ _) where
+##
 record TxOutput : Set where
   field  value       : Value
-         address     : Index addresses
+         address     : Address
 ##
-         Data        : Set
-         dataScript  : State → Data
+         Data        : 𝕌
+         dataScript  : State → el Data
 
 record Tx : Set where
   field  inputs   : Set⟨ TxInput ⟩
@@ -94,12 +141,10 @@ Ledger = List Tx
 as well as the data script, which provides extra information to the aforementioned validator and allows for more expressive schemes.
 Investigating exactly the extent of this expressiveness is one of the main goals of this thesis.
 
-\TODO{Pending transactions}
-
 For a transaction to be submitted, one has to check that each input can actually spend the output it refers to.
 At this point of interaction, one must combine all scripts, as shown below:
 \begin{agda}\begin{code}
-runValidation : (i : TxInput) → (o : TxOutput) → D i ≡ D o → State → Bool
+runValidation : (i : TxInput) → (o : TxOutput) → D i ≡ Data o → State → Bool
 runValidation i o refl st = validator i st (value o) (redeemer i st) (dataScript o st)
 \end{code}\end{agda}
 Note that the intermediate types carried by the respective input and output must align, evidenced by the
@@ -114,8 +159,8 @@ unspentOutputs []           = ∅
 unspentOutputs (tx ∷ txs)  = (unspentOutputs txs ─ spentOutputsTx tx) ∪ unspentOutputsTx tx
   where
     spentOutputsTx, unspentOutputsTx : Tx → Set⟨ TxOutputRef ⟩
-    spentOutputsTx       = (outputRef <$$> UR) ∘ inputs
-    unspentOutputsTx tx  = ((tx ♯) ^^ at UR) <$$> (indices (outputs tx))
+    spentOutputsTx       = (outputRef ⟨$⟩ UR) ∘ inputs
+    unspentOutputsTx tx  = (tx ♯ ^^ at UR) ⟨$⟩ indices (outputs tx)
 \end{code}\end{agda}
 
 \subsection{Validity of Τransactions}
@@ -147,10 +192,10 @@ record IsValidTx (tx : Tx) (l : Ledger) : Set where
       forge tx + sum (mapWith∈ (inputs tx) λ {i} iin ->
                        lookupValue l i (validTxRefs i iin) (validOutputIndices i iin))
         ≡
-      fee tx + sum (value <$$> outputs tx)
+      fee tx + sum (value ⟨$⟩ outputs tx)
 ##
     noDoubleSpending :
-      noDuplicates (outputRef <$$> inputs tx)
+      noDuplicates (outputRef ⟨$⟩ inputs tx)
 ##
     allInputsValidate :
       ∀ i → (iin : i ∈ inputs tx) ->
@@ -163,7 +208,7 @@ record IsValidTx (tx : Tx) (l : Ledger) : Set where
       ∀ i → (iin : i ∈ inputs tx) ->
         let  out : TxOutput
              out = lookupOutput l (outputRef i) (validTxRefs i iin) (validOutputIndices i iin)
-        in   toℕ (address out) ≡ (validator i) ♯
+        in   toℕ (address out) ≡ validator i ♯
 \end{code}\end{agda}
 The first four conditions make sure the transaction references and types are well-formed, namely that
 inputs refer to actual transactions (\textit{validTxRefs}, \textit{validOutputIndices})
@@ -277,20 +322,24 @@ VDOTS
 \end{code}\end{agda}
 
 We can now precisely define what it means to weaken an address space;
-the only necessary ingredient is a \textit{hash-preserving injection}
+the only necessary ingredient is a \textit{hash-preserving injection}\footnote{
+Preserving hashes means an injection |f| satisfies |∀ {a} → a ♯ ^^ SA ≡ (a ⟨$⟩ f) ♯ ^^ SB|, where
+we denote transporting via an injection with the binary operator |_ ⟨$⟩ _|
+and injections with the mixfix operator |𝔸 , _♯ ^^ SA ↪ 𝔹 , _♯ ^^ SB|.
+}
 from a smaller address space |𝔸| to a larger address space |𝔹|:
 \begin{agda}\begin{code}
 module Weakening
-  (𝔸 : Set) (_♯ SA : Hash 𝔸) (_ ≟ SA _ : Decidable {A = 𝔸} _ ≡ _)
-  (𝔹 : Set) (_♯ SB : Hash 𝔹) (_ ≟ SB _ : Decidable {A = 𝔹} _ ≡ _)
-  (A↪B : 𝔸 , _♯ SA ↪ 𝔹 , _♯ SB)
+  (𝔸 : Set) (_♯ ^^ SA : HashFunction 𝔸) (_ ≟ SA _ : Decidable {A = 𝔸} _ ≡ _)
+  (𝔹 : Set) (_♯ ^^ SB : HashFunction 𝔹) (_ ≟ SB _ : Decidable {A = 𝔹} _ ≡ _)
+  (A↪B : 𝔸 , _♯ ^^ SA ↪ 𝔹 , _♯ ^^ SB)
   where
 ##
-  import UTxO.Validity      𝔸 _♯ SA _ ≟ SA _ as A
-  open import UTxO.Validity 𝔹 _♯ SB _ ≟ SB _ as B
+  import       UTxO.Validity  𝔸 _♯ ^^ SA _ ≟ SA _ as A
+  open import  UTxO.Validity  𝔹 _♯ ^^ SB _ ≟ SB _ as B
 ##
   weakenTxOutput : A.TxOutput → B.TxOutput
-  weakenTxOutput out = out { address = A↪B ⟨$⟩ (address out) }
+  weakenTxOutput out = out { address = A↪B ⟨$⟩ address out }
 ##
   weakenTx : A.Tx → B.Tx
   weakenTx tx = tx { outputs = map weakenTxOutput (outputs tx) }
@@ -370,7 +419,7 @@ first and then combine in a type-safe manner.
 The |dataScript| field in transaction outputs does not appear in the original abstract UTxO model~\cite{utxo},
 but is available in the extended version of the UTxO model used in the Cardano blockchain~\cite{eutxo}.
 This addition raises the expressive level of UTxO-based transaction, since it is now possible
-to simulate stateful behaviour, passing around state in the data scripts (i.e. |D = State|).
+to simulate stateful behaviour, passing around state in the data scripts (i.e. |Data = State|).
 
 This technique is successfully employed in \textit{Marlowe},
 a DSL for financial contracts that compiles down to eUTxO transactions~\cite{marlowe}.
@@ -379,6 +428,7 @@ Using data scripts, compilation is rather straightforward since we can pass arou
 the state of the semantics in the data scripts.
 
 \subsection{Extension II: Multi-currency}
+\label{subsec:multicurrency}
 Many major blockchain systems today support the creation of secondary cryptocurrencies,
 which are independent of the main  currency.
 In Bitcoin, for instance, \textit{colored coins} allow transactions to assign additional meaning to their outputs
@@ -492,9 +542,12 @@ let us revisit the example ledger presented in the Chimeric Ledgers paper~\cite{
 Any blockchain can be visually represented as a \textit{directed acyclic graph} (DAG), with transactions as nodes
 and input-output pairs as edges, as shown in Figure~\ref{fig:utxo-ledger}.
 The six transactions |t₁ DOTS t₆| are self-explanatory, each containing a forge and fee value.
+The are three participants, represented by addresses |ONEB|, |TWOB| and |THREEB|, as well as
+an dedicated address |BIT| for the monetary policy of \bitcoin .
 Notice the special transaction |c₀|, which enforces the monetary policy of currency |BIT| in its outputs (colored in green);
 the two forging transactions |t₁| and |t₄| consume these outputs as requested by the validity condition for |forging|.
-Lastly, there is a single unspent output (coloured in red), namely the single output of |t₆|.
+Lastly, there is a single unspent output (coloured in red), namely the single output of |t₆|:
+this means at the current state address |THREEB| holds \bitcoin~ 999.
 \begin{figure}
 \newcommand\forge[1]{forge: \bitcoin ~#1}
 \newcommand\fee[1]{fee:\hspace{7pt} \bitcoin ~#1}
@@ -545,43 +598,43 @@ Lastly, there is a single unspent output (coloured in red), namely the single ou
   \path
   (t) edge[to]
     node[above]{\bitcoin ~1000}
-    node[below]{@@1}
+    node[below]{@@|ONEB|}
   (tt)
   (tt) edge[to, bend right = 30]
     node[left]{\bitcoin ~200}
-    node[right]{@@1}
+    node[right]{@@|ONEB|}
   (ttt)
   (tt) edge[to]
     node[above]{\bitcoin ~800}
-    node[below]{@@2}
+    node[below]{@@|TWOB|}
   (tfive)
   (ttt) edge[to, bend right = 30]
     node[left]{\bitcoin ~199}
-    node[right]{@@3}
+    node[right]{@@|THREEB|}
   (tfour)
   (tfour) edge[to, bend right = 45]
     node[left]{\bitcoin ~207}
-    node[right]{@@2}
+    node[right]{@@|TWOB|}
   (tfive)
   (tfive) edge[to, transform canvas={yshift=13pt}]
     node[above]{\bitcoin ~500}
-    node[below]{@@2}
+    node[below]{@@|TWOB|}
   (tsix)
   (tfive) edge[to, transform canvas={yshift=-13pt}]
     node[above]{\bitcoin ~500}
-    node[below]{@@3}
+    node[below]{@@|THREEB|}
   (tsix)
   (tsix) edge[to, red]
     node[above]{\bitcoin ~999}
-    node[below]{@@3}
+    node[below]{@@|THREEB|}
   (end)
   (c) edge[to, bend left = 30, green]
     node[left]{\bitcoin-policy}
-    node[right]{@@\bitcoin}
+    node[right]{@@|BIT|}
   (t)
   (c) edge[to, bend right = 40, green]
     node[left]{\bitcoin-policy}
-    node[right]{@@\bitcoin}
+    node[right]{@@|BIT|}
   (tfour)
   ;
 \end{tikzpicture}
@@ -595,11 +648,10 @@ For brevity, we view addresses immediately as hashes:
 Address : Set
 Address = ℕ
 ##
-1 SA , 2 SA , 3 SA , BIT SA : Address
-1 SA    = 111   -- first address
-2 SA    = 222   -- second address
-3 SA    = 333   -- third address
-BIT SA  = 1234  -- currency hash
+ONEB , TWOB , THREEB : Address
+ONEB    = 1 -- first address
+TWOB    = 2 -- second address
+THREEB  = 3 -- third address
 ##
 open import UTxO Address (λ x → x) UL ≟ UR
 \end{code}\end{agda}
@@ -608,13 +660,13 @@ It is also convenient to define some smart constructors up-front:
 
 \begin{agda}\begin{code}
 BIT -validator : State → DOTS → Bool
-BIT -validator (record {height = h}) _ _ _ _ = h ≡ SB 1 ∨ h ≡ SB 4
+BIT -validator (record {height = h}) _ _ _ _ = (h ≡ SB 1) ∨ (h ≡ SB 4)
 ##
 mkValidator : TxOutputRef → (State → Value → PendingTx → (ℕ × ℕ) → ℕ → Bool)
 mkValidator tin _ _ _ tin′ _ = (id tin ≡ SB proj₁ tin′) ∧ (index tin ≡ SB proj₂ tin′)
 ##
 BIT UR : ℕ → Value
-BIT v = [ (BIT SA , v) ]
+BIT v = [ (BIT -validator ♯ , v) ]
 ##
 withScripts : TxOutputRef → TxInput
 withScripts tin = record  { outputRef  = tin
@@ -642,38 +694,38 @@ the first sub-index of each variable refers to the order the transaction are sub
 while the second sub-index refers to which output of the given transaction we select:
 \begin{agda}\begin{code}
 c₀ , t₁ , t₂ , t₃ , t₄ , t₅ , t₆ : Tx
-c₀ = record  { inputs  = []
-             ; outputs = BIT 0 at (BIT -validator ♯) ∷ BIT 0 at (BIT -validator ♯) ∷ []
-             ; forge   = BIT 0
-             ; fee     = BIT 0
+c₀ = record  { inputs   = []
+             ; outputs  = BIT 0 at (BIT -validator ♯) ∷ BIT 0 at (BIT -validator ♯) ∷ []
+             ; forge    = BIT 0
+             ; fee      = BIT 0
              }
 t₁ = record  { inputs   = [ withPolicy c₀₀ ]
-             ; outputs  = [ BIT 1000 at 0 ]
+             ; outputs  = [ BIT 1000 at ONEB ]
              ; forge    = BIT 1000
              ; fee      = BIT 0
              }
 t₂ = record  { inputs   = [ withScripts t₁₀ ]
-             ; outputs  = BIT 800 at 1 ∷ BIT 200 at 0 ∷ []
+             ; outputs  = BIT 800 at TWOB ∷ BIT 200 at ONEB ∷ []
              ; forge    = BIT 0
              ; fee      = BIT 0
              }
 t₃ = record  { inputs   = [ withScripts t₂₁ ]
-             ; outputs  = [ BIT 199 at 2 ]
+             ; outputs  = [ BIT 199 at THREEB ]
              ; forge    = BIT 0
              ; fee      = BIT 1
              }
 t₄ = record  { inputs   = withScripts t₃₀ ∷ withPolicy c₀₁ ∷ []
-             ; outputs  = [ BIT 207 at 1 ]
+             ; outputs  = [ BIT 207 at TWOB ]
              ; forge    = BIT 10
              ; fee      = BIT 2
              }
 t₅ = record  { inputs   = withScripts t₂₀ ∷ withScripts t₄₀ ∷ []
-             ; outputs  = BIT 500 at 1 ∷ BIT 500 at 2 ∷ []
+             ; outputs  = BIT 500 at TWOB ∷ BIT 500 at THREEB ∷ []
              ; forge    = BIT 0
              ; fee      = BIT 7
              }
 t₆ = record  { inputs   = withScripts t₅₀ ∷ withScripts t₅₁ ∷ []
-             ; outputs  = [ BIT 999 at 2 ]
+             ; outputs  = [ BIT 999 at THREEB ]
              ; forge    = BIT 0
              ; fee      = BIT 1
              }
@@ -684,10 +736,9 @@ we use Agda's experimental feature for user-supplied \textit{rewrite rules}:
 \begin{agda}\begin{code}
 PRAGMAL OPTIONS {---rewriting-} PRAGMAR
 postulate
-  eq₀    :  BIT -validator    ♯  ≡  BIT SA
-  eq₁₀   : (mkValidator t₁₀)  ♯  ≡  1 SA
+  eq₁₀   : (mkValidator t₁₀)  ♯  ≡  ONEB
   VDOTS
-  eq₆₀   : (mkValidator t₆₀)  ♯  ≡  3 SA
+  eq₆₀   : (mkValidator t₆₀)  ♯  ≡  THREEB
 ##
 PRAGMAL BUILTIN REWRITE _ ≡ _ PRAGMAR
 PRAGMAL REWRITE eq₀ , eq₁₀ , DOTS , eq₆₀ PRAGMAR
@@ -729,8 +780,8 @@ As an example, we give a sketch of the macro for the |validTxRefs| condition bel
 \begin{agda}\begin{code}
 pattern vtx i iin tx t l =
   `λ i ∶ `TxInput ⇒
-    `λ iin ∶ #0 `∈ (`inputs t) ⇒
-      `Any (`λ tx ⇒ #0 `♯ ^^ `≡ ^^ `id ^^ `outputRef ^^ #2) l
+    `λ iin ∶ #0 ^^ `∈ (`inputs t) ⇒
+      `Any (`λ tx ⇒ #0 ^^ `♯ ^^ ^^ `≡ ^^ `id ^^ ^^ `outputRef ^^ #2) l
 ##
 macro
   validTxRefsM : Term → TC ^^ ⊤

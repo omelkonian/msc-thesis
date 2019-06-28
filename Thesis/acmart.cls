@@ -695,7 +695,7 @@ Computing Machinery]
   \RequirePackage[T1]{fontenc}
 \ifxetex
   \RequirePackage[tt=false]{libertine}
-  \setmonofont{inconsolata}
+  % \setmonofont{Inconsolata}
 \else
   \RequirePackage[tt=false, type1=true]{libertine}
 \fi
@@ -2839,10 +2839,10 @@ Computing Machinery]
     only be used to provide space above/below surrounding
     objects}}{}{}
 \let\ACM@origbaselinestretch\baselinestretch
-\AtEndDocument{\ifx\baselinestretch\ACM@origbaselinestretch\else
-  \ClassError{\@classname}{An attempt to redefine
-    \string\baselinestretch\space detected.  Please do not do this for
-    ACM submissions!}\fi}
+% \AtEndDocument{\ifx\baselinestretch\ACM@origbaselinestretch\else
+%   \ClassError{\@classname}{An attempt to redefine
+%     \string\baselinestretch\space detected.  Please do not do this for
+%     ACM submissions!}\fi}
 \normalsize\normalfont\frenchspacing
 \endinput
 %%
