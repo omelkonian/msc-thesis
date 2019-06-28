@@ -72,8 +72,8 @@ Moving on to actual contracts, we define them by means of a collection of five t
 |U : U| requires the authorization from a participant to proceed
 and |after U : U| allows further execution of the contract only after some time has passed.
 \begin{agda}\begin{code}
-data Contract  :  Value   -- the monetary value it carries
-               →  Values  -- the deposits it presumes
+data Contract  :  Value       -- the monetary value it carries
+               →  List Value  -- the deposits it presumes
                →  Set where
   -- collect deposits and secrets
   put U reveal U if U ⇒ U ∶- U :
@@ -101,7 +101,7 @@ of the |if| part only uses secrets revealed by the same command.
 We also introduce an intuitive syntax for declaring the different branches of a |split| command, emphasizing the
 \textit{linear} nature of the contract's total monetary value:
 \begin{agda}\begin{code}
-UL ⊸ UR : ∀ {vs : Values} → (v : Value) → Contract v vs → ∃[ v ] ^^ ∃[ vs ] ^^ Contract v vs
+UL ⊸ UR : (v : Value) → Contract v vs → ∃[ v ] ^^ ∃[ vs ] ^^ Contract v vs
 UL ⊸ UR {vs} v c = v , vs , c
 \end{code}\end{agda}
 
@@ -117,6 +117,8 @@ record Advertisement (v : Value) (vs SUPC vs SUPG : List Value) : Set where
 Notice that in order to construct an advertisement, one has to also provide proof of the contract's validity with respect to
 the given preconditions, namely that all deposit references in the contract are declared in the precondition
 and each involved participant is required to have a persistent deposit.
+
+\TODO{Update advertisement - 3 indices}
 
 To clarify things so far, let us see a simple example of a contract advertisement:
 \begin{agda}\begin{code}
@@ -173,23 +175,23 @@ ActiveContracts = List (∃[ v ] ^^ ∃[ vs ] ^^ List (Contract v vs))
 data Action (p : Participant)  -- the participant that authorises this action
   :  AdvertisedContracts       -- the contract advertisments it requires
   →  ActiveContracts           -- the active contracts it requires
-  →  Values                    -- the deposits it requires from this participant
+  →  List Value                -- the deposits it requires from this participant
   →  List Deposit              -- the deposits it produces
   →  Set where
 ##
   -- commit secrets to stipulate an advertisement
   HTRI UR  :  (ad : Advertisement v vs SUPC vs SUPG)
-               →  Action p [ v , vs SUPC , vs SUPG , ad ] [] [] []
+           →  Action p [ v , vs SUPC , vs SUPG , ad ] [] [] []
 
   -- spend x to stipulate an advertisement
   U STRI UR  :  (ad : Advertisement v vs SUPC vs SUPG)
-                     →  (i : Index vs SUPG)
-                     →  Action p [ v , vs SUPC , vs SUPG , ad ] [] [ vs SUPG ‼ i ] []
+             →  (i : Index vs SUPG)
+             →  Action p [ v , vs SUPC , vs SUPG , ad ] [] [ vs SUPG ‼ i ] []
 
   -- pick a branch
   U BTRI UR  :  (c : List (Contract v vs))
-                     →  (i : Index c)
-                     →  Action p [] [ v , vs , c ] [] []
+             →  (i : Index c)
+             →  Action p [] [ v , vs , c ] [] []
 
   VDOTS
 \end{code}\end{agda}
@@ -230,33 +232,33 @@ data Configuration′  :  -- $\hspace{22pt}$ current $\hspace{20pt}$ $\times$ $\
 
   -- contract advertisement
   ` U  :  (ad : Advertisement v vs SUPC vs SUPG)
-           →  Configuration′ ([ v , vs SUPC , vs SUPG , ad ] , []) ([] , []) ([] , [])
+       →  Configuration′ ([ v , vs SUPC , vs SUPG , ad ] , []) ([] , []) ([] , [])
 
   -- active contract
   ⟨ U , U ⟩ SUPCC  :  (c : List (Contract v vs)) → Value
-                           →  Configuration′ ([] , []) ([ v , vs , c ] , []) ([] , [])
+                   →  Configuration′ ([] , []) ([ v , vs , c ] , []) ([] , [])
 
   -- deposit redeemable by a participant
   ⟨ UR , U ⟩ SUPD  :  (p : Participant) → (v : Value)
-                           →  Configuration′ ([] , []) ([] , []) ([ p has v ] , [])
+                   →  Configuration′ ([] , []) ([] , []) ([ p has v ] , [])
 
   -- authorization to perform an action
-  UL [ U ]  : (p : Participant) → Action p ads cs vs ds
-                    → Configuration′ ([] , ads) ([] , cs) (ds , ((p has U) <$$> vs))
+  UL [ U ]  :  (p : Participant) → Action p ads cs vs ds
+            →  Configuration′ ([] , ads) ([] , cs) (ds , ((p has U) <$$> vs))
 
   -- committed secret
-  ⟨ U ∶ U ♯ U ⟩  :  Participant →  Secret →  ℕ ⊎ ⊥
-                             →  Configuration′ ([] , []) ([] , []) ([] , [])
+  ⟨ U ∶ U ♯ U ⟩  :  Participant → Secret → ℕ ⊎ ⊥
+                →  Configuration′ ([] , []) ([] , []) ([] , [])
   -- revealed secret
-  U ∶ U ♯ U  :  Participant →  Secret → ℕ
-                         →  Configuration′ ([] , []) ([] , []) ([] , [])
+  U ∶ U ♯ U  :  Participant → Secret → ℕ
+            →  Configuration′ ([] , []) ([] , []) ([] , [])
 
   -- parallel composition
   U | U  :  Configuration′ (ads SUPL , rads SUPL) (cs SUPL , rcs SUPL) (ds SUPL , rds SUPL)
-                 →  Configuration′ (ads SUPR , rads SUPR) (cs SUPR , rcs SUPR) (ds SUPR , rds SUPR)
-                 →  Configuration′  (ads SUPL                    ++ ads SUPR  , rads SUPL  ++ (rads SUPR  ∖ ads SUPL))
-                                    (cs SUPL                     ++ cs SUPR   , rcs SUPL   ++ (rcs SUPR   ∖ cs SUPL))
-                                    ((ds SUPL ∖ rds SUPR)        ++ ds SUPR   , rds SUPL   ++ (rds SUPR   ∖ ds SUPL))
+         →  Configuration′ (ads SUPR , rads SUPR) (cs SUPR , rcs SUPR) (ds SUPR , rds SUPR)
+         →  Configuration′  (ads SUPL                    ++ ads SUPR  , rads SUPL  ++ (rads SUPR  ∖ ads SUPL))
+                            (cs SUPL                     ++ cs SUPR   , rcs SUPL   ++ (rcs SUPR   ∖ cs SUPL))
+                            ((ds SUPL ∖ rds SUPR)        ++ ds SUPR   , rds SUPL   ++ (rds SUPR   ∖ ds SUPL))
 \end{code}\end{agda}
 The indices are quite involved, since we need to record both the current advertisements, stipulated contracts and deposits
 and the required ones for the configuration to become valid. The most interesting case is the parallel composition
@@ -494,7 +496,7 @@ data Label : Set where
   split : Label
 ##
   auth-rev[ _ , _ ] : Participant → Secret → Label
-  rev[ _ , _ ] : Values → Secrets → Label
+  rev[ _ , _ ] : List Value → Secrets → Label
 ##
   withdraw[ _ , _ ] : Participant → Value → Label
 ##

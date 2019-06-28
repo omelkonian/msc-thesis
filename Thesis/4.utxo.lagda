@@ -51,8 +51,10 @@ record TxOutputRef : Set where
   field  id     : Address
          index  : ℕ
 
-record TxInput {R D : Set} : Set where
+record TxInput : Set where
   field  outputRef  : TxOutputRef
+##
+         R  D       : Set
          redeemer   : State → R
          validator  : State →  Value →  R →  D →  Bool
 \end{code}\end{agda}
@@ -72,10 +74,12 @@ That is, we package the following definitions in a module with such a parameter,
 \begin{agda}\begin{code}
 module UTxO (addresses : List Address) where
 
-record TxOutput {D : Set} : Set where
+record TxOutput : Set where
   field  value       : Value
          address     : Index addresses
-         dataScript  : State → D
+##
+         Data        : Set
+         dataScript  : State → Data
 
 record Tx : Set where
   field  inputs   : Set⟨ TxInput ⟩
@@ -89,6 +93,8 @@ Ledger = List Tx
 \textit{Transaction outputs} consist of a bitcoin amount and the address (out of the available ones) this amount is sent to,
 as well as the data script, which provides extra information to the aforementioned validator and allows for more expressive schemes.
 Investigating exactly the extent of this expressiveness is one of the main goals of this thesis.
+
+\TODO{Pending transactions}
 
 For a transaction to be submitted, one has to check that each input can actually spend the output it refers to.
 At this point of interaction, one must combine all scripts, as shown below:
@@ -105,7 +111,7 @@ inductively define the calculation of a ledger's unspent transaction outputs:
 \begin{agda}\begin{code}
 unspentOutputs : Ledger → Set⟨ TxOutputRef ⟩
 unspentOutputs []           = ∅
-unspentOutputs (tx ∷ txs)  = (unspentOutputs txs ∖ spentOutputsTx tx) ∪ unspentOutputsTx tx
+unspentOutputs (tx ∷ txs)  = (unspentOutputs txs ─ spentOutputsTx tx) ∪ unspentOutputsTx tx
   where
     spentOutputsTx, unspentOutputsTx : Tx → Set⟨ TxOutputRef ⟩
     spentOutputsTx       = (outputRef <$$> UR) ∘ inputs
@@ -508,7 +514,7 @@ Lastly, there is a single unspent output (coloured in red), namely the single ou
      ->,
      >=stealth',
      semithick},
-  every matrix/.style={column sep=1cm, row sep=1cm},
+  every matrix/.style={column sep=1.3cm, row sep=1cm},
   font=\footnotesize
   ]
   \matrix{
@@ -530,9 +536,9 @@ Lastly, there is a single unspent output (coloured in red), namely the single ou
     & \node {}; \\
 
     \node {};
-    & \node {};
     & \node[basic box, label = |t₄|] (tfour)
       {\forge{10}\\ \fee{2}};
+    & \node {};
     & \node {}; \\
   };
 
@@ -553,7 +559,7 @@ Lastly, there is a single unspent output (coloured in red), namely the single ou
     node[left]{\bitcoin ~199}
     node[right]{@@3}
   (tfour)
-  (tfour) edge[to, bend right = 30]
+  (tfour) edge[to, bend right = 45]
     node[left]{\bitcoin ~207}
     node[right]{@@2}
   (tfive)
@@ -575,7 +581,7 @@ Lastly, there is a single unspent output (coloured in red), namely the single ou
   (t)
   (c) edge[to, bend right = 40, green]
     node[left]{\bitcoin-policy}
-    node[right]{\hspace{5pt} @@\bitcoin}
+    node[right]{@@\bitcoin}
   (tfour)
   ;
 \end{tikzpicture}
