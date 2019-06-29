@@ -2832,12 +2832,12 @@ Computing Machinery]
   \fi}
 \let\@vspace@orig=\@vspace
 \let\@vspacer@orig=\@vspacer
-\apptocmd{\@vspace}{\ClassWarning{\@classname}{\string\vspace\space should
-    only be used to provide space above/below surrounding
-    objects}}{}{}
-\apptocmd{\@vspacer}{\ClassWarning{\@classname}{\string\vspace\space should
-    only be used to provide space above/below surrounding
-    objects}}{}{}
+% \apptocmd{\@vspace}{\ClassWarning{\@classname}{\string\vspace\space should
+%     only be used to provide space above/below surrounding
+%     objects}}{}{}
+% \apptocmd{\@vspacer}{\ClassWarning{\@classname}{\string\vspace\space should
+%     only be used to provide space above/below surrounding
+%     objects}}{}{}
 \let\ACM@origbaselinestretch\baselinestretch
 % \AtEndDocument{\ifx\baselinestretch\ACM@origbaselinestretch\else
 %   \ClassError{\@classname}{An attempt to redefine

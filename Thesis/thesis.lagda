@@ -92,26 +92,26 @@
 \email{melkon.or@@gmail.com}
 
 \pagestyle{plain}
-%include 0.title.lagda
+%%include 0.title.lagda
 \newpage
-%include 1.intro.lagda
+%%include 1.intro.lagda
 \newpage
-%include 2.background.lagda
+%%include 2.background.lagda
 \newpage
-%include 3.methodology.lagda
+%%include 3.methodology.lagda
 \newpage
-%include 4.utxo.lagda
+%%include 4.utxo.lagda
 \newpage
 %include 5.bitml.lagda
 \newpage
-%include 6.related-work.lagda
+%%include 6.related-work.lagda
 \newpage
-%include 7.future-work.lagda
+%%include 7.future-work.lagda
 \newpage
-%include 8.conclusion.lagda
+%%include 8.conclusion.lagda
 \newpage
 \bibliography{sources}
 \newpage
-%include 9.appendix.lagda
+%%include 9.appendix.lagda
 
 \end{document}

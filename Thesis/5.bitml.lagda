@@ -8,9 +8,14 @@ In this subsection we sketch the formalized part of BitML we have covered so far
 semantics of BitML contracts, as well as an example execution of a contract under these semantics.
 All code is publicly available on Github\site{https://github.com/omelkonian/formal-bitml}.
 
-First, we begin with some basic definitions that will be used throughout this section:
+First, we begin with some basic definitions that will be used throughout this section.
+Instead of giving a fixed datatype of participants, we parametrise our module with a given
+\textit{asbtract datatype} of participants that we can check for equality, as well as
+non-empty list of honest participants:
 \begin{agda}\begin{code}
-module Types (Participant : Set) (Honest : List SUPPLUS Participant) where
+module BitML  (Participant : Set) (_ ≟ SUBP _ : Decidable {A = Participant} _ ≡ _)
+              (Honest : List SPLUS Participant)
+              where
 ##
 Time : Set
 Time = ℕ
@@ -18,33 +23,53 @@ Time = ℕ
 Value : Set
 Value = ℕ
 ##
+Secret : Set
+Secret = String
+##
 record Deposit : Set where
   constructor UL has UR
   field  participant : Participant
          value       : Value
-##
-Secret : Set
-Secret = String
-##
-data Arith : List Secret → Set where DOTS
-ℕ⟦ U ⟧ : ∀ {s} → Arith s → ℕ
-ℕ⟦ U ⟧ = DOTS
-##
-data Predicate : List Secret → Set where DOTS
-𝔹⟦ U ⟧ : ∀ {s} → Predicate s → Bool
-𝔹⟦ U ⟧ = DOTS
 \end{code}\end{agda}
-Instead of giving a fixed datatype of participants, we parametrise our module with a given \textit{universe} of participants
-and a non-empty list of honest participants.
-Representation of time and monetary values is again done using natural numbers,
+Representation of time and monetary values is again simplistic, both modelled as natural numbers.
 while we model participant secrets as simple strings\footnote{
 Of course, one could provide more realistic types (e.g. words of specific length)
-to be closer to the implementation, as shown for the UTxO model in Section~\ref{subsec:eutxo}.
+to be closer to the implementation, as shown for the UTxO model in Section~\ref{sec:eutxo}.
 }.
-A deposits consists of the participant that owns it and the number of bitcoins it carries.
+A deposit consists of the participant that owns it and the number of bitcoins it carries.
+
 We, furthermore, introduce a simplistic language of logical predicates and arithmetic expressions with the usual constructs (e.g. numerical addition, logical conjunction) and give the usual semantics (predicates on booleans and arithmetic on naturals).
 A more unusual feature of these expressions is the ability to calculate length of secrets (within arithmetic expressions)
 and, in order to ensure more type safety later on, all expressions are indexed by the secrets they internally use.
+\begin{agda}\begin{code}
+data Arith : List Secret → Set where
+
+  ` _ : ℕ → Arith []
+
+  `len : (s : Secret) → Arith [ s ]
+
+  _ `+ _ : Arith s SUBL → Arith s SUBR → Arith (s SUBL ++ s SUBR)
+
+  _ `- _ : Arith s SUBL → Arith s SUBR → Arith (s SUBL ++ s SUBR)
+##
+NN _ ⟧ : ∀ {s} → Arith s → ℕ
+NN _ ⟧ = DOTS
+##
+data Predicate : List Secret → Set where
+
+  `True : Predicate []
+
+  _ `∧ _ : Predicate s SUBL → Predicate s SUBR → Predicate (s SUBL ++ s SUBR)
+
+  `¬ _ : ∀ {s} → Predicate s → Predicate s
+
+  _ `≡ _ : Arith s SUBL → Arith s SUBR → Predicate (s SUBL ++ s SUBR)
+
+  _ `< _ : Arith s SUBL → Arith s SUBR → Predicate (s SUBL ++ s SUBR)
+##
+BB _ ⟧ : ∀ {s} → Predicate s → Bool
+BB _ ⟧ = DOTS
+\end{code}\end{agda}
 
 \subsection{Contracts in BitML}
 A \textit{contract advertisement} consists of a set of \textit{preconditions},
@@ -52,95 +77,122 @@ which require some resources from the involved participants prior to the contrac
 and a \textit{contract}, which specifies the rules according to which bitcoins are transferred between participants.
 
 Preconditions either require participants to have a deposit of a certain value on their name (volatile or not) or
-commit to a certain secret. Notice the index of the datatype below, which captures the values of all required deposits:
+commit to a certain secret.
+A \textit{persistent} deposit has to be provided before the contract is stipulated, while a \textit{volatile} deposit
+may be needed dynamically during the execution of the contract.
+Both volatile and persistent deposits required by a precondition are captured in its two type-level indices,
+respectively:
 \begin{agda}\begin{code}
-data Precondition : List Value → Set where
+data Precondition : List Value → List Value → Set where
+
   -- volatile deposit
-  U ? U : Participant → (v : Value) → Precondition [ v ]
+  _ ? _ : Participant → (v : Value) → Precondition [ v ] []
+
   -- persistent deposit
-  U ! U : Participant → (v : Value) → Precondition [ v ]
+  _ ! _ : Participant → (v : Value) → Precondition [] [ v ]
+
   -- committed secret
-  UL ♯ UR : Participant → Secret → Precondition []
+  _ ♯ _ : Participant → Secret → Precondition [] []
+
   -- conjunction
-  U ∧ U : Precondition vs SUBL → Precondition vs SUBR → Precondition (vs SUBL ++ vs SUBR)
+  _ ∧ _  :  Precondition vs SV vs SP → Precondition vs SV ′ vs SP ′
+         →  Precondition (vs SV ++ vs SV ′) (vs SP ++ vs SP ′)
 \end{code}\end{agda}
 
 Moving on to actual contracts, we define them by means of a collection of five types of commands;
 |put| injects participant deposits and revealed secrets in the remaining contract,
 |withdraw| transfers the current funds to a participant,
 |split| distributes the current funds across different individual contracts,
-|U : U| requires the authorization from a participant to proceed
-and |after U : U| allows further execution of the contract only after some time has passed.
+|_ : _| requires the authorization from a participant to proceed
+and |after _ : _| allows further execution of the contract only after some time has passed.
 \begin{agda}\begin{code}
 data Contract  :  Value       -- the monetary value it carries
-               →  List Value  -- the deposits it presumes
+               →  List Value  -- the volatile deposits it presumes
                →  Set where
+
   -- collect deposits and secrets
-  put U reveal U if U ⇒ U ∶- U :
-    (vs : List Value) → (s : Secrets) → Predicate s′  → Contract (v + sum vs) vs′ →  s′ ⊆ s
-    → Contract v (vs′ ++ vs)
+  put _ reveal _ if _ ⇒ _ ∶- _ : ∀ {s′ : List Secret} {
+    →  (vs : List Value) → (s : List Secret) → Predicate s′ → Contract (v + sum vs) vs′
+    →  s′ ⊆ s
+    →  Contract v (vs′ ++ vs)
+
   -- transfer the remaining balance to a participant
-  withdraw : ∀ {v} → Participant → Contract v []
+  withdraw : ∀ {v vs} → Participant → Contract v vs
+
   -- split the balance across different branches
-  split :  (cs : List (∃[ v ] ^^ ∃[ vs ] ^^ Contract v vs))
-        →  Contract (sum (proj₁ <$$> cs)) (concat (proj₂ <$$> cs))
+  split :  ∀ {vs}
+    →  (cs : List (∃[ v ] ^^ Contract v vs))
+    →  Contract (sum (proj₁ ⟨$⟩ cs)) vs
+
   -- wait for participant's authorization
-  U : U : Participant → Contract v vs → Contract v vs
+  _ : _ : Participant → Contract v vs → Contract v vs
+
   -- wait until some time passes
-  after U : U : Time → Contract v vs → Contract v vs
+  after _ : _ : Time → Contract v vs → Contract v vs
 \end{code}\end{agda}
 There is a lot of type-level manipulation across all constructors, since we need to make sure that indices are
 calculated properly. For instance, the total value in a contract constructed by the |split| command is the
 sum of the values carried by each branch.
 The |put| command\footnote{
 |put| comprises of several components and we will omit those that do not contain any helpful information,
-e.g. write |put U ⇒ U| when there are no revealed secrets and the predicate trivially holds.
+e.g. write |put _ ⇒ U| when there are no revealed secrets and the predicate trivially holds.
 } additionally requires an explicit proof that the predicate
 of the |if| part only uses secrets revealed by the same command.
 
 We also introduce an intuitive syntax for declaring the different branches of a |split| command, emphasizing the
 \textit{linear} nature of the contract's total monetary value:
 \begin{agda}\begin{code}
-UL ⊸ UR : (v : Value) → Contract v vs → ∃[ v ] ^^ ∃[ vs ] ^^ Contract v vs
-UL ⊸ UR {vs} v c = v , vs , c
+_ ⊸ _ : ∀ {vs} → (v : Value) → Contract v vs → ∃[ v ] ^^ Contract v vs
+v ⊸ c = v , c
 \end{code}\end{agda}
 
 Having defined both preconditions and contracts, we arrive at the definition of a contract advertisement:
 \begin{agda}\begin{code}
-record Advertisement (v : Value) (vs SUPC vs SUPG : List Value) : Set where
-  constructor U ⟨ U ⟩∶- U
-  field  G      :  Precondition vs
-         C      :  Contracts v vs
-         valid  :  length vs SUPC ≤ length vs SUPG
-                ×  participants SUPG G ++ participants SUPC C ⊆ (participant <$$> persistentDeposits SUPP G)
+record Advertisement (v : Value) (vs SC vs SV vs SP : List Value) : Set where
+  constructor _ ⟨ _ ⟩∶- _
+  field  G      :  Precondition vs SV vs SP
+         C      :  Contracts v vs SC
+         valid  :  length vs SC ≤ length vs SV
+                ×  participants SG G ++ participants SC C ⊆ (participant ⟨$⟩ persistentDeposits G)
 \end{code}\end{agda}
 Notice that in order to construct an advertisement, one has to also provide proof of the contract's validity with respect to
 the given preconditions, namely that all deposit references in the contract are declared in the precondition
 and each involved participant is required to have a persistent deposit.
 
-\TODO{Update advertisement - 3 indices}
-
-To clarify things so far, let us see a simple example of a contract advertisement:
+To clarify things so far, let us see a simple example of a contract advertisement.
+We first open the |BitML| module with a trivial datatype for participants, consisting of |A| and |B|:
 \begin{agda}\begin{code}
-open BitML (A | B) [ A ] SUPPLUS
+data Participant : Set where
+  A B : Participant
+##
+_ ≟ _ : Decidable {A = Participant} _ ≡ _
+A ≟ A = yes refl
+A ≟ B = no λ ()
+B ≟ A = no λ ()
+B ≟ B = yes refl
+##
+Honest : Σ[ ps ∈ List Participant ] (length ps > 0)
+Honest = [ A ] , ≤-refl
+##
+open BitML Participant ^^ _ ≟ _ ^^ [ A ] SPLUS
+\end{code}\end{agda}
 
-ex-ad : Advertisement 5 [ 200 ] (200 ∷ 100 ∷ [])
-ex-ad =  ⟨  B ! 200 ∧ A ! 100 ^^ ⟩
+We then define an advertisement, whose type already says a lot about what is going on;
+it carries \bitcoin ~5, presumes the existence of at least one deposit of \bitcoin ~200, and requires two deposits
+of \bitcoin ~200 and \bitcoin ~100.
+\begin{agda}\begin{code}
+ex-ad : Advertisement 5 [ 200 ] [ 200 ] [ 100 ]
+ex-ad =  ⟨  B ? 200 ∧ A ! 100 ^^ ⟩
           split  (  2 ⊸ withdraw B
                  ⊕  2 ⊸ after 100 ∶ withdraw A
                  ⊕  1 ⊸ put [ 200 ] ⇒ B ∶ withdraw {201} A ∶- DOTS
                  )
           ∶- DOTS
 \end{code}\end{agda}
-We first need to open our module with a fixed set of participants (in this case |A| and |B|).
-We then define an advertisement, whose type already says a lot about what is going on;
-it carries \bitcoin ~5, presumes the existence of at least one deposit of \bitcoin ~200, and requires two deposits
-of \bitcoin ~200 and \bitcoin ~100.
-
 Looking at the precondition itself, we see that the required deposits will be provided by |B| and |A|, respectively.
 The contract first splits the bitcoins across three branches:
 the first one gives \bitcoin ~2 to |B|, the second one gives \bitcoin ~2 to |A| after some time period,
-while the third one retrieves |B|'s deposit of \bitcoin ~200 and allows |B| to authorise the
+while the third one retrieves |B|'s deposit of \bitcoin ~200 and allows |B| to authorize the
 withdrawal of the remaining funds (currently \bitcoin ~201) from |A|.
 
 We have omitted the proofs that ascertain the well-formedness of the |put| command and the advertisement, as
@@ -165,31 +217,32 @@ and an action to pick one branch of a collection of contracts (introduced by the
 We have omitted uninteresting actions concerning the manipulation of deposits, such as dividing, joining, donating and destroying them.
 Since we will often need versions of the types of advertisements/contracts with their
 indices existentially quantified, we first provide aliases for them.
+For convenience in notation, we will sometimes write |∃A| to mean this existential packing of the indices of |A|:
 \begin{agda}\begin{code}
 AdvertisedContracts : Set
-AdvertisedContracts = List (∃[ v ] ^^ ∃[ vs SUPC ] ^^ ∃[ vs SUPG ] ^^ Advertisement v vs SUPC vs SUPG)
+AdvertisedContracts = List (∃[ v ] ^^ ∃[ vs SC ] ^^ ∃[ vs SV ] ^^ ∃[ vs SP ] ^^ Advertisement v vs SC vs SV vs SP)
 ##
 ActiveContracts : Set
 ActiveContracts = List (∃[ v ] ^^ ∃[ vs ] ^^ List (Contract v vs))
 ##
-data Action (p : Participant)  -- the participant that authorises this action
-  :  AdvertisedContracts       -- the contract advertisments it requires
+data Action (p : Participant)  -- the participant that authorizes this action
+  :  AdvertisedContracts       -- the contract advertisements it requires
   →  ActiveContracts           -- the active contracts it requires
   →  List Value                -- the deposits it requires from this participant
   →  List Deposit              -- the deposits it produces
   →  Set where
 ##
   -- commit secrets to stipulate an advertisement
-  HTRI UR  :  (ad : Advertisement v vs SUPC vs SUPG)
-           →  Action p [ v , vs SUPC , vs SUPG , ad ] [] [] []
+  HTRI UR  :  (ad : Advertisement v vs SC vs SV vs SP)
+           →  Action p [ v , vs SC , vs SV , vs SP , ad ] [] [] []
 
   -- spend x to stipulate an advertisement
-  U STRI UR  :  (ad : Advertisement v vs SUPC vs SUPG)
-             →  (i : Index vs SUPG)
-             →  Action p [ v , vs SUPC , vs SUPG , ad ] [] [ vs SUPG ‼ i ] []
+  _ STRI UR  :  (ad : Advertisement v vs SC vs SV vs SP)
+             →  (i : Index vs SP)
+             →  Action p [ v , vs SC , vs SV , vs SP , ad ] [] [ vs SP ‼ i ] []
 
   -- pick a branch
-  U BTRI UR  :  (c : List (Contract v vs))
+  _ BTRI UR  :  (c : List (Contract v vs))
              →  (i : Index c)
              →  Action p [] [ v , vs , c ] [] []
 
@@ -215,9 +268,11 @@ to stipulate the example contract\footnote{
 Notice that we have to make all indices of the advertisement explicit in the second index in the action's type signature.
 }:
 \begin{agda}\begin{code}
-ex-spend : Action A [ 5 , [ 200 ] , 200 ∷ 100 ∷ [] , ex-ad ] [] [ 100 ] []
-ex-spend = ex-ad STRI 1
+ex-spend : Action A [ 5 , [ 200 ] , [ 200 ] , [ 100 ] , ex-ad ] [] [ 100 ] []
+ex-spend = ex-ad STRI 0 SF
 \end{code}\end{agda}
+The |0 SF| is not a mere natural number, but inhibits |Fin (length vs SP)|, which ensures we
+can only construct actions that spend valid persistent deposits.
 
 Configurations are now built from advertisements, active contracts, deposits, action authorizations and committed/revealed secrets:
 \begin{agda}\begin{code}
@@ -227,38 +282,38 @@ data Configuration′  :  -- $\hspace{22pt}$ current $\hspace{20pt}$ $\times$ $\
                      →  List Deposit         × List Deposit
                      →  Set where
 
-  -- empty
+  -- empty configuration
   ∅ : Configuration′ ([] , []) ([] , []) ([] , [])
 
   -- contract advertisement
-  ` U  :  (ad : Advertisement v vs SUPC vs SUPG)
-       →  Configuration′ ([ v , vs SUPC , vs SUPG , ad ] , []) ([] , []) ([] , [])
+  ` _  :  (ad : Advertisement v vs SC vs SV vs SP)
+       →  Configuration′ ([ v , vs SC , vs SV , vs SP , ad ] , []) ([] , []) ([] , [])
 
   -- active contract
-  ⟨ U , U ⟩ SUPCC  :  (c : List (Contract v vs)) → Value
-                   →  Configuration′ ([] , []) ([ v , vs , c ] , []) ([] , [])
+  ⟨ _ , _ ⟩ SCC  :  (c : List (Contract v vs)) → Value
+                 →  Configuration′ ([] , []) ([ v , vs , c ] , []) ([] , [])
 
   -- deposit redeemable by a participant
-  ⟨ UR , U ⟩ SUPD  :  (p : Participant) → (v : Value)
-                   →  Configuration′ ([] , []) ([] , []) ([ p has v ] , [])
+  ⟨ _ , _ ⟩ SDD  :  (p : Participant) → (v : Value)
+                  →  Configuration′ ([] , []) ([] , []) ([ p has v ] , [])
 
   -- authorization to perform an action
-  UL [ U ]  :  (p : Participant) → Action p ads cs vs ds
-            →  Configuration′ ([] , ads) ([] , cs) (ds , ((p has U) <$$> vs))
+  _ [ _ ]  :  (p : Participant) → Action p ads cs vs ds
+           →  Configuration′ ([] , ads) ([] , cs) (ds , ((p has _) ⟨$⟩ vs))
 
   -- committed secret
-  ⟨ U ∶ U ♯ U ⟩  :  Participant → Secret → ℕ ⊎ ⊥
-                →  Configuration′ ([] , []) ([] , []) ([] , [])
+  ⟨ _ ∶ _ ♯ _ ⟩  :  Participant → Secret → Maybe ℕ
+                 →  Configuration′ ([] , []) ([] , []) ([] , [])
   -- revealed secret
-  U ∶ U ♯ U  :  Participant → Secret → ℕ
-            →  Configuration′ ([] , []) ([] , []) ([] , [])
+  _ ∶ _ ♯ _  :  Participant → Secret → ℕ
+             →  Configuration′ ([] , []) ([] , []) ([] , [])
 
   -- parallel composition
-  U | U  :  Configuration′ (ads SUPL , rads SUPL) (cs SUPL , rcs SUPL) (ds SUPL , rds SUPL)
-         →  Configuration′ (ads SUPR , rads SUPR) (cs SUPR , rcs SUPR) (ds SUPR , rds SUPR)
-         →  Configuration′  (ads SUPL                    ++ ads SUPR  , rads SUPL  ++ (rads SUPR  ∖ ads SUPL))
-                            (cs SUPL                     ++ cs SUPR   , rcs SUPL   ++ (rcs SUPR   ∖ cs SUPL))
-                            ((ds SUPL ∖ rds SUPR)        ++ ds SUPR   , rds SUPL   ++ (rds SUPR   ∖ ds SUPL))
+  _ | _  :  Configuration′ (ads SL , rads SL) (cs SL , rcs SL) (ds SL , rds SL)
+         →  Configuration′ (ads SR , rads SR) (cs SR , rcs SR) (ds SR , rds SR)
+         →  Configuration′  (ads SL                  ++ ads SR  , rads SL  ++ (rads SR  ∖ ads SL))
+                            (cs SL                   ++ cs SR   , rcs SL   ++ (rcs SR   ∖ cs SL))
+                            ((ds SL ∖ rds SR)        ++ ds SR   , rds SL   ++ (rds SR   ∖ ds SL))
 \end{code}\end{agda}
 The indices are quite involved, since we need to record both the current advertisements, stipulated contracts and deposits
 and the required ones for the configuration to become valid. The most interesting case is the parallel composition
@@ -276,15 +331,15 @@ Configuration ads cs ds = Configuration′ (ads , []) (cs , []) (ds , [])
 We are now ready to declare the inference rules of the bottom layer of our small-step semantics,
 by defining an inductive datatype modelling the binary step relation between untimed configurations:
 \begin{agda}\begin{code}
-data U —→ U : Configuration ads cs ds → Configuration ads′ cs′ ds′ → Set where
+data _ —→ _ : Configuration ads cs ds → Configuration ads′ cs′ ds′ → Set where
   DEP-AuthJoin :
-    ⟨ A , v ⟩ SUPD | ⟨ A , v′ ⟩ SUPD | Γ —→ ⟨ A , v ⟩ SUPD | ⟨ A , v′ ⟩ SUPD | A [ 0 ↔ 1 ] | Γ
+    ⟨ A , v ⟩ SDD | ⟨ A , v′ ⟩ SDD | Γ —→ ⟨ A , v ⟩ SDD | ⟨ A , v′ ⟩ SDD | A [ 0 ↔ 1 ] | Γ
 ##
   DEP-Join :
-    ⟨ A , v ⟩ SUPD | ⟨ A , v′ ⟩ SUPD | A [ 0 ↔ 1 ] | Γ —→ ⟨ A , v + v′ ⟩ SUPD | Γ
+    ⟨ A , v ⟩ SDD | ⟨ A , v′ ⟩ SDD | A [ 0 ↔ 1 ] | Γ —→ ⟨ A , v + v′ ⟩ SDD | Γ
 ##
   C-Advertise : ∀ {Γ ad}
-    →  ∃[ p ∈ participants SUPG (G ad) ] p ∈ Hon
+    →  ∃[ p ∈ participants SG (G ad) ] p ∈ Hon
        {- $\inferLarge$ -}
     →  Γ —→ ` ad | Γ
 ##
@@ -297,13 +352,13 @@ data U —→ U : Configuration ads cs ds → Configuration ads′ cs′ ds′ �
   C-Control : ∀ {Γ C i D}
     →  C ‼ i ≡ A₁ : A₂ : DOTS : Aₙ : D
        {- $\inferLarge$ -}
-    →  ⟨ C , v ⟩ SUPCC | DOTS A SUBI [ C BTRI i ] DOTS | Γ —→ ⟨ D , v ⟩ SUPCC | Γ
+    →  ⟨ C , v ⟩ SCC | DOTS A SUBI [ C BTRI i ] DOTS | Γ —→ ⟨ D , v ⟩ SCC | Γ
   VDOTS
 \end{code}\end{agda}
 There is a total of 18 rules we need to define, but we choose to depict only a representative subset of them.
-The first pair of rules initially appends the authorisation to merge
+The first pair of rules initially appends the authorization to merge
 two deposits to the current configuration (rule |DEP-AuthJoin|) and then performs the actual join (rule |[DEP-Join]|).
-This is a common pattern across all rules, where we first collect authorisations for an action by all involved participants,
+This is a common pattern across all rules, where we first collect authorizations for an action by all involved participants,
 and then we fire a subsequent rule to perform this action.
 |[C-Advertise]| advertises a new contract, mandating that at least one of the participants involved in the pre-condition
 is honest and requiring that all deposits needed for stipulation are available in the surrounding context.
@@ -314,21 +369,21 @@ choices present in the contract, discarding any time constraints along the way.
 
 It is noteworthy to mention that during the transcriptions of the complete set of rules from the paper~\cite{bitml}
 to our dependently-typed setting,
-we discovered a discrepancy in the |[C-AuthRev]| rule, namely that there was no context $\Gamma$.
-Moreover, in order to later facilitate equational reasoning, we re-factored the |[C-Control]|
-to not contain the inner step as a hypothesis, but instead immediately inject it in the result operand of the step relation.
+we discovered some discrepancies or over-complications, which we document extensively in Section~\ref{subsec:fixes}.
 
 The inference rules above have elided any treatment of timely constraints;
 this is handled by the top layer, whose states are now timed configurations.
-The only interesting inference rule is the one that handles time decorations of the form |after U : U|,
+The only interesting inference rule is the one that handles time decorations of the form |after _ : U|,
 since all other cases are dispatched to the bottom layer (which just ignores timely aspects).
 \begin{agda}\begin{code}
-record Configuration SUPT (ads : AdvertisedContracts) (cs  : ActiveContracts) (ds  : Deposits) : Set where
-  constructor U at U
+record Configuration ST  (ads : AdvertisedContracts)
+                         (cs  : ActiveContracts)
+                         (ds  : Deposits) : Set where
+  constructor _ at _
   field  cfg   : Configuration ads cs ds
          time  : Time
 ##
-data U —→ SUBT U : Configuration SUPT ads cs ds → Configuration SUPT ads′ cs′ ds′ → Set where
+data _ —→ SUBT _ : Configuration ST ads cs ds → Configuration ST ads′ cs′ ds′ → Set where
 
   Action : ∀ {Γ Γ′ t}
     →  Γ —→ Γ′
@@ -341,71 +396,13 @@ data U —→ SUBT U : Configuration SUPT ads cs ds → Configuration SUPT ads�
 
   Timeout : ∀ {Γ Γ′ t i contract}
     →  All (U ≤ t) (timeDecorations (contract ‼ i))  -- all time constraints are satisfied
-    →  ⟨ [ contract ‼ i ] , v ⟩ SUPCC | Γ —→ Γ′          -- resulting state if we pick this branch
+    →  ⟨ [ contract ‼ i ] , v ⟩ SCC | Γ —→ Γ′        -- resulting state if we pick this branch
        {- $\inferMedium$ -}
-    →  (⟨ contract , v ⟩ SUPCC | Γ) at t —→ SUBT Γ′ at t
+    →  (⟨ contract , v ⟩ SCC | Γ) at t —→ SUBT Γ′ at t
 \end{code}\end{agda}
-
-Having defined the step relation in this way allows for equational reasoning, a powerful tool for
-writing complex proofs:
-\begin{agda}\begin{code}
-data U —↠ U : Configuration ads cs ds → Configuration ads′ cs′ ds′ → Set where
-
-  U ∎ : (M : Configuration ads cs ds) → M —↠ M
-
-  U —→ ⟨ U ⟩ U : ∀ {M  N} (L : Configuration ads cs ds)
-    →  L —→ M → M —↠ N
-       {- $\inferMedium$ -}
-    →  L —↠ N
-
-begin U : ∀ {M N} → M —↠ N → M —↠ N
-\end{code}\end{agda}
-
-\subsection{Example}
-We are finally ready to see a more intuitive example of the \textit{timed-commitment protocol}, where a participant
-commits to revealing a valid secret $a$ (e.g. "qwerty") to another participant,
-but loses her deposit of \bitcoin ~1 if she does not meet a certain deadline $t$:
-\begin{agda}\begin{code}
-tc : Advertisement 1 [] (1 ∷ 0 ∷ [])
-tc =  ⟨ A ! 1 ∧ A ♯ a ∧ B ! 0 ⟩ ^^ reveal [ a ] ⇒ withdraw A ∶- DOTS ^^ ⊕ ^^ after t ∶ withdraw B
-\end{code}\end{agda}
-
-Below is one possible reduction in the bottom layer of our small-step semantics, demonstrating the case where
-the participant actually meets the deadline:
-\begin{agda}\begin{code}
-tc-semantics : ⟨ A , 1 ⟩ SUPD —↠ ⟨ A , 1 ⟩ SUPD | A ∶ a ♯ 6
-tc-semantics =
-  begin
-    ⟨ A , 1 ⟩ SUPD
-  —→⟨ C-Advertise ⟩
-    ` tc | ⟨ A , 1 ⟩ SUPD
-  —→⟨ C-AuthCommit ⟩
-    ` tc | ⟨ A , 1 ⟩ SUPD | ⟨A ∶ a ♯ 6⟩ | A [ HTRI tc ]
-  —→⟨ C-AuthInit ⟩
-    ` tc | ⟨ A , 1 ⟩ SUPD | ⟨A ∶ a ♯ 6⟩ | A [ HTRI tc ] | A [ tc STRI 0 ]
-  —→⟨ C-Init ⟩
-    ⟨ tc , 1 ⟩ SUPCC | ⟨ A ∶ a ♯ inj₁ 6 ⟩
-  —→⟨ C-AuthRev ⟩
-    ⟨ tc , 1 ⟩ SUPCC | A ∶ a ♯ 6
-  —→⟨ C-Control ⟩
-    ⟨ [ reveal [ a ] ⇒ withdraw A ∶- DOTS ] , 1 ⟩ SUPCC | A ∶ a ♯ 6
-  —→⟨ C-PutRev ⟩
-    ⟨ [ withdraw A ] , 1 ⟩ SUPCC | A ∶ a ♯ 6
-  —→⟨ C-Withdraw ⟩
-    ⟨ A , 1 ⟩ SUPD | A ∶ a ♯ 6
-  ∎
-\end{code}\end{agda}
-At first, |A| holds a deposit of \bitcoin ~1, as required by the contract's precondition.
-Then, the contract is advertised and the participants slowly provide the corresponding prerequisites
-(i.e. |A| commits to a secret via |C-AuthCommit| and spends the required deposit via |C-AuthInit|,
-while |B| does not do anything).
-After all pre-conditions have been satisfied, the contract is stipulated (rule |C-Init|) and the secret is successfully
-revealed (rule |C-AuthRev|).
-Finally, the first branch is picked (rule |C-Control|) and |A| retrieves her deposit back
-(rules |C-PutRev| and |C-Withdraw|).
 
 \subsection{Reasoning Modulo Permutation}
-In the definitions above, we have assumed that |(UL BAR UR , ∅)| forms a commutative monoid, which allowed us
+In the definitions above, we have assumed that |(UL BAR UR , ∅)| forms a \textit{commutative monoid}, which allowed us
 to always present the required sub-configuration individually on the far left of a composite configuration.
 While such definitions enjoy a striking similarity to the ones appearing in the original paper~\cite{bitml}
 (and should always be preferred in an informal textual setting),
@@ -415,7 +412,7 @@ a deeper understanding of how these systems behave.
 To overcome this intricacy, we introduce an \textit{equivalence relation} on configurations, which holds when
 they are just permutations of one another:
 \begin{agda}\begin{code}
-U ≈ U : Configuration ads cs ds → Configuration ads cs ds → Set
+U ≈ _ : Configuration ads cs ds → Configuration ads cs ds → Set
 c ≈ c′ = cfgToList c ↭ cfgToList c′
   where
     open import Data.List.Permutation using (U ↭ U)
@@ -425,17 +422,17 @@ c ≈ c′ = cfgToList c ↭ cfgToList c′
     cfgToList  (l | r)           = cfgToList l ++ cfgToList r
     cfgToList  {p₁} {p₂} {p₃} c  = [ p₁ , p₂ , p₃ , c ]
 \end{code}\end{agda}
-Given this reordering mechanism, we now need to generalise all our inference rules to implicitly
+Given this reordering mechanism, we now need to generalize all our inference rules to implicitly
 reorder the current and next configuration of the step relation.
 We achieve this by introducing a new variable for each of the operands of the resulting step relations,
 replacing the operands with these variables and requiring that they are
-re-orderings of the previous configurations, as shown in the following generalisation of the |DEP-AuthJoin| rule\footnote{
+re-orderings of the previous configurations, as shown in the following generalization of the |DEP-AuthJoin| rule\footnote{
 In fact, it is not necessary to reorder both ends for the step relation; at least one would be adequate.
 }:
 \begin{agda}\begin{code}
   DEP-AuthJoin :
-       Γ′ ≈ ⟨ A , v ⟩ SUPD | ⟨ A , v′ ⟩ SUPD | Γ                ^^  ∈ Configuration ads cs (A has v ∷ A has v′ ∷ ds)
-    →  Γ″ ≈ ⟨ A , v ⟩ SUPD | ⟨ A , v′ ⟩ SUPD | A [ 0 ↔ 1 ] | Γ  ^^  ∈ Configuration ads cs (A has (v + v′) ∷ ds)
+       Γ′ ≈ ⟨ A , v ⟩ SDD | ⟨ A , v′ ⟩ SDD | Γ                ^^  ∈ Configuration ads cs (A has v ∷ A has v′ ∷ ds)
+    →  Γ″ ≈ ⟨ A , v ⟩ SDD | ⟨ A , v′ ⟩ SDD | A [ 0 ↔ 1 ] | Γ  ^^  ∈ Configuration ads cs (A has (v + v′) ∷ ds)
        {- $\inferMedium$ -}
     →  Γ′ —→ Γ″
 \end{code}\end{agda}
@@ -452,10 +449,83 @@ which tries to bridge the gap between reasoning about isomorphic objects in info
 and the way we achieve this in mechanized formal methods.
 Again, realizing practical systems with such an enriched theory is a topic of current research~\cite{cubical} and no mature implementation exists yet, so we cannot integrate it with our current development in any pragmatic way.
 \item The crucial problems we have encountered so far are attributed to the non-deterministic nature of BitML, which is actually
-inherent in any process calculus. Building upon this idea, we plan to take a step back and investigate different reasoning
-techniques for a minimal process calculus. Once we have an approach that is more suitable, we will incorporate it
-in our full-blown BitML calculus.
+inherent in any process calculus.
+Building upon this idea, we plan to take a step back and investigate
+different reasoning techniques for a minimal process calculus.
+Once we have an approach that is more suitable, we will incorporate it in our full-blown BitML calculus.
+Current efforts are available on Github~\site{https://github.com/omelkonian/formal-process-calculus}.
 \end{itemize}
+
+For the time being, the complexity that arises from having the permutation proofs in the
+premises of \~20 rules, is intractable.
+As a quick workaround, we can factor out the permutation relation in the \textit{reflexive transitive closure}
+of the step relation, which will eventually constitute our equational reasoning device:
+\begin{agda}\begin{code}
+data _ —↠ _ : Configuration ads cs ds → Configuration ads′ cs′ ds′ → Set where
+
+  _ ∎ : (M : Configuration ads cs ds) → M —↠ M
+
+  _ —→ ⟨ _ ⟩ _ : ∀ {M  N} (L : Configuration ads cs ds)
+    →  L′ —→ M′
+    →  M —↠ N
+    →  { _ : L ≈ L′ × M ≈ M′
+       {- $\inferMedium$ -}
+    →  L —↠ N
+
+begin _ : ∀ {M N} → M —↠ N → M —↠ N
+\end{code}\end{agda}
+The permutation relation is actually decidable, so we can always discharge the implicitly required proof,
+similarly to the techniques described in Section~\ref{subsec:utxo-example}.
+
+\subsection{Example: Timed-commitment Protocol}
+We are finally ready to see a more intuitive example of the \textit{timed-commitment protocol}, where a participant
+commits to revealing a valid secret $a$ (e.g. "qwerty") to another participant,
+but loses her deposit of \bitcoin ~1 if she does not meet a certain deadline $t$:
+\begin{agda}\begin{code}
+tc : Advertisement 1 [] [] (1 ∷ 0 ∷ [])
+tc =  ⟨ A ! 1 ∧ A ♯♯ a ∧ B ! 0 ⟩ ^^ reveal [ a ] ⇒ withdraw A ∶- DOTS ^^ ⊕ ^^ after t ∶ withdraw B
+\end{code}\end{agda}
+
+Below is one possible reduction in the bottom layer of our small-step semantics, demonstrating the case where
+the participant actually meets the deadline:
+\begin{agda}\begin{code}
+tc-semantics : ⟨ A , 1 ⟩ SDD —↠ ⟨ A , 1 ⟩ SDD | A ∶ a ^^ ♯ ^^ 6
+tc-semantics =
+  begin
+    ⟨ A , 1 ⟩ SDD
+  —→⟨ C-Advertise DOTS ⟩
+    ` tc | ⟨ A , 1 ⟩ SDD
+  —→⟨ C-AuthCommit DOTS ⟩
+    ` tc | ⟨ A , 1 ⟩ SDD | ⟨A ∶ a ♯♯ 6⟩ | A [ HTRI tc ]
+  —→⟨ C-AuthInit DOTS ⟩
+    ` tc | ⟨ A , 1 ⟩ SDD | ⟨A ∶ a ♯♯ 6⟩ | A [ HTRI tc ] | A [ tc STRI 0 ]
+  —→⟨ C-Init DOTS ⟩
+    ⟨ tc , 1 ⟩ SCC | ⟨ A ∶ a ♯♯ inj₁ 6 ⟩
+  —→⟨ C-AuthRev DOTS ⟩
+    ⟨ tc , 1 ⟩ SCC | A ∶ a ♯♯ 6
+  —→⟨ C-Control DOTS ⟩
+    ⟨ [ reveal [ a ] ⇒ withdraw A ∶- DOTS ] , 1 ⟩ SCC | A ∶ a ♯♯ 6
+  —→⟨ C-PutRev DOTS ⟩
+    ⟨ [ withdraw A ] , 1 ⟩ SCC | A ∶ a ♯♯ 6
+  —→⟨ C-Withdraw DOTS ⟩
+    ⟨ A , 1 ⟩ SDD | A ∶ a ♯♯ 6
+  ∎
+\end{code}\end{agda}
+At first, |A| holds a deposit of \bitcoin ~1, as required by the contract's precondition.
+Then, the contract is advertised and the participants slowly provide the corresponding prerequisites
+(i.e. |A| commits to a secret via |C-AuthCommit| and spends the required deposit via |C-AuthInit|,
+while |B| does not do anything).
+After all pre-conditions have been satisfied, the contract is stipulated (rule |C-Init|) and the secret is successfully
+revealed (rule |C-AuthRev|).
+Finally, the first branch is picked (rule |C-Control|) and |A| retrieves her deposit back
+(rules |C-PutRev| and |C-Withdraw|).
+
+We chose to omit the proofs required at the application of each inference rules (replaced with |DOTS| above),
+since these are tedious and mostly uninteresting. Moreover, we plan to develop decision procedures for these
+proofs\footnote{
+Most proofs of decidability are in the Agda standard library already, but there is still a lot of ``plumbing''
+to be done.
+} to automate this part of the proof development process.
 
 \subsection{Symbolic Model}
 In order to formalize the BitML's symbolic model, we first notice that a constructed derivation
@@ -478,31 +548,17 @@ data Label : Set where
   auth-join[ _ , _ ↔ _ ] : Participant →  DepositIndex → DepositIndex → Label
   join[ _ ↔ _ ] :                         DepositIndex → DepositIndex → Label
 ##
-  auth-divide[ _ , _ ▷ _ , _ ] : Participant →  DepositIndex → Value → Value → Label
-  divide[ _ ▷ _ , _ ] :                         DepositIndex → Value → Value → Label
-##
-  auth-donate[ _ , _ ▷ SD _ ] : Participant →  DepositIndex → Participant → Label
-  donate[ _ ▷ SD _ ] :                         DepositIndex → Participant → Label
-##
-  auth-destroy[ _ , _ ] : Participant → DepositIndex → Label
-  destroy[ _ ] :                              DepositIndex → Label
-##
   advertise[ _ ] : ∃Advertisement → Label
 ##
   auth-commit[ _ , _ , _ ] : Participant → ∃Advertisement → List CommittedSecret → Label
   auth-init[ _ , _ , _ ] : Participant → ∃Advertisement → DepositIndex → Label
   init[ _ ] : ∃Advertisement → Label
 ##
-  split : Label
-##
-  auth-rev[ _ , _ ] : Participant → Secret → Label
-  rev[ _ , _ ] : List Value → Secrets → Label
-##
-  withdraw[ _ , _ ] : Participant → Value → Label
-##
   auth-control[ _ , _ ▷ SB _] : Participant → (c : ∃Contracts) → Index (proj₂ (proj₂ c)) → Label
   control : Label
-##
+
+  VDOTS
+
   delay[ _ ] : Time → Label
 \end{code}\end{agda}
 Notice how we existentially pack indexed types, so that |Label| remains simply-typed.
@@ -518,16 +574,16 @@ data _ —→⟦ _ ⟧ _  :  Configuration ads cs ds
                   →  Set where
   VDOTS
   DEP-AuthJoin :
-    ⟨ A , v ⟩ SUPD | ⟨ A , v′ ⟩ SUPD | Γ
+    ⟨ A , v ⟩ SDD | ⟨ A , v′ ⟩ SDD | Γ
   —→⟦ auth-join[ A , 0 ↔ 1 ] ⟧
-    ⟨ A , v ⟩ SUPD | ⟨ A , v′ ⟩ SUPD | A [ 0 ↔ 1 ] | Γ
+    ⟨ A , v ⟩ SDD | ⟨ A , v′ ⟩ SDD | A [ 0 ↔ 1 ] | Γ
   VDOTS
 \end{code}\end{agda}
 
 Naturally, the reflexive transitive closure of the augmented step relation will now hold a sequence of labels as well:
 \begin{agda}\begin{code}
 data _ —↠⟦ _ ⟧ _  :  Configuration ads cs ds
-                  →  Labels
+                  →  List Label
                   →  Configuration ads′ cs′ ds′
                   →  Set where
 ##
@@ -573,7 +629,7 @@ so we need a \textit{stripping} operation that traverses a configuration with it
 and removes any sensitive information (i.e. committed secrets):
 \begin{agda}\begin{code}
 stripCfg : Configuration′ p₁ p₂ p₃ → Configuration′ p₁ p₂ p₃
-stripCfg ⟨ p ∶ a ♯ _ ⟩  =  ⟨ p ∶ a ♯ nothing ⟩
+stripCfg ⟨ p ∶ a ♯♯ _ ⟩  =  ⟨ p ∶ a ♯♯ nothing ⟩
 stripCfg (l | r ∶- p)   =  stripCfg l | stripCfg r ∶- p
 stripCfg c              =  c
 
@@ -612,7 +668,7 @@ moves with respect to the current trace. These moves have to be \textit{valid}, 
 \begin{agda}\begin{code}
 record HonestStrategy (A : Participant) : Set where
   field
-    strategy  :  Trace → Labels
+    strategy  :  Trace → List Label
 
     valid     :  A ∈ Hon                       {- \hspace{7cm} -}  {- (1) -}
               ×  (∀ R α → α ∈ strategy (R ∗) →                     {- (2) -}
@@ -652,12 +708,12 @@ Naturally, the chosen move is subject to certain conditions and is again a depen
 \begin{agda}\begin{code}
 record AdversarialStrategy (Adv : Participant) : Set where
   field
-    strategy  :  Trace → List (Participant × Labels) → Label
+    strategy  :  Trace → List (Participant × List Label) → Label
 
     valid     :  Adv ∉ Hon                                                                    {- (1) -}
               ×  (∀ {B ad Δ} → B ∉ Hon → α ≡ auth-commit[ B , ad , Δ ] →  {-\hspace{1.5cm}-}  {- (2) -}
                    α ≡ strategy (R ∗) [])
-              ×  ∀ {R : Trace} {moves : List (Participant × Labels)} →                        {- (3) -}
+              ×  ∀ {R : Trace} {moves : List (Participant × List Label)} →                    {- (3) -}
                   let α = strategy (R ∗) moves in
                   (  ∃[ A ]
                        (  A ∈ Hon
@@ -710,7 +766,7 @@ and giving control to the adversary to make the final choice for a label:
 runAdversary : Strategies → Trace → Label
 runAdversary (S† , S) R = strategy S† (R ∗) (runHonestAll (R ∗) S)
   where
-    runHonestAll : Trace → List (Participant × Labels) → HonestMoves
+    runHonestAll : Trace → List (Participant × List Label) → HonestMoves
     runHonestAll R S = mapWith∈ Hon (λ {A} A∈ → A , strategy (S A∈) (R ∗))
 \end{code}\end{agda}
 
@@ -764,6 +820,7 @@ adversarial-move-is-semantic :
 \end{code}\end{agda}
 
 \subsection{BitML Paper Fixes}
+\label{subsec:fixes}
 It is expected in any mechanization of a substantial amount of theoretical work to encounter
 inconsistencies in the pen-and-paper version, ranging from simple typos and omissions to
 fundamental design problems.

@@ -534,7 +534,7 @@ forging? tx l v₁ v₂ =
        in (address out) ♯ ≟ c
 \end{code}\end{agda}
 
-\subsection{Example}
+\subsection{Example: UTxO Ledger}
 \label{subsec:utxo-example}
 To showcase how we can use our model to construct \textit{correct-by-construction} ledgers,
 let us revisit the example ledger presented in the Chimeric Ledgers paper~\cite{chimeric}.
