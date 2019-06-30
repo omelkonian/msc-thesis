@@ -2,6 +2,7 @@
 %% Appendix
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{appendix}
+\noindent
 For the sake of brevity and clarity, we have omitted various technical details
 throughout the presentation of our formal development.
 We present those which we deem relevant in this Appendix.

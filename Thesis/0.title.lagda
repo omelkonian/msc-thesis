@@ -5,7 +5,7 @@
 \vspace{2cm}
 % Title
 {
-\textsc{\Large{Formal Investigation of the Extended UTxO Model}} \\[.5cm]
+\textsc{\Large{Formalizing Extended UTxO and BitML Calculus in Agda}} \\[.5cm]
 \large{\textit{Laying the foundations for the formal verification of smart contracts}}
 \par}
 \vspace{1cm}
@@ -45,12 +45,8 @@ Supervisors: \= Wouter Swierstra (Utrecht University) \\
 %% Abstract
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-\begin{abstract}
-This report serves as the proposal of my MSc thesis, supervised by Wouter Swierstra from
-Utrecht University and Manuel Chakravarty from IOHK.
-\end{abstract}
-
-%% \maketitle
+\section*{Abstract}
+...
 
 \newpage
 \tableofcontents
