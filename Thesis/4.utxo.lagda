@@ -119,7 +119,9 @@ That is, we package the following definitions in a module with such a parameter,
 imports the |UTxO| library to use a custom datatype,
 as long as it is equipped with a hash function and decidable equality:
 \begin{agda}\begin{code}
-module UTxO (Address : Set) (_ ♯ ^^ SUBA : Hash Address) (_ ≟ SUBA _ : Decidable {A = Address} _ ≡ _) where
+module UTxO  (Address : Set)
+             (_ ♯ ^^ SUBA : Hash Address)
+             (_ ≟ SUBA _ : Decidable {A = Address} _ ≡ _) where
 ##
 record TxOutput : Set where
   field  value       : Value
@@ -186,7 +188,7 @@ record IsValidTx (tx : Tx) (l : Ledger) : Set where
       ∀ i → (iin : i ∈ inputs tx) ->
         D i ≡ D (lookupOutput l (outputRef i) (validTxRefs i iin) (validOutputIndices i iin))
 ##
-      {- $\inferVeryLarge$ -}
+      {-$\inferVeryLarge$-}
 ##
     preservesValues :
       forge tx + sum (mapWith∈ (inputs tx) λ {i} iin ->
@@ -747,20 +749,21 @@ PRAGMAL REWRITE eq₀ , eq₁₀ , DOTS , eq₆₀ PRAGMAR
 Below we give a correct-by-construction ledger containing all transactions:
 \begin{agda}\begin{code}
 ex-ledger : ValidLedger (t₆ ∷ t₅ ∷ t₄ ∷ t₃ ∷ t₂ ∷ t₁ ∷ c₀ ∷ [])
-ex-ledger =  ∙ c₀ ∶- record  { DOTS }
-             ⊕ t₁ ∶- record  { validTxRefs           = toWitness {Q = validTxRefs? t₁ l₀} tt
-                             ; validOutputIndices    = toWitness {Q = validOutputIndices? DOTS} tt
-                             ; validOutputRefs       = toWitness {Q = validOutputRef? DOTS} tt
-                             ; validDataScriptTypes  = toWitness {Q = validDataScriptTypes? DOTS} tt
-                             ; preservesValues       = toWitness {Q = preservesValues? DOTS} tt
-                             ; noDoubleSpending      = toWitness {Q = noDoubleSpending? DOTS} tt
-                             ; allInputsValidate     = toWitness {Q = allInputsValidate? DOTS} tt
-                             ; validateValidHashes   = toWitness {Q = validateValidHashes? DOTS} tt
-                             ; forging               = toWitness {Q = forging? DOTS} tt
-                             }
-             ⊕ t₂ ∶- record { DOTS }
-             VDOTS
-             ⊕ t₆ ∶- record { DOTS }
+ex-ledger =
+  ∙  c₀ ∶- record  { DOTS }
+  ⊕  t₁ ∶- record  { validTxRefs           = toWitness {Q = validTxRefs? t₁ l₀} tt
+                   ; validOutputIndices    = toWitness {Q = validOutputIndices? DOTS} tt
+                   ; validOutputRefs       = toWitness {Q = validOutputRef? DOTS} tt
+                   ; validDataScriptTypes  = toWitness {Q = validDataScriptTypes? DOTS} tt
+                   ; preservesValues       = toWitness {Q = preservesValues? DOTS} tt
+                   ; noDoubleSpending      = toWitness {Q = noDoubleSpending? DOTS} tt
+                   ; allInputsValidate     = toWitness {Q = allInputsValidate? DOTS} tt
+                   ; validateValidHashes   = toWitness {Q = validateValidHashes? DOTS} tt
+                   ; forging               = toWitness {Q = forging? DOTS} tt
+                   }
+  ⊕  t₂ ∶- record { DOTS }
+  VDOTS
+  ⊕  t₆ ∶- record { DOTS }
 \end{code}\end{agda}
 First, it is trivial to verify that the only unspent transaction output of our ledger is the output of the last
 transaction $t_6$, as demonstrated below:

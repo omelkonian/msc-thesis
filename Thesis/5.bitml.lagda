@@ -340,18 +340,18 @@ data _ —→ _ : Configuration ads cs ds → Configuration ads′ cs′ ds′ �
 ##
   C-Advertise : ∀ {Γ ad}
     →  ∃[ p ∈ participants SG (G ad) ] p ∈ Hon
-       {- $\inferLarge$ -}
+       {-\inferLine{6cm}-}
     →  Γ —→ ` ad | Γ
 ##
   C-AuthCommit : ∀ {A ad Γ}
     →  secrets (G ad) ≡ a₀ DOTS aₙ
     →  (A ∈ Hon → ∀[ i ∈ 0 DOTS n ] a SUBI ≢ ⊥)
-       {- $\inferLarge$ -}
+       {-\inferLine{8cm}-}
     →  ` ad | Γ —→ ` ad | Γ | DOTS ⟨ A : a SUBI ♯ N SUBI ⟩ DOTS ^^ BAR ^^ A [ ♯▷ ^^ ad ]
 ##
   C-Control : ∀ {Γ C i D}
     →  C ‼ i ≡ A₁ : A₂ : DOTS : Aₙ : D
-       {- $\inferLarge$ -}
+       {-\inferLine{8cm}-}
     →  ⟨ C , v ⟩ SCC | DOTS A SUBI [ C BTRI i ] DOTS | Γ —→ ⟨ D , v ⟩ SCC | Γ
   VDOTS
 \end{code}\end{agda}
@@ -387,17 +387,17 @@ data _ —→ SUBT _ : Configuration ST ads cs ds → Configuration ST ads′ cs
 
   Action : ∀ {Γ Γ′ t}
     →  Γ —→ Γ′
-       {- $\inferSmall$ -}
+       {-\inferLine{3cm}-}
     →  Γ at t —→ SUBT Γ′ at t
 
   Delay : ∀ {Γ t δ}
-       {- $\inferMedium$ -}
+       {-\inferLine{4cm}-}
     →  Γ at t —→ SUBT Γ at (t + δ)
 
   Timeout : ∀ {Γ Γ′ t i contract}
     →  All (U ≤ t) (timeDecorations (contract ‼ i))  -- all time constraints are satisfied
     →  ⟨ [ contract ‼ i ] , v ⟩ SCC | Γ —→ Γ′        -- resulting state if we pick this branch
-       {- $\inferMedium$ -}
+       {-\inferLine{6cm}-}
     →  (⟨ contract , v ⟩ SCC | Γ) at t —→ SUBT Γ′ at t
 \end{code}\end{agda}
 
@@ -431,9 +431,11 @@ In fact, it is not necessary to reorder both ends for the step relation; at leas
 }:
 \begin{agda}\begin{code}
   DEP-AuthJoin :
-       Γ′ ≈ ⟨ A , v ⟩ SDD | ⟨ A , v′ ⟩ SDD | Γ                ^^  ∈ Configuration ads cs (A has v ∷ A has v′ ∷ ds)
-    →  Γ″ ≈ ⟨ A , v ⟩ SDD | ⟨ A , v′ ⟩ SDD | A [ 0 ↔ 1 ] | Γ  ^^  ∈ Configuration ads cs (A has (v + v′) ∷ ds)
-       {- $\inferMedium$ -}
+       Γ′  ≈ ⟨ A , v ⟩ SDD | ⟨ A , v′ ⟩ SDD | Γ
+           ∈ Configuration ads cs (A has v ∷ A has v′ ∷ ds)
+    →  Γ″  ≈ ⟨ A , v ⟩ SDD | ⟨ A , v′ ⟩ SDD | A [ 0 ↔ 1 ] | Γ
+           ∈ Configuration ads cs (A has (v + v′) ∷ ds)
+       {-\inferLine{6cm}-}
     →  Γ′ —→ Γ″
 \end{code}\end{agda}
 
@@ -469,7 +471,7 @@ data _ —↠ _ : Configuration ads cs ds → Configuration ads′ cs′ ds′ �
     →  L′ —→ M′
     →  M —↠ N
     →  { _ : L ≈ L′ × M ≈ M′
-       {- $\inferMedium$ -}
+       {-\inferLine{4cm}-}
     →  L —↠ N
 
 begin _ : ∀ {M N} → M —↠ N → M —↠ N
@@ -587,9 +589,9 @@ data _ —↠⟦ _ ⟧ _  :  Configuration ads cs ds
                   →  Configuration ads′ cs′ ds′
                   →  Set where
 ##
-  _ ∎∎  : (M : Configuration ads cs ds)
+  _ ∎∎ : (M : Configuration ads cs ds)
 
-       {- \inferLine{3cm} -}
+       {-\inferLine{2.5cm}-}
     →  M —↠⟦ [] ⟧ M
 ##
   _ —→⟨ _ ⟩ _ ⊢ _ :  (L : Configuration ads cs ds) {L′ : Configuration ads cs ds}
@@ -598,13 +600,13 @@ data _ —↠⟦ _ ⟧ _  :  Configuration ads cs ds
     →  L′ —→⟦ a ⟧ M′
     →  (L ≈ L′) × (M ≈ M′)
     →  M —↠⟦ as ⟧  N
-       {- \inferLine{8cm} -}
+       {-\inferLine{4cm}-}
     →  L —↠⟦ a ∷ as ⟧ N
 ##
 start_ : {M : Configuration ads cs ds} {N : Configuration ads′ cs′ ds′}
 
   →  M —↠⟦ as ⟧ N
-     {- \inferLine{3cm} -}
+     {-\inferLine{2.5cm}-}
   →  M —↠⟦ as ⟧ N
 
 start M—↠N = M—↠N
@@ -670,16 +672,16 @@ record HonestStrategy (A : Participant) : Set where
   field
     strategy  :  Trace → List Label
 
-    valid     :  A ∈ Hon                       {- \hspace{7cm} -}  {- (1) -}
-              ×  (∀ R α → α ∈ strategy (R ∗) →                     {- (2) -}
+    valid     :  A ∈ Hon                         {-\hspace{7cm}-}  {-(1)-}
+              ×  (∀ R α → α ∈ strategy (R ∗) →                     {-(2)-}
                    ∃[ R′ ] (R ——→⟦ α ⟧ R′))
-              ×  (∀ R α → α ∈ strategy (R ∗) →                     {- (3) -}
+              ×  (∀ R α → α ∈ strategy (R ∗) →                     {-(3)-}
                    Allₘ (_≡ A) (authDecoration α))
-              ×  (∀ R Δ Δ′ ad →                                    {- (4) -}
+              ×  (∀ R Δ Δ′ ad →                                    {-(4)-}
                    auth-commit[ A , ad , Δ  ] ∈ strategy (R ∗) →
                    auth-commit[ A , ad , Δ′ ] ∈ strategy (R ∗) →
                      Δ ≡ Δ′)
-              ×  (∀ R T′ α → α ∈ strategy (R ∗) →                  {- (5) -}
+              ×  (∀ R T′ α → α ∈ strategy (R ∗) →                  {-(5)-}
                    ∃[ α′ ] (R ——→⟦ α′ ⟧ T′) →
                    ∃[ R″ ] (T′ ∷⟦ α ⟧ R ——→⟦ α ⟧ R″) →
                      α ∈ strategy ((T′ ∷⟦ α ⟧ R) ∗))
@@ -710,10 +712,10 @@ record AdversarialStrategy (Adv : Participant) : Set where
   field
     strategy  :  Trace → List (Participant × List Label) → Label
 
-    valid     :  Adv ∉ Hon                                                                    {- (1) -}
-              ×  (∀ {B ad Δ} → B ∉ Hon → α ≡ auth-commit[ B , ad , Δ ] →  {-\hspace{1.5cm}-}  {- (2) -}
+    valid     :  Adv ∉ Hon                                                                    {-(1)-}
+              ×  (∀ {B ad Δ} → B ∉ Hon → α ≡ auth-commit[ B , ad , Δ ] →  {-\hspace{1.5cm}-}  {-(2)-}
                    α ≡ strategy (R ∗) [])
-              ×  ∀ {R : Trace} {moves : List (Participant × List Label)} →                    {- (3) -}
+              ×  ∀ {R : Trace} {moves : List (Participant × List Label)} →                    {-(3)-}
                   let α = strategy (R ∗) moves in
                   (  ∃[ A ]
                        (  A ∈ Hon
