@@ -9,19 +9,20 @@ The majority of the suggestions are straightforward or completely orthogonal to 
 therefore we estimate they can be incorporated in a relatively short-term period.
 
 Most importantly, we give the ambitious vision of integrating our two objects of study, giving rise
-to \textit{certified compiler}; this will constitute a major part of the author's upcoming PhD studies.
+to a \textit{certified compiler} from BitML contracts to UTxO transactions;
+this will constitute a major part of the author's upcoming PhD studies.
 
 \subsection{Extended UTxO}
 
 \subsubsection{Non-fungible Tokens}
 Although we have implemented and formalized support for user-issued cryptocurrencies,
 the multi-currency infrastacture in the current development of Cardano also supports
-\textit{non-fungible tokens} (NFTs).
+\textit{non-fungible tokens} (NFTs)~\cite{eutxo}.
 These tokens represent unique assets that are not interchangable (i.e. fungible) and have
-already be used in crypto-gaming, so that in-game assets are controlled by the player instead of the game developer.
+already be used in crypto-gaming, where in-game assets are controlled by the player instead of the game developer.
 
 In order to accommodate NFTs, a very similar extension to the one employed for the initial support
-for multiple currencies is needed. Specifically, again we have to generalise the |Value| type from
+for multiple currencies is needed. Specifically, again we have to generalize the |Value| type from
 \textit{single-level} maps from currency identifiers to quantities, to \textit{two-level} maps
 that introduce an intermediate level of \textit{tokens}.
 In other words, a currency can hold items of a distinct identity (token), which can in turn
@@ -76,14 +77,14 @@ we could use Agda's latest feature for \textit{tactic arguments} to mitigate the
 for the user to provide any proofs, e.g. when writing contracts or small-step derivations.
 
 \subsubsection{Towards Completeness}
-Continuing my work on the formalization of the BitML paper~\cite{bitml},
+Continuing our work on the formalization of the BitML paper~\cite{bitml},
 there is still a lot of theoretical ground to be covered:
 \begin{itemize}
-\item While I currently have the symbolic model and its meta-theory in place, there are still
+\item While we currently have the symbolic model and its meta-theory in place, there are still
 various holes in the proofs; nothing major, but it is always a good idea to cover all corner cases.
 \item Another import task is to define the computational model; a counterpart of the symbolic model augmented
 with pragmatic computational properties to more closely resemble the low-level details of Bitcoin.
-\item When both symbolic and computational strategies have been formalized, I will be able to finally
+\item When both symbolic and computational strategies have been formalized, we will be able to finally
 prove the correctness of the BitML compiler, which translates high-level BitML contracts to
 low-level standard Bitcoin transactions. The symbolic model concerns the input of the compiler, while
 the computational one concerns the output.
@@ -107,7 +108,7 @@ This is ideal for implementing a small-step interpreter, since our reduction sem
 as a (labelled) transition system itself.
 In fact, this has already been successfully employed by \textit{Marlowe},
 whose implementation of the small-step semantics of its financial contracts
-follows exactly this stateful scheme via data scripts.
+follows exactly this stateful scheme via data scripts\site{https://github.com/input-output-hk/marlowe/blob/master/docs/tutorial-v2.0/marlowe-plutus.md}.
 
 One could argue that the original BitML-to-Bitcoin compiler is less useful than a compiler to our eUTxO formal model,
 due to the latter being more abstract without consideration for ad-hoc features of Bitcoin,
@@ -134,7 +135,7 @@ suggest\site{https://github.com/input-output-hk/marlowe/blob/master/semantics-3.
 They both provide a high-level description of smart contracts
 and they both lend themselves to a operational reduction semantics.
 Looking at the mere size of BitML's inference rules,
-Marlowe's small-step semantics seem a lot simpler.
+Marlowe's small-step semantics seems a lot simpler.
 Therefore, we believe it would be interesting to investigate
 whether BitML's formulation can be simplified, possibly taking inspiration
 by the language constructs of Marlowe.
@@ -154,7 +155,7 @@ so a next step would be to model \textit{Featherweight Solidity}, taking inspira
 approach taken in the formalization of Java using \textit{Featherweight Java}~\cite{featherweightjava}.
 This is generally considered a necessary step to render a feature-full language amendable to
 formal verification.
-Fortunately, there have already been recent efforts in F$^*$ to analyse and
+Fortunately, there have already been recent efforts in F$^*$ to analyze and
 verify Ethereum smart contracts, which already describe a simplified model of Solidity~\cite{short}.
 
 As an initial step, one should try out different example contracts in Solidity and check whether they can be transcribed to

@@ -10,7 +10,7 @@ We present those which we deem relevant in this Appendix.
 \section{Generalized Variables}
 We use Agda's recent capabilities for \textit{generalized variables},
 which allow one to declare variable names of a certain type at the top-level
-and then omit them from their usage in type definitions for clarity.
+and then omit their binding at the usage sites in type definitions for clarity.
 
 Below we give a complete set of all variables used throughout this thesis:
 \begin{agda}\begin{code}
@@ -53,6 +53,7 @@ variable
   SS : Strategies
 \end{code}\end{agda}
 
+\newpage
 \section{List Utilities}
 
 \subsection{Indexed Operations}
@@ -80,7 +81,7 @@ _ ‼ _ := _ : (vs : List A) → Index vs → A → List A
 (_ ∷ xs)  ‼  zero   := y  = y ∷ xs
 (x ∷ xs)  ‼  suc i  := y  = x ∷ (xs ‼ i ⟨ y ⟩)
 \end{code}\end{agda}
-Also note the type-safe operations of lookup (|_ ‼ _|, deletion (|delete|) and update (|_ ‼ _ := _|).
+Also note the type-safe operations of lookup (|_ ‼ _|), deletion (|delete|) and update (|_ ‼ _ := _|).
 
 \subsection{Set-like Interface}
 \label{subsec:set}
@@ -136,69 +137,27 @@ _ ∪ _ : Set' → Set' → Set'
 x@(⟨ xs ⟩∶- DOTS) ∪ y@(⟨ ys ⟩∶- DOTS) = ⟨ xs ++ list (y ─ x) ⟩∶- DOTS
 \end{code}\end{agda}
 
+\newpage
 \section{Decidable Equality}
 Our decision procedures always rely on the fact that we have decidable equality for the types
-involved in the propositions under question (see Section~\ref{subsec:decprop}).
+involved in the propositions under question (see Section~\ref{subsec:decproc}).
 Here, we demonstrate how to decide equality of the type of actions in the
 semantics of BitML, but a very similar procedure applies for all other cases:
 \begin{agda}\begin{code}
 _ ≟ _ : Decidable {A = Action p ads cs vs ds} _ ≡ _
 ##
 (HTRI ad) ≟ (HTRI .ad)      = yes refl
-(HTRI ad) ≟ (.ad ATRI i)  = no λ ()
+(HTRI ad) ≟ (.ad STRI i)  = no λ ()
 ##
-(ad ATRI i) ≟ (HTRI .ad) = no λ ()
-(ad ATRI i) ≟ (.ad TRIˢ i′) with i SET-fin.≟ i′
+(ad STRI i) ≟ (HTRI .ad) = no λ ()
+(ad STRI i) ≟ (.ad TRIˢ i′) with i SET-fin.≟ i′
 ... | no ¬p     = no λ{refl → ¬p refl}
 ... | yes refl  = yes refl
 ##
 (c BTRI i) ≟ (.c BTRI i′) with i SET-fin.≟ i′
 ... | no ¬p     = no λ{refl → ¬p refl}
 ... | yes refl  = yes refl
-##
-(x ↔ y) ≟ (x′ ↔ y′)
-  with x SET-fin.≟ x′
-... | no ¬p     = no λ{refl → ¬p refl}
-... | yes refl
-  with y SET-fin.≟ y′
-... | no ¬p     = no λ{refl → ¬p refl}
-... | yes refl  = yes refl
-(x ↔ y) ≟ (i TRI v₁ , v₂)  = no λ ()
-(x ↔ y) ≟ (i DTRI p′)      = no λ ()
-(x ↔ y) ≟ destroy i        = no λ ()
-##
-(i TRI v₁ , v₂) ≟ (i′ TRI v₁′ , v₂′)
-  with i SET-fin.≟ i′
-... | no ¬p     = no λ{refl → ¬p refl}
-... | yes refl
-  with v₁ SET-ℕ.≟ v₁′
-... | no ¬p     = no λ{refl → ¬p refl}
-... | yes refl
-  with v₂ SET-ℕ.≟ v₂′
-... | no ¬p     = no λ{refl → ¬p refl}
-... | yes refl  = yes refl
-(i TRI v₁ , v₂) ≟ (x ↔ y)       = no λ ()
-(i TRI v₁ , v₂) ≟ (i₁ DTRI p′)  = no λ ()
-(i TRI v₁ , v₂) ≟ destroy i₁    = no λ ()
-##
-(i DTRI a) ≟ (i′ DTRI b)
-  with i SET-fin.≟ i′
-... | no ¬p     = no λ{refl → ¬p refl}
-... | yes refl
-  with a SET-participant.≟ b
-... | no ¬p     = no λ{refl → ¬p refl}
-... | yes refl  = yes refl
-(i DTRI p′) ≟ (x ↔ y)           = no λ ()
-(i DTRI p′) ≟ (i₁ TRI v₁ , v₂)  = no λ ()
-(i DTRI p′) ≟ destroy i₁        = no λ ()
-##
-destroy i ≟ destroy i′
-  with i SET-fin.≟ i′
-... | no ¬p     = no λ{refl → ¬p refl}
-... | yes refl  = yes refl
-destroy i ≟ (x ↔ y)           = no λ ()
-destroy i ≟ (i₁ TRI v₁ , v₂)  = no λ ()
-destroy i ≟ (i₁ DTRI p′)      = no λ ()
+VDOTS
 ##
 _ ∃≟ _ : Decidable {A = ∃Action} _ ≡ _
 (p , ads , cs , vs , ds , a) ∃≟ (p′ , ads′ , cs′ , vs′ , ds′ , a′)
@@ -222,7 +181,7 @@ _ ∃≟ _ : Decidable {A = ∃Action} _ ≡ _
 ... | yes  refl  =  yes refl
 \end{code}\end{agda}
 
-We can then rightfully use the set-like operations, as described in Appendix~\ref{subset:set}:
+We can then rightfully use the set-like operations, as described in Appendix~\ref{subsec:set}:
 \begin{agda}\begin{code}
 import Data.Set' as SET
 module SET-action = SET _ ∃≟ _

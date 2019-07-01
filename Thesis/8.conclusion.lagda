@@ -30,7 +30,7 @@ a game-theoretic reasoning framework for participant strategies, accompanied by
 mechanized meta-theoretical results that gives us more confidence for the model.
 
 Apart from the individual formalization of our two objects of study, we also deem it worthy to investigate
-on how to combine these two, envisioning a \textit{certified compiler} from BitML contracts to
+on how to combine these two, envisioning a \textit{certified compiler} from BitML contracts
 to UTxO-based transactions with (extended) scripts.
 There, any attack scenario that we would discover in BitML's symbolic model,
 could be safely determined to manifest in the UTxO semantics as well.
@@ -39,10 +39,10 @@ While the original BitML paper gives a compiler from BitML contracts to standard
 along with a compilation correctness proof,
 we believe that the abstract UTxO model would be a more suitable target.
 Not only will the translation be more useful, since we abstract away technicalities specific to Bitcoin
-and can accommodate any UTxO-based blockchain system, but also more easier to implement and reason about,
+and can accommodate other UTxO-based blockchains, but also easier to implement and reason about,
 since the added expressivity arising from the extensions will make the translation more straightforward.
 
-Moving to a dependently-typed settings gives you a much more in-depth view on how everything works, but
+Moving to a dependently-typed settings gives us a much more in-depth view on how everything works, but
 there are also a lot of design decisions involved in the choice of datatypes and modelling approaches.
 Throughout the thesis, we have described and justified our own decisions,
 possibly driven by the particular advantages and disadvantages of Agda.
@@ -50,9 +50,9 @@ Nonetheless, there has also been discussion on alternative ways to approach the 
 as thoughts for future directions.
 
 In addition to the mechanization of existing formulations, we sketch a research plan to
-ultimately get our hands on a \textit{certified} compiler from BitML contracts,
+ultimately get our hands on a \textit{certified} compiler from BitML contracts to UTxO transactions,
 where we can reason in the BitML level and safely transfer the results to the actual behaviour in a UTxO-based ledger.
 
 Through our current mechanized results, we hope to have further motivated the
-use of language-oriented type-driven solutions to blockchain semantics in general,
+use of language-oriented, type-driven solutions to blockchain semantics in general,
 and the semantics of smart contract behaviour in particular.

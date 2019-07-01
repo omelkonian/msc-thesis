@@ -5,7 +5,8 @@
 
 Now let us shift our focus to our second subject of study, the BitML calculus for modelling smart contracts.
 In this subsection we sketch the formalized part of BitML we have covered so far, namely the syntax and small-step
-semantics of BitML contracts, as well as an example execution of a contract under these semantics.
+semantics of BitML contracts, its game-theoretic symbolic model,
+as well as an example execution of a contract under these semantics.
 All code is publicly available on Github\site{https://github.com/omelkonian/formal-bitml}.
 
 First, we begin with some basic definitions that will be used throughout this section.
@@ -86,13 +87,13 @@ respectively:
 data Precondition : List Value → List Value → Set where
 
   -- volatile deposit
-  _ ? _ : Participant → (v : Value) → Precondition [ v ] []
+  _ :? _ : Participant → (v : Value) → Precondition [ v ] []
 
   -- persistent deposit
-  _ ! _ : Participant → (v : Value) → Precondition [] [ v ]
+  _ :! _ : Participant → (v : Value) → Precondition [] [ v ]
 
   -- committed secret
-  _ ♯ _ : Participant → Secret → Precondition [] []
+  _ ♯♯ _ : Participant → Secret → Precondition [] []
 
   -- conjunction
   _ ∧ _  :  Precondition vs SV vs SP → Precondition vs SV ′ vs SP ′
@@ -178,18 +179,18 @@ open BitML Participant ^^ _ ≟ _ ^^ [ A ] SPLUS
 \end{code}\end{agda}
 
 We then define an advertisement, whose type already says a lot about what is going on;
-it carries \bitcoin ~5, presumes the existence of at least one deposit of \bitcoin ~200, and requires two deposits
-of \bitcoin ~200 and \bitcoin ~100.
+it carries \bitcoin ~5, presumes the existence of at least one deposit of \bitcoin ~200, and requires a single deposit
+of \bitcoin ~100 before stipulation.
 \begin{agda}\begin{code}
 ex-ad : Advertisement 5 [ 200 ] [ 200 ] [ 100 ]
-ex-ad =  ⟨  B ? 200 ∧ A ! 100 ^^ ⟩
+ex-ad =  ⟨  B :? 200 ∧ A :! 100 ^^ ⟩
           split  (  2 ⊸ withdraw B
                  ⊕  2 ⊸ after 100 ∶ withdraw A
                  ⊕  1 ⊸ put [ 200 ] ⇒ B ∶ withdraw {201} A ∶- DOTS
                  )
           ∶- DOTS
 \end{code}\end{agda}
-Looking at the precondition itself, we see that the required deposits will be provided by |B| and |A|, respectively.
+Looking at the precondition itself, we see that the required deposit will be provided by |A|.
 The contract first splits the bitcoins across three branches:
 the first one gives \bitcoin ~2 to |B|, the second one gives \bitcoin ~2 to |A| after some time period,
 while the third one retrieves |B|'s deposit of \bitcoin ~200 and allows |B| to authorize the
@@ -202,6 +203,7 @@ In fact, we have defined decidable procedures for all such proofs using the
 These automatically discharge all proof obligations, when there are no variables involved.}.
 
 \subsection{Small-step Semantics}
+\label{subsec:bitml-semantics}
 BitML is a \textit{process calculus}, which is geared specifically towards smart contracts.
 Contrary to most process calculi that provide primitive operators for inter-process communication via
 message-passing~\cite{csp}, the BitML calculus does not provide such built-in features.
@@ -435,7 +437,7 @@ In fact, it is not necessary to reorder both ends for the step relation; at leas
            ∈ Configuration ads cs (A has v ∷ A has v′ ∷ ds)
     →  Γ″  ≈ ⟨ A , v ⟩ SDD | ⟨ A , v′ ⟩ SDD | A [ 0 ↔ 1 ] | Γ
            ∈ Configuration ads cs (A has (v + v′) ∷ ds)
-       {-\inferLine{6cm}-}
+       {-\inferLine{8cm}-}
     →  Γ′ —→ Γ″
 \end{code}\end{agda}
 
@@ -455,37 +457,49 @@ inherent in any process calculus.
 Building upon this idea, we plan to take a step back and investigate
 different reasoning techniques for a minimal process calculus.
 Once we have an approach that is more suitable, we will incorporate it in our full-blown BitML calculus.
-Current efforts are available on Github~\site{https://github.com/omelkonian/formal-process-calculus}.
+Current efforts are available on Github\site{https://github.com/omelkonian/formal-process-calculus}.
 \end{itemize}
 
 For the time being, the complexity that arises from having the permutation proofs in the
-premises of \~20 rules, is intractable.
+premises of each and every one of the 18 rules, is sadly intractable.
 As a quick workaround, we can factor out the permutation relation in the \textit{reflexive transitive closure}
 of the step relation, which will eventually constitute our equational reasoning device:
 \begin{agda}\begin{code}
 data _ —↠ _ : Configuration ads cs ds → Configuration ads′ cs′ ds′ → Set where
+##
+  _ ∎ :
 
-  _ ∎ : (M : Configuration ads cs ds) → M —↠ M
+       (M : Configuration ads cs ds)
+       {-\inferLine{2.5cm}-}
+    →  M —↠ M
+##
+  _ —→⟨ _ ⟩ _ : ∀ {L′ M M′ N}
 
-  _ —→ ⟨ _ ⟩ _ : ∀ {M  N} (L : Configuration ads cs ds)
+    →  (L : Configuration ads cs ds)
     →  L′ —→ M′
     →  M —↠ N
-    →  { _ : L ≈ L′ × M ≈ M′
+    →  { _ : L ≈ L′ × M ≈ M′ }
        {-\inferLine{4cm}-}
     →  L —↠ N
+##
+begin _ : ∀ {M N}
 
-begin _ : ∀ {M N} → M —↠ N → M —↠ N
+  →  M —↠ N
+     {-\inferLine{2.5cm}-}
+  →  M —↠ N
+begin x = x
 \end{code}\end{agda}
 The permutation relation is actually decidable, so we can always discharge the implicitly required proof,
 similarly to the techniques described in Section~\ref{subsec:utxo-example}.
 
 \subsection{Example: Timed-commitment Protocol}
+\label{subsec:bitml-example}
 We are finally ready to see a more intuitive example of the \textit{timed-commitment protocol}, where a participant
 commits to revealing a valid secret $a$ (e.g. "qwerty") to another participant,
 but loses her deposit of \bitcoin ~1 if she does not meet a certain deadline $t$:
 \begin{agda}\begin{code}
 tc : Advertisement 1 [] [] (1 ∷ 0 ∷ [])
-tc =  ⟨ A ! 1 ∧ A ♯♯ a ∧ B ! 0 ⟩ ^^ reveal [ a ] ⇒ withdraw A ∶- DOTS ^^ ⊕ ^^ after t ∶ withdraw B
+tc =  ⟨ A :! 1 ∧ A ♯♯ a ∧ B :! 0 ⟩ ^^ reveal [ a ] ⇒ withdraw A ∶- DOTS ^^ ⊕ ^^ after t ∶ withdraw B
 \end{code}\end{agda}
 
 Below is one possible reduction in the bottom layer of our small-step semantics, demonstrating the case where
@@ -589,27 +603,28 @@ data _ —↠⟦ _ ⟧ _  :  Configuration ads cs ds
                   →  Configuration ads′ cs′ ds′
                   →  Set where
 ##
-  _ ∎∎ : (M : Configuration ads cs ds)
+  _ ∎  :
 
+       (M : Configuration ads cs ds)
        {-\inferLine{2.5cm}-}
     →  M —↠⟦ [] ⟧ M
 ##
-  _ —→⟨ _ ⟩ _ ⊢ _ :  (L : Configuration ads cs ds) {L′ : Configuration ads cs ds}
-                     {M M′ : Configuration ads′ cs′ ds′} {N : Configuration ads″ cs″ ds″}
+  _ —→⟨ _ ⟩ _ : ∀ {L′ M M′ N}
 
+    →  (L : Configuration ads cs ds)
     →  L′ —→⟦ a ⟧ M′
-    →  (L ≈ L′) × (M ≈ M′)
     →  M —↠⟦ as ⟧  N
+    →  { _ : L ≈ L′ × M ≈ M′ }
        {-\inferLine{4cm}-}
     →  L —↠⟦ a ∷ as ⟧ N
 ##
-start_ : {M : Configuration ads cs ds} {N : Configuration ads′ cs′ ds′}
+begin _ : ∀ {M N}
 
   →  M —↠⟦ as ⟧ N
      {-\inferLine{2.5cm}-}
   →  M —↠⟦ as ⟧ N
 
-start M—↠N = M—↠N
+begin x = x
 \end{code}\end{agda}
 The timed variants of the step relation follow exactly the same procedure, so we do not repeat the definitions here.
 
@@ -692,8 +707,8 @@ Recall that |Hon| is non-empty, i.e. there is always at least one honest partici
 Condition $(3)$ states that one cannot authorize moves for other participants,
 condition $(4)$ requires that the lengths of committed secrets are \textit{coherent}
 (i.e. no different lengths for the same secrets across moves) and
-condition $(5)$ dictates that decisions are \textit{consistent}, so as moves that are not chosen will still be
-selected by the strategy in a future run (if they are still valid).
+condition $(5)$ dictates that decisions are \textit{consistent}, such that moves that are not chosen will still be
+selected by the strategy in a future run (if they remain valid).
 
 All honest participants should be accompanied by such a strategy,
 so we pack all honest strategies in one single datatype:
@@ -766,7 +781,7 @@ namely by retrieving possible moves from all honest participants
 and giving control to the adversary to make the final choice for a label:
 \begin{agda}\begin{code}
 runAdversary : Strategies → Trace → Label
-runAdversary (S† , S) R = strategy S† (R ∗) (runHonestAll (R ∗) S)
+runAdversary (S† , S) R = strategy ^^ S† ^^ (R ∗) (runHonestAll (R ∗) S)
   where
     runHonestAll : Trace → List (Participant × List Label) → HonestMoves
     runHonestAll R S = mapWith∈ Hon (λ {A} A∈ → A , strategy (S A∈) (R ∗))
@@ -803,11 +818,11 @@ we can formally prove that stripping preserves the small-step semantics:
   (∀ A s     → α ≢ auth-rev[ A , s ]) →
   (∀ A ad Δ  → α ≢ auth-commit[ A , ad , Δ ])
   →  ( ∀ T′  →  R   ——→⟦ α ⟧ T′
-                {-\inferLine{3cm}-}
+                {-\inferLine{2.5cm}-}
              →  R ∗ ——→⟦ α ⟧ T′ ∗ )
 
   ×  ( ∀ T′  →  R ∗ ——→⟦ α ⟧ T′
-                {-\inferLine{3cm}-}
+                {-\inferLine{5cm}-}
              →  ∃[ T″ ] (R ——→⟦ α ⟧ T″) × (T′ ∗ ≡ T″ ∗ )
 \end{code}\end{agda}
 The second part of the conclusion states that if we have a transition from a stripped state,
@@ -824,7 +839,7 @@ adversarial-move-is-semantic :
 \subsection{BitML Paper Fixes}
 \label{subsec:fixes}
 It is expected in any mechanization of a substantial amount of theoretical work to encounter
-inconsistencies in the pen-and-paper version, ranging from simple typos and omissions to
+inconsistencies in the pen-and-paper version, ranging from simple typographical mistakes and omissions to
 fundamental design problems.
 This is certainly one of the primary selling points for formal verification;
 corner cases that are difficult to find by testing or similar methods, can instead be discovered with rigorous formal methods.
@@ -841,11 +856,11 @@ When rule |C-AuthRev| is presented in the original BitML paper,
 it seems to act on an atomic configuration |⟨ A ∶ α ♯ ℕ ⟩|. This renders the rule useless in any practical scenario,
 so we extend the rule to include a surrounding context:
 \begin{agda}\begin{code}
-⟨ A ∶ s ♯ just n ⟩ ∣∣ Γ —→⟦ auth-rev[ A , s ] ⟧ A ∶ s ♯ n ∣∣ Γ
+⟨ A ∶ s ♯ just n ⟩ ∣ Γ —→⟦ auth-rev[ A , s ] ⟧ A ∶ s ♯ n ∣ Γ
 \end{code}\end{agda}
 
 \paragraph{Small-step Derivations as Equational Reasoning}
-In Section~\ref{} , we saw an example derivation of our small-step semantics, given in an equational-reasoning style.
+In Section~\ref{subsec:bitml-example}, we saw an example derivation of our small-step semantics, given in an equational-reasoning style.
 This is possible, because the involved rules follow a certain format.
 
 Alas, rule |C-Control| includes another transition in its premises which results in the same state |Γ′| as the transition in
@@ -857,7 +872,7 @@ since this branching will break our sequential way of presenting the proof step 
 
 To avoid this issue, notice how we can ``linearize'' the proof structure by removing the premise and replacing the
 target configuration of the conclusion with the source configuration of the removed premise.
-Our version of |C-Control| reflects this important refactoring.
+Our version of |C-Control| in Section~\ref{subsec:bitml-semantics} reflects this important refactoring.
 
 \paragraph{Conditions for Adversarial Strategies}
 Moves chosen by an adversarial strategy come in two forms: labels and pairs |(A , j)| of an honest participant |A|

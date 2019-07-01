@@ -28,17 +28,18 @@
 \vspace{1cm}
 % University logo
 \includegraphics[width=0.4\linewidth]{logo.pdf} \\[.5cm]
-\vspace{1cm}
+\vspace{.5cm}
 %Date
-{\Large July 2019}
-\vspace{1cm}
+{\Large July 2019 \par}
+\vspace{1.5cm}%
 % Supervisors
 {
 \Large
-\begin{tabbing}
-Supervisors: \= Wouter Swierstra (Utrecht University) \\
-             \> Manuel M.T. Chakravarty (Input Output HK)
-\end{tabbing}
+\begin{tabular}{lll}
+Supervisors:       & Wouter Swierstra        & (Utrecht University) \\
+                   & Manuel M.T. Chakravarty & (Input Output HK)    \\[5pt]
+2$^{nd}$ Examiner: & Gabriele Keller         & (Utrecht University) \\
+\end{tabular}
 \par}
 \end{minipage}\end{center}
 

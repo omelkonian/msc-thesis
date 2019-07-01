@@ -7,7 +7,8 @@
 %   1. hashes
 %   2. private-pub key pairs for encryption/authentication
 
-\subsection{Distributed Ledger Technology: Blockchain} \label{subsec:dlt}
+\subsection{Distributed Ledger Technology: Blockchain}
+\label{subsec:dlt}
 Cryptocurrencies rely on distributed ledgers, where there is no central authority managing the accounts
 and keeping track of the history of transactions.
 
@@ -27,7 +28,8 @@ and generally leads to more robust and fair management of assets.
 While cryptocurrencies are the major application of blockchain systems, one could easily
 use them for any kind of valuable asset, or even as general distributed databases.
 
-\subsection{Smart Contracts} \label{subsec:smartcontracts}
+\subsection{Smart Contracts}
+\label{subsec:smartcontracts}
 Most blockchain systems come equipped with a scripting language, where one can write
 \textit{smart contracts} that dictate how a transaction operates. A smart contract
 could, for instance, pose restrictions on who can redeem the output funds of a transaction.
@@ -55,7 +57,8 @@ In the next section, we will discuss the two main forms of accounting models:
 \item \textbf{Account-based}: stateful models that explicitly model interaction between \textit{user accounts}
 \end{enumerate}
 
-\subsection{UTxO-based: Bitcoin} \label{subsec:bitcoin}
+\subsection{UTxO-based: Bitcoin}
+\label{subsec:bitcoin}
 The primary example of a UTxO-based blockchain is Bitcoin~\cite{bitcoin}.
 Its blockchain is a linear sequence of \textit{blocks} of transactions,
 starting from the initial \textit{genesis} block.
@@ -79,7 +82,7 @@ in order to have more predictable behaviour.
 Moreover, only a very restricted set of ``template" programs are considered standard, i.e.
 allowed to be relayed from node to node.
 
-\newcommand\ttt{\texttt}
+\newcommand\ttt[1]{\texttt{\footnotesize{#1}}}
 \newcommand\stack[1]{\text{\ttt{#1}}}
 \newcommand\Semantics[1]{\llbracket \stack{#1} \rrbracket}
 
@@ -116,7 +119,7 @@ when the execution of the script below evaluates to \ttt{True}.
 \]
 
 To clarify, assume a scenario where Alice want to pay Bob \bitcoin ~10.
-Bob provides Alice with the cryptographic hash of his public key (\ttt{<pub\#>})
+Bob provides Alice with the cryptographic hash of his public key \ttt{<pub\#>}
 and Alice can submit a transaction of \bitcoin ~10 with the following output script:
 \[
   \stack{OP\_DUP OP\_HASH <pub\#> OP\_EQ OP\_CHECKSIG}
@@ -160,7 +163,7 @@ the contracts in a \textit{symbolic} setting.
 
 The authors then provide a compiler from BitML contracts to 'standard' Bitcoin transactions, proven
 correct via a correspondence between the symbolic model and the computational model operating on
-the Bitcoin blockchain. We will return for a more formal treatment of BitML in Section~\ref{subsec:bitml}.
+the Bitcoin blockchain. We will return for a more formal treatment of BitML in Section~\ref{sec:bitml}.
 
 \subsubsection{Extended UTxO}
 In this work, we will consider the version of the UTxO model used by IOHK's Cardano blockchain\site{www.cardano.org}.
@@ -170,7 +173,7 @@ This, however, does not concern our study of the abstract accounting model, thus
 refrain from formally modelling and comparing different consensus techniques.
 
 The actual extension we care about is the inclusion of \textit{data scripts} in transaction
-outputs, which essentially provide the validation script in the corresponding input with additional
+outputs, which essentially provides the validation script in the corresponding input with additional
 information of an arbitrary type.
 
 This extension of the UTxO model has already been
@@ -182,7 +185,8 @@ hopefully bringing it on par with Ethereum's account-based scripting model (see 
 However, there is no formal argument to support this claim, and it is the goal of this thesis
 to provide the first formal investigation of the expressiveness introduced by this extension.
 
-\subsection{Account-based: Ethereum} \label{subsec:ethereum}
+\subsection{Account-based: Ethereum}
+\label{subsec:ethereum}
 On the other side of the spectrum, lies the second biggest cryptocurrency today, Ethereum~\cite{ethereum}.
 In contrast to UTxO-based systems, Ethereum has a built-in notion of user addresses and operates on a
 stateful accounting model. It goes even further to distinguish \textit{human accounts}

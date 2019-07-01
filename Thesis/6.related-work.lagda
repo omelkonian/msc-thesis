@@ -33,10 +33,10 @@ be realized either statically or dynamically.
 
 \paragraph{Verifying Liquidity in BitML Contracts}
 The BitML compiler that accompanies the original paper~\cite{bitml}, written in
-Racket~\site{https://github.com/bitml-lang/bitml-compiler},
+Racket\site{https://github.com/bitml-lang/bitml-compiler},
 also provides a \textit{model checker} to verify \textit{liquidity} of contracts written in its DSL;
-liquid contracts never freeze funds, thus making them irredeemable by any participant\footnote{
-An example vulnerability occurred in the Ethereum Parity Wallet, which froze \~ 160$M$ USD.
+liquid contracts never freeze funds, i.e. making them irredeemable by any participant\footnote{
+An example vulnerability occurred in the Ethereum Parity Wallet, which froze \textasciitilde 160$M$ USD.
 }.
 
 The crucial observation that makes verification possible, is that liquidity is a decidable
@@ -69,11 +69,11 @@ is Setzer's effort to model Bitcoin in Agda~\cite{setzer}.
 There, Setzer utilizes an extended form of Agda's unique feature of \textit{induction-recursion};
 the types of transactions and ledgers are mutually, inductively defined
 and, at the same time, the set of unspent transaction outputs is recursively computed.
-This mitigates the need to carry proofs that ascertain all lookups succeed and references has valid targets.
+This mitigates the need to carry proofs that ascertain all lookups succeed and references have valid targets.
 
 Alas, these advanced techniques create a significant gap between the pen-and-paper mathematical formulation
 and the corresponding mechanized model.
 This is the primary reason we chose to have a simpler treatment of the basic types,
-treating the well-scopedness of lookups extrinsically (i.e. in the |IsValidTx| dependent record).
+treating the well-scopedness of lookups extrinsically (i.e. within the |IsValidTx| dependent record).
 Another reason for being skeptical to such a statically-defined model is the difficulty
 to later extend it with dynamic operations, such as continuous change of the participant set.
