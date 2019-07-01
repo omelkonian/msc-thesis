@@ -2,16 +2,16 @@
 \thispagestyle{empty}
 \begin{center}\begin{minipage}{0.8\linewidth}
 \centering
-\vspace{2cm}
+\vspace{1cm}
 % Title
 {
-\textsc{\Large{Formalizing Extended UTxO and BitML Calculus in Agda}} \\[.5cm]
-\large{\textit{Laying the foundations for the formal verification of smart contracts}}
+\textsc{\large{Formalizing Extended UTxO and BitML Calculus in Agda}} \\[.5cm]
+\textit{Laying the foundations for the formal verification of smart contracts}
 \par}
 \vspace{1cm}
 % Author's name
 {
-\Large Orestis Melkonian
+\large Orestis Melkonian
 \par}
 \vspace{1cm}
 % Line
@@ -30,11 +30,10 @@
 \includegraphics[width=0.4\linewidth]{logo.pdf} \\[.5cm]
 \vspace{.5cm}
 %Date
-{\Large July 2019 \par}
+{\large July 2019 \par}
 \vspace{1.5cm}%
 % Supervisors
 {
-\Large
 \begin{tabular}{lll}
 Supervisors:       & Wouter Swierstra        & (Utrecht University) \\
                    & Manuel M.T. Chakravarty & (Input Output HK)    \\[5pt]

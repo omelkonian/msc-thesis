@@ -164,7 +164,8 @@ inductively define the calculation of a ledger's unspent transaction outputs:
 \begin{agda}\begin{code}
 unspentOutputs : Ledger → Set⟨ TxOutputRef ⟩
 unspentOutputs []           = ∅
-unspentOutputs (tx ∷ txs)  = (unspentOutputs txs ─ spentOutputsTx tx) ∪ unspentOutputsTx tx
+unspentOutputs (tx ∷ txs)  =  (unspentOutputs txs ─ spentOutputsTx tx)
+                           ∪  unspentOutputsTx tx
   where
     spentOutputsTx, unspentOutputsTx : Tx → Set⟨ TxOutputRef ⟩
     spentOutputsTx       = (outputRef ⟨$⟩ UR) ∘ inputs
@@ -184,7 +185,7 @@ record IsValidTx (tx : Tx) (l : Ledger) : Set where
     validOutputIndices :
       ∀ i → (iin : i ∈ inputs tx) ->
         index (outputRef i) <
-          length (outputs (lookupTx l (outputRef i) (validTxRefs i iin)))
+          length (outputs (lookupTx i iin l validTxRefs))
 ##
     validOutputRefs :
       ∀ i → i ∈ inputs tx ->
@@ -192,13 +193,14 @@ record IsValidTx (tx : Tx) (l : Ledger) : Set where
 ##
     validDataScriptTypes :
       ∀ i → (iin : i ∈ inputs tx) ->
-        D i ≡ D (lookupOutput l (outputRef i) (validTxRefs i iin) (validOutputIndices i iin))
+        let  out = lookupOutput i iin l validTxRefs validOutputIndices
+        in   D i ≡ Data out
 ##
       {-$\inferVeryLarge$-}
 ##
     preservesValues :
       forge tx + sum (mapWith∈ (inputs tx) λ {i} iin ->
-                       lookupValue l i (validTxRefs i iin) (validOutputIndices i iin))
+                       lookupValue i iin l validTxRefs validOutputIndices)
         ≡
       fee tx + sum (value ⟨$⟩ outputs tx)
 ##
@@ -207,13 +209,13 @@ record IsValidTx (tx : Tx) (l : Ledger) : Set where
 ##
     allInputsValidate :
       ∀ i → (iin : i ∈ inputs tx) ->
-        let  out = lookupOutput l (outputRef i) (validTxRefs i iin) (validOutputIndices i iin)
+        let  out = lookupOutput i iin l validTxRefs validOutputIndices
              ptx = mkPendingTx l tx validTxRefs validOutputIndices
         in   T (runValidation ptx i out (validDataScriptTypes i iin) (getState l))
 ##
     validateValidHashes :
       ∀ i → (iin : i ∈ inputs tx) ->
-        let  out = lookupOutput l (outputRef i) (validTxRefs i iin) (validOutputIndices i iin)
+        let  out = lookupOutput i iin l validTxRefs validOutputIndices
         in   (address out) ♯ ≡ validator i ♯
 \end{code}\end{agda}
 The first four conditions make sure the transaction references and types are well-formed, namely that
@@ -226,7 +228,8 @@ namely that the bitcoin values sum up properly (\textit{preservesValues}), no ou
 validation succeeds for each input-output pair (\textit{allInputsValidate}) and outputs hash to the hash of their corresponding
 validator script (\textit{validateValidHashes}).
 
-The definitions of lookup functions are omitted, as they are uninteresting. The only important design choice is that,
+The definitions of lookup functions are omitted, as they are uninteresting.
+The only important design choice is that,
 instead of modelling lookups as partial functions (i.e. returning |Maybe|), they require a membership
 proof as an argument moving the responsibility to the caller (as evidenced by their usage in the validity conditions).
 
@@ -488,7 +491,7 @@ record IsValidTx (tx : Tx) (l : Ledger) : Set where
   forging :
     ∀ c → c ∈ keys (forge tx) →
       ∃[ i ] ^^ ∃ λ (iin : i ∈ inputs tx) →
-        let out = lookupOutput l (outputRef i) (validTxRefs i iin) (validOutputIndices i iin)
+        let out = lookupOutput i iin l validTxRefs validOutputIndices
         in (address out) ♯ ≡ c
 \end{code}\end{agda}
 The rest of the conditions are the same, modulo the replacement of |_ + _| with |_ + SC _|
@@ -516,15 +519,15 @@ Now it is straightforward to give a proof of decidability for |forging|:
 forging? : ∀ (tx : Tx) (l : Ledger)
   →  (v₁  : ∀ i → i ∈ inputs tx → Any (λ t → t ♯ ≡ id (outputRef i)) l)
   →  (v₂  : ∀ i → (iin : i ∈ inputs tx) →
-          index (outputRef i) < length (outputs (lookupTx l (outputRef i) (v₁ i iin))))
+          index (outputRef i) < length (outputs (lookupTx i iin l v₁)))
   →  Dec (∀  c → c ∈ keys (forge tx) →
              ∃[ i ] ^^ ∃ λ (iin : i ∈ inputs tx) →
-               let out = lookupOutput l (outputRef i) (v₁ i iin) (v₂ i iin)
+               let out = lookupOutput i iin l v₁ v₂
                in (address out) ♯ ≡ c)
 forging? tx l v₁ v₂ =
   ∀? (keys (forge tx)) λ c _ →
     ∃? (inputs tx) λ i iin →
-       let out = lookupOutput l (outputRef i) (v₁ i iin) (v₂ i iin)
+       let out = lookupOutput i iin l v₁ v₂
        in (address out) ♯ ≟ c
 \end{code}\end{agda}
 
@@ -657,7 +660,8 @@ It is also convenient to define some smart constructors up-front:
 BIT -validator : State → DOTS → Bool
 BIT -validator (record {height = h}) _ _ _ _ = (h ≡ SB 1) ∨ (h ≡ SB 4)
 ##
-mkValidator : TxOutputRef → (State → Value → PendingTx → (ℕ × ℕ) → ℕ → Bool)
+mkValidator  :  TxOutputRef
+             →  State → Value → PendingTx → (ℕ × ℕ) → ℕ → Bool
 mkValidator tin _ _ _ tin′ _ = (id tin ≡ SB proj₁ tin′) ∧ (index tin ≡ SB proj₂ tin′)
 ##
 BIT UR : ℕ → Value
@@ -743,20 +747,21 @@ Below we give a correct-by-construction ledger containing all transactions:
 \begin{agda}\begin{code}
 ex-ledger : ValidLedger (t₆ ∷ t₅ ∷ t₄ ∷ t₃ ∷ t₂ ∷ t₁ ∷ c₀ ∷ [])
 ex-ledger =
-  ∙  c₀ ∶- record  { DOTS }
-  ⊕  t₁ ∶- record  { validTxRefs           = toWitness {Q = validTxRefs? t₁ l₀} tt
-                   ; validOutputIndices    = toWitness {Q = validOutputIndices? DOTS} tt
-                   ; validOutputRefs       = toWitness {Q = validOutputRef? DOTS} tt
-                   ; validDataScriptTypes  = toWitness {Q = validDataScriptTypes? DOTS} tt
-                   ; preservesValues       = toWitness {Q = preservesValues? DOTS} tt
-                   ; noDoubleSpending      = toWitness {Q = noDoubleSpending? DOTS} tt
-                   ; allInputsValidate     = toWitness {Q = allInputsValidate? DOTS} tt
-                   ; validateValidHashes   = toWitness {Q = validateValidHashes? DOTS} tt
-                   ; forging               = toWitness {Q = forging? DOTS} tt
-                   }
-  ⊕  t₂ ∶- record { DOTS }
+  ∙  c₀  ∶- record  { DOTS }
+  ⊕  t₁  ∶- record
+         { validTxRefs           = toWitness {Q = validTxRefs? t₁ l₀} tt
+         ; validOutputIndices    = toWitness {Q = validOutputIndices? DOTS} tt
+         ; validOutputRefs       = toWitness {Q = validOutputRef? DOTS} tt
+         ; validDataScriptTypes  = toWitness {Q = validDataScriptTypes? DOTS} tt
+         ; preservesValues       = toWitness {Q = preservesValues? DOTS} tt
+         ; noDoubleSpending      = toWitness {Q = noDoubleSpending? DOTS} tt
+         ; allInputsValidate     = toWitness {Q = allInputsValidate? DOTS} tt
+         ; validateValidHashes   = toWitness {Q = validateValidHashes? DOTS} tt
+         ; forging               = toWitness {Q = forging? DOTS} tt
+         }
+  ⊕  t₂  ∶- record { DOTS }
   VDOTS
-  ⊕  t₆ ∶- record { DOTS }
+  ⊕  t₆  ∶- record { DOTS }
 \end{code}\end{agda}
 First, it is trivial to verify that the only unspent transaction output of our ledger is the output of the last
 transaction $t_6$, as demonstrated below:
@@ -813,7 +818,8 @@ with one that uses \textit{implicit} tactic arguments instead:
 \begin{agda}\begin{code}
 _ ⊕ _  :  ValidLedger l
        →  (tx : Tx)
-       →  {@(tactic validTxRefsM) : ∀ i → i ∈ inputs tx -> Any (λ t → t ♯ ≡ id (outputRef i)) l
+       →  {@(tactic validTxRefsM) : ∀ i  → i ∈ inputs tx →
+                                         Any (λ t → t ♯ ≡ id (outputRef i)) l
        →  DOTS
        →  ValidLedger (tx ∷ l)
 (l ⊕ tx) {vtx} DOTS  = l ⊕ tx ∶- record { validTxRefs = vtx , DOTS }

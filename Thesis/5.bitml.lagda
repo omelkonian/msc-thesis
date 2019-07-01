@@ -113,7 +113,8 @@ data Contract  :  Value       -- the monetary value it carries
 
   -- collect deposits and secrets
   put _ reveal _ if _ ⇒ _ ∶- _ : ∀ {s′ : List Secret} {
-    →  (vs : List Value) → (s : List Secret) → Predicate s′ → Contract (v + sum vs) vs′
+    →  (vs : List Value) → (s : List Secret) → Predicate s′
+    →  Contract (v + sum vs) vs′
     →  s′ ⊆ s
     →  Contract v (vs′ ++ vs)
 
@@ -154,7 +155,9 @@ record Advertisement (v : Value) (vs SC vs SV vs SP : List Value) : Set where
   field  G      :  Precondition vs SV vs SP
          C      :  Contracts v vs SC
          valid  :  length vs SC ≤ length vs SV
-                ×  participants SG G ++ participants SC C ⊆ (participant ⟨$⟩ persistentDeposits G)
+                ×  participants SG G ++ participants SC C
+                      ⊆
+                   participant ⟨$⟩ persistentDeposits G
 \end{code}\end{agda}
 Notice that in order to construct an advertisement, one has to also provide proof of the contract's validity with respect to
 the given preconditions, namely that all deposit references in the contract are declared in the precondition
@@ -222,10 +225,10 @@ indices existentially quantified, we first provide aliases for them.
 For convenience in notation, we will sometimes write |∃A| to mean this existential packing of the indices of |A|:
 \begin{agda}\begin{code}
 AdvertisedContracts : Set
-AdvertisedContracts = List (∃[ v ] ^^ ∃[ vs SC ] ^^ ∃[ vs SV ] ^^ ∃[ vs SP ] ^^ Advertisement v vs SC vs SV vs SP)
+AdvertisedContracts = List (∃[ v ] ∃[ vs SC ] ∃[ vs SV ] ∃[ vs SP ] Advertisement v vs SC vs SV vs SP)
 ##
 ActiveContracts : Set
-ActiveContracts = List (∃[ v ] ^^ ∃[ vs ] ^^ List (Contract v vs))
+ActiveContracts = List (∃[ v ] ∃[ vs ] List (Contract v vs))
 ##
 data Action (p : Participant)  -- the participant that authorizes this action
   :  AdvertisedContracts       -- the contract advertisements it requires
@@ -397,8 +400,8 @@ data _ —→ SUBT _ : Configuration ST ads cs ds → Configuration ST ads′ cs
     →  Γ at t —→ SUBT Γ at (t + δ)
 
   Timeout : ∀ {Γ Γ′ t i contract}
-    →  All (U ≤ t) (timeDecorations (contract ‼ i))  -- all time constraints are satisfied
-    →  ⟨ [ contract ‼ i ] , v ⟩ SCC | Γ —→ Γ′        -- resulting state if we pick this branch
+    →  All (U ≤ t) (timeDecorations (contract ‼ i)) -- all time constraints are satisfied
+    →  ⟨ [ contract ‼ i ] , v ⟩ SCC | Γ —→ Γ′ -- resulting state if we pick this branch
        {-\inferLine{6cm}-}
     →  (⟨ contract , v ⟩ SCC | Γ) at t —→ SUBT Γ′ at t
 \end{code}\end{agda}
@@ -419,7 +422,8 @@ c ≈ c′ = cfgToList c ↭ cfgToList c′
   where
     open import Data.List.Permutation using (U ↭ U)
 
-    cfgToList : Configuration′ p₁ p₂ p₃ → List (∃[ p₁ ] ^^ ∃[ p₂ ] ^^ ∃[ p₃ ] ^^ Configuration′ p₁ p₂ p₃)
+    cfgToList  :  Configuration′ p₁ p₂ p₃
+               →  List (∃[ p₁ ] ^^ ∃[ p₂ ] ^^ ∃[ p₃ ] ^^ Configuration′ p₁ p₂ p₃)
     cfgToList  ∅                 = []
     cfgToList  (l | r)           = cfgToList l ++ cfgToList r
     cfgToList  {p₁} {p₂} {p₃} c  = [ p₁ , p₂ , p₃ , c ]
@@ -437,7 +441,7 @@ In fact, it is not necessary to reorder both ends for the step relation; at leas
            ∈ Configuration ads cs (A has v ∷ A has v′ ∷ ds)
     →  Γ″  ≈ ⟨ A , v ⟩ SDD | ⟨ A , v′ ⟩ SDD | A [ 0 ↔ 1 ] | Γ
            ∈ Configuration ads cs (A has (v + v′) ∷ ds)
-       {-\inferLine{6cm}-}
+       {-\inferLine{8cm}-}
     →  Γ′ —→ Γ″
 \end{code}\end{agda}
 
@@ -566,11 +570,13 @@ data Label : Set where
 ##
   advertise[ _ ] : ∃Advertisement → Label
 ##
-  auth-commit[ _ , _ , _ ] : Participant → ∃Advertisement → List CommittedSecret → Label
+  auth-commit[ _ , _ , _ ] :
+    Participant → ∃Advertisement → List CommittedSecret → Label
   auth-init[ _ , _ , _ ] : Participant → ∃Advertisement → DepositIndex → Label
   init[ _ ] : ∃Advertisement → Label
 ##
-  auth-control[ _ , _ ▷ SB _] : Participant → (c : ∃Contracts) → Index (proj₂ (proj₂ c)) → Label
+  auth-control[ _ , _ ▷ SB _] :
+    Participant → (c : ∃Contracts) → Index (proj₂ (proj₂ c)) → Label
   control : Label
 
   VDOTS
@@ -727,10 +733,10 @@ record AdversarialStrategy (Adv : Participant) : Set where
   field
     strategy  :  Trace → List (Participant × List Label) → Label
 
-    valid     :  Adv ∉ Hon                                                                    {-(1)-}
-              ×  (∀ {B ad Δ} → B ∉ Hon → α ≡ auth-commit[ B , ad , Δ ] →  {-\hspace{1.5cm}-}  {-(2)-}
+    valid     :  Adv ∉ Hon                                                                   {-(1)-}
+              ×  (∀ {B ad Δ} → B ∉ Hon → α ≡ auth-commit[ B , ad , Δ ] →  {-\hspace{.5cm}-}  {-(2)-}
                    α ≡ strategy (R ∗) [])
-              ×  ∀ {R : Trace} {moves : List (Participant × List Label)} →                    {-(3)-}
+              ×  ∀ {R : Trace} {moves : List (Participant × List Label)} →                   {-(3)-}
                   let α = strategy (R ∗) moves in
                   (  ∃[ A ]
                        (  A ∈ Hon
@@ -747,7 +753,8 @@ record AdversarialStrategy (Adv : Participant) : Set where
                   ⊎  ∃[ δ ]
                        (  (α ≡ delay[ δ ])
                        ×  All (λ{ (_ , Λ)  →  (Λ ≡ [])
-                                           ⊎  Any (λ{ delay[ δ′ ] → δ′ ≥ δ ; _ → ⊥ }) Λ}) moves )
+                                           ⊎  Any (λ{  delay[ δ′ ] → δ′ ≥ δ
+                                                    ;  _ → ⊥ }) Λ}) moves )
                   ⊎  ∃[ B ] ∃[ s ]
                        (  α ≡ auth-rev[ B , s ]
                        ×  B ∉ Hon

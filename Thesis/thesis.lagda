@@ -1,4 +1,4 @@
-\documentclass[10pt,acmsmall,nonacm,screen]{acmart}
+\documentclass[11pt,acmsmall,nonacm,screen]{acmart}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Bibliography style
