@@ -4,8 +4,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Distributed ledger technology creates issues
-Blockchain technology has opened a whole array of interesting new applications
-(e.g. secure multi-party computation\cite{mpc}, fair protocol design fair\cite{fair}, zero-knowledge proof systems\cite{zeroproof}).
+Blockchain technology has opened a whole array of interesting new applications, such as
+multi-party computation~\cite{mpc}, fair protocol design fair~\cite{fair} and zero-knowledge proof systems~\cite{zeroproof}.
 Nonetheless, reasoning about the behaviour of such systems is an exceptionally hard task, mainly due to their distributed nature.
 Moreover, the fiscal nature of the majority of these applications requires a much higher degree of rigorousness compared to
 conventional IT applications, hence the need for a more formal account of their behaviour.
@@ -49,7 +49,7 @@ Section~\ref{sec:eutxo} describes the formalization of an abstract model for UTx
 \item % BitML
 Section~\ref{sec:bitml} concerns the formalization of our second object of study, the Bitcoin Modelling Language.
 \item % Related Work
-Section~\ref{sec:related} gives an overview of relavant previous work, ranging
+Section~\ref{sec:related} gives an overview of relevant previous work, ranging
 from static analysis tools to type-driven verification approaches.
 \item % Future Work
 Section~\ref{sec:future} discusses possible next steps to continue the line of work

@@ -95,8 +95,7 @@ while this is not possible for imperative programs that contain side-effectful c
 Therefore, we hope that these principles will be reflected in the proof process itself;
 one would reason about purely functional UTxO-based ledgers in a compositional manner.
 
-
-This section gives an overview of the progress made so far in the on-going Agda formalization of the two main subjects of study,
+The following sections give an overview of the progress made so far in the on-going Agda formalization of the two main subjects of study,
 namely the Extended UTxO model and the BitML calculus.
 For the sake of brevity, we refrain from showing the full Agda code along with the complete proofs, but rather
 provide the most important datatypes and formalized results and explain crucial design choices we made along the way.

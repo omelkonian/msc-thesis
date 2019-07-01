@@ -18,7 +18,7 @@ postulate
   Hash   : Set
 \end{code}\end{agda}
 For simplicity, we can represent both cryptocurrency values and hashes as natural numbers,
-but we will later provide a more extensive datatype for values, as we shall see in Section~\ref{multicurrency}.
+but we will later provide a more extensive datatype for values, as we shall see in Section~\ref{subsec:multicurrency}.
 
 There is also the notion of the \textit{state} of a ledger, which will be provided to transaction scripts and allow
 them to have stateful behaviour for more complicated schemes (e.g. imposing time constraints).
@@ -73,7 +73,7 @@ It is also noteworthy that we immediately model scripts by their \textit{denotat
 omitting unnecessary details relating to concrete syntax, lexing and parsing.
 
 Notice that the result types of redeemers and data scripts are not any Agda type (|Set|), but rather
-resides in a more restricted universe 𝕌, which can only represent \textit{first-order} data:
+reside in a more restricted universe 𝕌, which can only represent \textit{first-order} data:
 \begin{agda}\begin{code}
 data 𝕌 : Set where
   UNIT BOOL NAT  : 𝕌
@@ -146,13 +146,19 @@ Investigating exactly the extent of this expressiveness is one of the main goals
 For a transaction to be submitted, one has to check that each input can actually spend the output it refers to.
 At this point of interaction, one must combine all scripts, as shown below:
 \begin{agda}\begin{code}
-runValidation : (i : TxInput) → (o : TxOutput) → D i ≡ Data o → State → Bool
-runValidation i o refl st = validator i st (value o) (redeemer i st) (dataScript o st)
+runValidation  :  PendingTx
+               →  (i : TxInput)
+               →  (o : TxOutput)
+               →  D i ≡ Data o
+               →  State
+               →  Bool
+runValidation ptx i o refl st = validator i st (value o) ptx (redeemer i st) (dataScript o st)
 \end{code}\end{agda}
 Note that the intermediate types carried by the respective input and output must align, evidenced by the
 equality proof that is required as an argument.
 
 \subsection{Unspent Τransaction Οutputs}
+\label{subsec:utxo}
 With the basic modelling of a ledger and its transaction in place, it is fairly straightforward to
 inductively define the calculation of a ledger's unspent transaction outputs:
 \begin{agda}\begin{code}
@@ -201,16 +207,14 @@ record IsValidTx (tx : Tx) (l : Ledger) : Set where
 ##
     allInputsValidate :
       ∀ i → (iin : i ∈ inputs tx) ->
-        let  out : TxOutput
-             out = lookupOutput l (outputRef i) (validTxRefs i iin) (validOutputIndices i iin)
-        in   ∀ (st : State) ->
-               T (runValidation i out (validDataScriptTypes i iin) st)
+        let  out = lookupOutput l (outputRef i) (validTxRefs i iin) (validOutputIndices i iin)
+             ptx = mkPendingTx l tx validTxRefs validOutputIndices
+        in   T (runValidation ptx i out (validDataScriptTypes i iin) (getState l))
 ##
     validateValidHashes :
       ∀ i → (iin : i ∈ inputs tx) ->
-        let  out : TxOutput
-             out = lookupOutput l (outputRef i) (validTxRefs i iin) (validOutputIndices i iin)
-        in   toℕ (address out) ≡ validator i ♯
+        let  out = lookupOutput l (outputRef i) (validTxRefs i iin) (validOutputIndices i iin)
+        in   (address out) ♯ ≡ validator i ♯
 \end{code}\end{agda}
 The first four conditions make sure the transaction references and types are well-formed, namely that
 inputs refer to actual transactions (\textit{validTxRefs}, \textit{validOutputIndices})
@@ -295,15 +299,13 @@ Therefore, we can define a specific decidable variant of this format:
                              ;  x′ (there xin)  → p′ x′ xin }
 \end{code}\end{agda}
 
-Finally, we are ready to provide a decision procedure for each validity condition using the aforementioned operators
+Finally, we are ready to provide a decision procedure for each validity condition using the aforementioned operator
 for quantification and the decidable counterparts for the standard operators we use.
 Below we give an example for the |validOutputRefs| condition:
 \begin{agda}\begin{code}
 validOutputRefs? : ∀ (tx : Tx) (l : Ledger)
   → Dec (∀ i → i ∈ inputs tx → outputRef i ∈ unspentOutputs l)
-validOutputRefs? tx l =
-  ∀? (inputs tx) λ i _ →
-    outputRef i ∈? unspentOutputs l
+validOutputRefs? tx l = ∀? (inputs tx) λ i _ → outputRef i ∈? unspentOutputs l
 \end{code}\end{agda}
 
 In Section~\ref{subsec:utxo-example} we give an example construction of a valid ledger
@@ -313,17 +315,7 @@ and demonstrate that our decision procedure discharges all proof obligations wit
 We have defined everything with respect to a fixed set of available addresses, but it would make sense to be able to include
 additional addresses without losing the validity of the ledger constructed thus far.
 
-In order to do, we need to first expose the basic datatypes from inside the module,
-introducing their \textit{primed} version which takes the corresponding module parameter as an index:
-
-\begin{agda}\begin{code}
-Ledger′ : List Address → Set
-Ledger′ as = Ledger
-  where open import UTxO as
-VDOTS
-\end{code}\end{agda}
-
-We can now precisely define what it means to weaken an address space;
+In order to do so, we introduce the notion of \textit{weakening} the address space;
 the only necessary ingredient is a \textit{hash-preserving injection}\footnote{
 Preserving hashes means an injection |f| satisfies |∀ {a} → a ♯ ^^ SA ≡ (a ⟨$⟩ f) ♯ ^^ SB|, where
 we denote transporting via an injection with the binary operator |_ ⟨$⟩ _|
@@ -392,10 +384,10 @@ does not break previous validation results:
 PreserveValidations : (l : Ledger) (l″ : Ledger) → Interleaving l _ l″ → Set
 PreserveValidations l₀ _ inter =
   ∀ tx → (p : tx ∈ l₀) →
-    let l   = ∈-tail p
-        l″  = ∈-tail (interleave⊆ inter p)
-    in ^^ ∀ {ptx i out vds}  →  runValidation ptx i out vds (getState l″)
-                             ≡  runValidation ptx i out vds (getState l)
+    let  l   = ∈-tail p
+         l″  = ∈-tail (interleave⊆ inter p)
+    in   ∀ {ptx i out vds}  →  runValidation ptx i out vds (getState l″)
+                            ≡  runValidation ptx i out vds (getState l)
 \end{code}\end{agda}
 
 Putting all conditions together, we are now ready to formulate a \textit{combining} operation for valid ledgers:
@@ -463,7 +455,7 @@ We will justify this decision when we talk about the way \textit{monetary polici
 each currency comes with a certain scheme of allowing or refusing forging of new funds.
 
 We also provide the adding operation, internally using proper maps implemented on AVL
-trees~\site{https://github.com/agda/agda-stdlib/blob/master/src/Data/AVL.agda}:
+trees\site{https://github.com/agda/agda-stdlib/blob/master/src/Data/AVL.agda}:
 \begin{agda}\begin{code}
 open import Data.AVL ℕ-strictTotalOrder
 ##
@@ -480,7 +472,7 @@ sum SC = foldl UL + SC UR []
 \end{code}\end{agda}
 
 While the multi-currency paper defines a new type of transaction |CurrencyTx| for creating funds,
-we follow a more lightweight approach, currently employed in the Cardano blockchain~\cite{multicurrencyweb}.
+we follow a more lightweight approach, as currently employed in the Cardano blockchain~\cite{multicurrencyweb}.
 This proposal mitigates the need for a new type of transaction and a global registry via a clever use of validator scripts:
 monetary policies reside in the validator script of the transactional inputs
 and currency identifiers are just the hashes of those scripts.
@@ -515,8 +507,8 @@ To tackle this, we follow a similar approach to the treatment of universal quant
 ... | yes  kp             = yes (x , here refl , p)
 ... | no ¬p               with ^^ ∃? xs (λ x′ xin → P? ^^ x′ (there xin))
 ... | yes (x′ , xin , p)  = yes (x′ , there xin , p)
-... | no ¬pp              = no λ { (x′ , here refl , p) → ¬p p
-                                 ; (x′ , there xin , p) → ¬pp (x′ , xin , p) }
+... | no ¬pp              = no λ  { (x′ , here refl , p) → ¬p p
+                                  ; (x′ , there xin , p) → ¬pp (x′ , xin , p) }
 \end{code}\end{agda}
 
 Now it is straightforward to give a proof of decidability for |forging|:
@@ -568,7 +560,8 @@ this means at the current state address |THREEB| holds \bitcoin~ 999.
    to/.style = {
      ->,
      >=stealth',
-     semithick},
+     semithick
+  },
   every matrix/.style={column sep=1.3cm, row sep=1cm},
   font=\footnotesize
   ]
@@ -627,16 +620,16 @@ this means at the current state address |THREEB| holds \bitcoin~ 999.
     node[below]{@@|THREEB|}
   (tsix)
   (tsix) edge[to, red]
-    node[above]{\bitcoin ~999}
-    node[below]{@@|THREEB|}
+    node[above,black]{\bitcoin ~999}
+    node[below,black]{@@|THREEB|}
   (end)
   (c) edge[to, bend left = 30, green]
-    node[left]{\bitcoin-policy}
-    node[right]{@@|BIT|}
+    node[left,black]{\bitcoin-policy}
+    node[right,black]{@@|BIT|}
   (t)
   (c) edge[to, bend right = 40, green]
-    node[left]{\bitcoin-policy}
-    node[right]{@@|BIT|}
+    node[left,black]{\bitcoin-policy}
+    node[right,black]{@@|BIT|}
   (tfour)
   ;
 \end{tikzpicture}
