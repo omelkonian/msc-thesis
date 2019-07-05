@@ -5,7 +5,7 @@
 
 \subsection{Static Analysis Tools}
 
-Bugs in smart contracts have led to significant financial losses (c.f. DAO attach),
+Bugs in smart contracts have led to significant financial losses (c.f. DAO attack),
 thus it is crucial we can automatically detect them.
 Moreover, we must detect them statically, since contracts become immutable once deployed.
 This is exceptionally hard though, due to the concurrent execution inherent in smart contracts,
@@ -17,7 +17,7 @@ hold a valuable resource called \textit{gas} (c.f. Section~\ref{subsec:ethereum}
 This amount puts a threshold on the number of computational steps a contract can execute until it completes.
 Out-of-gas errors can lead to undefined behaviour, that can be exploited by a malicious attacker.
 
-MadMax is a scalable program analysis tool, that achieves to statically
+MadMax is a scalable program analysis tool, that aims to statically
 detect such gas-related vulnerabilities with very high precision~\cite{madmax}.
 The techniques employed include \textit{control-flow analysis} and declarative
 logic programs that form queries about the program structure.
@@ -26,7 +26,7 @@ logic programs that form queries about the program structure.
 A lot of security issues in Ethereum arise from the use of callback functions in smart contracts.
 This abstraction poses a great deal of complexity on understanding contract behaviour, since they break modular reasoning.
 
-In~\cite{mooly}, a class of \textit{effectively callback-free} (ECF) programs is defined,
+In Grossman et al.~[\citeyear{mooly}], a class of \textit{effectively callback-free} (ECF) programs is defined,
 where such issues are not possible.
 Then, a program analysis tool is provided to verify such a property, which can additionally
 be realized either statically or dynamically.

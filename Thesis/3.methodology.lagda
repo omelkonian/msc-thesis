@@ -27,7 +27,7 @@ Fortunately, the sub-components of the system we are examining are not no interd
 thus lending themselves to separate treatment.
 Nonetheless, the complexity of the sub-system we care about is still high and requires rigorous investigation.
 Therefore, we choose to conduct our formal study in a mechanized manner, i.e. using a proof assistant
-along the way and formalizing all results in Type Theory.
+along the way and formalizing all results in a type-logical manner.
 Proof mechanization will allow us to discover edge cases and increase the confidence of the model under investigation.
 
 \subsection{Agda}
@@ -63,13 +63,13 @@ At this point, we would like to mention the specific approach taken by IOHK\site
 In contrast to numerous other companies currently creating cryptocurrencies, its main focus
 is on provably correct protocols with a strong focus on peer-reviewing and robust implementations, rather
 than fast delivery of results.
-This is evidenced by the choice of programming languages (Agda/Coq/Haskell/Scala)
+This is evidenced by the choice of programming languages (Agda, Coq, Haskell, Scala among other)
 -- all functional programming languages with rich type systems --
 and the use of \textit{property-based testing}~\cite{quickcheck} for the production code.
 
 IOHK's distinct feature is that it advocates a more rigorous development pipeline;
 ideas are initially worked on paper by pure academics,
-which create fertile ground for starting formal verification in Agda/Coq for more confident results,
+which create fertile ground for starting formal verification in a proof assistant for more confident results,
 which result in a prototype/reference implementation in Haskell,
 which informs the production code-base (also written in Haskell) on the properties that should be tested.
 
@@ -95,7 +95,7 @@ while this is not possible for imperative programs that contain side-effectful c
 Therefore, we hope that these principles will be reflected in the proof process itself;
 one would reason about purely functional UTxO-based ledgers in a compositional manner.
 
-The following sections give an overview of the progress made so far in the on-going Agda formalization of the two main subjects of study,
+The following sections give an overview of the progress made so far on the Agda formalization of the two main subjects of study,
 namely the Extended UTxO model and the BitML calculus.
 For the sake of brevity, we refrain from showing the full Agda code along with the complete proofs, but rather
 provide the most important datatypes and formalized results and explain crucial design choices we made along the way.

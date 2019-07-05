@@ -11,7 +11,7 @@ All code is publicly available on Github\site{https://github.com/omelkonian/form
 
 First, we begin with some basic definitions that will be used throughout this section.
 Instead of giving a fixed datatype of participants, we parametrise our module with a given
-\textit{asbtract datatype} of participants that we can check for equality, as well as
+\textit{abstract data type} of participants that we can check for equality, as well as
 non-empty list of honest participants:
 \begin{agda}\begin{code}
 module BitML  (Participant : Set) (_ ≟ SUBP _ : Decidable {A = Participant} _ ≡ _)
@@ -34,7 +34,7 @@ record Deposit : Set where
 \end{code}\end{agda}
 Representation of time and monetary values is again simplistic, both modelled as natural numbers.
 while we model participant secrets as simple strings\footnote{
-Of course, one could provide more realistic types (e.g. words of specific length)
+Of course, one could provide more realistic types (e.g. support for multiple currencies or words of specific length)
 to be closer to the implementation, as shown for the UTxO model in Section~\ref{sec:eutxo}.
 }.
 A deposit consists of the participant that owns it and the number of bitcoins it carries.
@@ -167,10 +167,7 @@ data Participant : Set where
   A B : Participant
 ##
 _ ≟ _ : Decidable {A = Participant} _ ≡ _
-A ≟ A = yes refl
-A ≟ B = no λ ()
-B ≟ A = no λ ()
-B ≟ B = yes refl
+VDOTS
 ##
 Honest : Σ[ ps ∈ List Participant ] (length ps > 0)
 Honest = [ A ] , ≤-refl
@@ -234,6 +231,12 @@ data Action (p : Participant)  -- the participant that authorizes this action
   →  List Deposit              -- the deposits it produces
   →  Set where
 ##
+  -- join two deposits deposits
+  _ ↔ _  :  ∀ {vs}
+         →  (i : Index vs)
+         →  (j : Index vs)
+         →  Action p [] [] vs ((p has UR) ⟨$⟩ updateAt ((i , vs ‼ i + vs ‼ j) ∷ (j , 0) ∷ []) vs)
+
   -- commit secrets to stipulate an advertisement
   HTRI UR  :  (ad : Advertisement v vs SC vs SV vs SP)
            →  Action p [ v , vs SC , vs SV , vs SP , ad ] [] [] []
@@ -259,8 +262,9 @@ the action to be considered valid (e.g. one cannot spend a deposit to stipulate 
 
 The first index refers to advertisements that appear in the current configuration, the second to contracts that have
 already been stipulated, the third to deposits owned by the participant currently performing the action and the fourth
-declares new deposits that will be created by the action
-(e.g. dividing a deposit would require a single deposit as the third index and produce two other deposits in its fourth index).
+declares new deposits that will be created by the action.
+For instance, the join operation |_ ↔ _| requires a non-empty list of deposits and produces a modification,
+where the two values at indices |i| and |j| are merged in position |i|.
 
 Although our indexing scheme might seem a bit heavyweight now, it makes many little details and assumptions explicit,
 which would bite us later on when we will need to reason about them.
@@ -276,7 +280,8 @@ ex-spend = ex-ad STRI 0 SF
 The |0 SF| is not a mere natural number, but inhibits |Fin (length vs SP)|, which ensures we
 can only construct actions that spend valid persistent deposits.
 
-Configurations are now built from advertisements, active contracts, deposits, action authorizations and committed/revealed secrets:
+BitML's small-step semantics is a state transition system, whose states we call \textit{configurations}.
+These are built from advertisements, active contracts, deposits, action authorizations and committed/revealed secrets:
 \begin{agda}\begin{code}
 data Configuration′  :  -- $\hspace{22pt}$ current $\hspace{20pt}$ $\times$ $\hspace{15pt}$ required
                         AdvertisedContracts  × AdvertisedContracts
@@ -323,7 +328,7 @@ operator, where the resources provided by the left operand might satisfy some re
 consumed deposits have to be eliminated as there can be no double spending, while the number of advertisements and contracts
 always grows.
 
-By composing configurations together, we will eventually end up in a \textit{closed} configuration, where
+By composing configurations, we will eventually end up in a \textit{closed} configuration, where
 all required indices are empty (i.e. the configuration is self-contained):
 \begin{agda}\begin{code}
 Configuration : AdvertisedContracts → ActiveContracts → List Deposit → Set
@@ -358,25 +363,28 @@ data _ —→ _ : Configuration ads cs ds → Configuration ads′ cs′ ds′ �
   VDOTS
 \end{code}\end{agda}
 There is a total of 18 rules we need to define, but we choose to depict only a representative subset of them.
+For a detailed overview of all the rules, we refer the reader to the original BitML paper~\cite{bitml},
+as well as to the source code of the BitML compiler~\site{https://github.com/bitml-lang/bitml-compiler}.
+
 The first pair of rules initially appends the authorization to merge
-two deposits to the current configuration (rule |DEP-AuthJoin|) and then performs the actual join (rule |[DEP-Join]|).
+two deposits to the current configuration (rule |DEP-AuthJoin|) and then performs the actual join (rule |DEP-Join|).
 This is a common pattern across all rules, where we first collect authorizations for an action by all involved participants,
 and then we fire a subsequent rule to perform this action.
-|[C-Advertise]| advertises a new contract, mandating that at least one of the participants involved in the pre-condition
+|C-Advertise| advertises a new contract, mandating that at least one of the participants involved in the pre-condition
 is honest and requiring that all deposits needed for stipulation are available in the surrounding context.
-|[C-AuthCommit]| allows participants to commit to the secrets required by the contract's pre-condition, but only dishonest
+|C-AuthCommit| allows participants to commit to the secrets required by the contract's pre-condition, but only dishonest
 ones can commit to the invalid length $\bot$.
-Lastly, |[C-Control]| allows participants to give their authorization required by a particular branch out of the current
+Lastly, |C-Control| allows participants to give their authorization required by a particular branch out of the current
 choices present in the contract, discarding any time constraints along the way.
 
 It is noteworthy to mention that during the transcriptions of the complete set of rules from the paper~\cite{bitml}
 to our dependently-typed setting,
 we discovered some discrepancies or over-complications, which we document extensively in Section~\ref{subsec:fixes}.
 
-The inference rules above have elided any treatment of timely constraints;
+The inference rules above have elided any treatment of time constraints;
 this is handled by the top layer, whose states are now timed configurations.
 The only interesting inference rule is the one that handles time decorations of the form |after _ : U|,
-since all other cases are dispatched to the bottom layer (which just ignores timely aspects).
+since all other cases are dispatched to the bottom layer (which just ignores timing aspects).
 \begin{agda}\begin{code}
 record Configuration ST  (ads : AdvertisedContracts)
                          (cs  : ActiveContracts)
@@ -461,9 +469,10 @@ Current efforts are available on Github\site{https://github.com/omelkonian/forma
 \end{itemize}
 
 For the time being, the complexity that arises from having the permutation proofs in the
-premises of each and every one of the 18 rules, is sadly intractable.
+premises of each and every one of the 18 rules, poses a significant burden to our development.
 As a quick workaround, we can factor out the permutation relation in the \textit{reflexive transitive closure}
-of the step relation, which will eventually constitute our equational reasoning device:
+of the step relation, which will eventually constitute our custom syntax for proving derivations,
+inspired by equational reasoning:
 \begin{agda}\begin{code}
 data _ —↠ _ : Configuration ads cs ds → Configuration ads′ cs′ ds′ → Set where
 ##
@@ -544,6 +553,10 @@ to be done.
 } to automate this part of the proof development process.
 
 \subsection{Symbolic Model}
+The approach taken by BitML defines two models that describe participant interaction;
+the \textit{symbolic model} works on the abstract level of BitML contracts,
+while the \textit{computational model} is defined at the level of concrete Bitcoin transactions.
+
 In order to formalize the BitML's symbolic model, we first notice that a constructed derivation
 witnesses one of many possible contract executions.
 In other words, derivations of our small-step semantics model \textit{traces} of the contract execution.
@@ -579,7 +592,7 @@ data Label : Set where
 \end{code}\end{agda}
 Notice how we existentially pack indexed types, so that |Label| remains simply-typed.
 This is essential, as it would be tedious to manipulate indices when there is no need for them.
-Moreover, some indices are now just |ℕ| instead of |Fin|, losing the guarantee to not fall out-of-bounds.
+Moreover, some indices are now just |ℕ| instead of |Fin|, losing the guarantee to remain well-scoped.
 
 The step relation will now emit the corresponding label for each rule. Below, we give
 the updated kind signature and an example for the |DEP-AuthJoin| rule:
@@ -666,12 +679,14 @@ These moves cannot be arbitrary; they have to satisfy several validity condition
 we require as proof in the datatype definition itself.
 
 Strategies are expected to be PPTIME algorithms, so as to have a certain computational bound
-on the processing they can undergo to compute secrets, etc.
-Since working on a resource-aware logic would make this much more difficult in search of tooling
-and infrastructure, we ignore this requirement and simply model strategies as regular functions.
+that guarantees secrets are sufficiently hard to guess by adversaries, etc.
+While recent research suggests that it is possible to track complexity bounds in the type system~\cite{timecomplexity},
+working on a resource-aware logic would make this much more difficult in search of tooling and infrastructure,
+thus we ignore this requirement and simply model strategies as regular functions.
 
 Before we define the types of strategies, we give a convenient notation to extend a trace
-with another (timed) transition:
+with another (timed) transition, which essentially projects the last timed configuration out of a trace and
+relates it to the second operand:
 \begin{agda}\begin{code}
 _ ——→⟦ _ ⟧ _ : Trace → Label → ∃TimedConfiguration → Set
 R ——→⟦ α ⟧ (_ , _ , _ , tc′)
@@ -807,6 +822,7 @@ data _ -conforms-to- _ : Trace → Strategies → Set where
 \end{code}\end{agda}
 
 \subsubsection{Meta-theoretical results}
+\label{subsec:bitml-metatheory}
 To increase confidence in our symbolic model, we proceed with the mechanization of two meta-theoretical lemmas.
 
 \paragraph{Stripping preserves semantics}
@@ -835,6 +851,35 @@ Lastly, it holds that all moves that can be chosen by the adversary are admitted
 adversarial-move-is-semantic :
   ∃[ T′ ] ( R ——→⟦ runAdversary (S† , S) R ⟧ T′)
 \end{code}\end{agda}
+
+The proofs have not been completely formalized yet, since there are a lot of cases to cover
+and our ``over-indexing'' approach has proven difficult to work with.
+More specifically, as our type indices get increasingly complicated,
+we get a lot of proof obligations at the usage sites of the indexed datatypes,
+where the Agda compiler will encounter complicated equalities during normalization (e.g. |ys ─ ([] ─ ys) ≡ ys|),
+which cannot be automatically solved. In these cases, we need to always rewrite the goal manually until it reaches
+a point where statements become trivial.
+
+A possible way of tackling this issue is factoring complex index dependencies out of datatype constructors and
+requiring them as additional \textit{explicit} proof arguments.
+For example, instead of accumulating secrets in pre-condition expressions, we could do the following:
+\begin{agda}\begin{code}
+-- before
+_ `+ _ : Arith s SUBL → Arith s SUBR → Arith (s SUBL ++ s SUBR)
+##
+-- after
+_ `+ _ ∶- _ : Arith s SUBL → Arith s SUBR → s ≡ s SUBL ++ s SUBR → Arith s
+\end{code}\end{agda}
+That way, we can get a hold of these proof requirements explicitly, instead of
+implicitly guiding the Agda compiler through rewriting.
+
+In retrospect, it might be worthwhile to take a step back and simplify indices across the whole development.
+One such simplification would be to remove secrets as indices of expressions in contract pre-conditions,
+but this would mean type-safety has to be sacrificed in the typing of |put| commands.
+Another approach would be to follow the original BitML formulation and identify resources with string identifiers,
+instead of the DeBruijn encoding we followed throughout our work (via the use of |Fin| numbers).
+However, we do not recommend totally abandoning type-safety, but rather move to a string-based representation
+where you extrinsically ensure that deposits in configurations are well-scoped.
 
 \subsection{BitML Paper Fixes}
 \label{subsec:fixes}

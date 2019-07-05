@@ -6,7 +6,7 @@ In this section, we describe possible next steps for both our formalizations,
 namely the (extended) UTxO model and the BitML calculus.
 
 The majority of the suggestions are straightforward or completely orthogonal to our current system,
-therefore we estimate they can be incorporated in a relatively short-term period.
+therefore we believe they can be incorporated in a relatively short-term period.
 
 Most importantly, we give the ambitious vision of integrating our two objects of study, giving rise
 to a \textit{certified compiler} from BitML contracts to UTxO transactions;
@@ -67,7 +67,7 @@ but we, nevertheless, expect this extension to be more-or-less orthogonal to the
 \subsection{BitML}
 
 \subsubsection{Decision Procedures}
-The current proof development process of our BitML formal model is far from ergonomic;
+The current proof development process of our BitML formal model is far from user-friendly;
 the user has to supply inline proofs in copious amounts while using our dependently-typed definitions.
 Thankfully, most of these can be proven decidable once and for all,
 and then a simple call to the decision procedure would do the work.
@@ -82,6 +82,11 @@ there is still a lot of theoretical ground to be covered:
 \begin{itemize}
 \item While we currently have the symbolic model and its meta-theory in place, there are still
 various holes in the proofs; nothing major, but it is always a good idea to cover all corner cases.
+Most of these holes correspond to insignificant proof obligations that arise from our,
+such as the list equalities arising from the uses of the composition operator |_ BAR _| for BitML configurations.
+However, a few remaining holes are not as trivial and should be investigated for further confidence in the model,
+such as covering all possible cases in the meta-theoretical proofs of BitML's symbolic model
+in Section~\ref{subsec:bitml-metatheory}.
 \item Another import task is to define the computational model; a counterpart of the symbolic model augmented
 with pragmatic computational properties to more closely resemble the low-level details of Bitcoin.
 \item When both symbolic and computational strategies have been formalized, we will be able to finally
@@ -133,7 +138,7 @@ In fact, this is already under investigation by the Marlowe team, as recent comm
 suggest\site{https://github.com/input-output-hk/marlowe/blob/master/semantics-3.0/BItSem.hs}.
 
 They both provide a high-level description of smart contracts
-and they both lend themselves to a operational reduction semantics.
+and they both lend themselves to an operational reduction semantics.
 Looking at the mere size of BitML's inference rules,
 Marlowe's small-step semantics seems a lot simpler.
 Therefore, we believe it would be interesting to investigate
@@ -145,16 +150,21 @@ Then, a compilation correctness results would guarantee that any step taken by M
 by one or more steps in BitML's semantics, essentially leading to a \textit{full abstraction} result;
 Marlowe exhibits the same behavioural properties as BitML, and we can safely
 reason in its more abstract framework.
+If that is indeed the case, effort should be probably better spent on the eUTxO-Marlowe integration, rather
+than eUTxO-BitML.
 
 \subsection{Featherweight Solidity}
 One of the posed research questions concerns the expressiveness of the extended UTxO model with respect to
 Ethereum-like account-based ledgers.
 
-In order to investigate this in a formal manner, one has to initially model a reasonable subset of Solidity,
-so a next step would be to model \textit{Featherweight Solidity}, taking inspiration from the
-approach taken in the formalization of Java using \textit{Featherweight Java}~\cite{featherweightjava}.
-This is generally considered a necessary step to render a feature-full language amendable to
-formal verification.
+Since Solidity is a fully-fledged programming language with lots of features
+(e.g. static typing, inheritance, libraries, user-defined types), it makes sense to
+restrict our formal study to a compact subset of Solidity that is easy to reason about.
+This is the approach also taken in Featherweight Java~\cite{featherweightjava}; a subset
+of Java that omits complex features such as reflection, in favour of easier behavioural reasoning
+and a more formal investigation of its semantics.
+In a similar vein, we will attempt to formalize a lightweight version of Solidity, which we will refer to as
+\textit{Featherweight Solidity}.
 Fortunately, there have already been recent efforts in F$^*$ to analyze and
 verify Ethereum smart contracts, which already describe a simplified model of Solidity~\cite{short}.
 

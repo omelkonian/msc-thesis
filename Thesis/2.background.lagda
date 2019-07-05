@@ -11,7 +11,6 @@
 \label{subsec:dlt}
 Cryptocurrencies rely on distributed ledgers, where there is no central authority managing the accounts
 and keeping track of the history of transactions.
-
 One particular instance of distributed ledgers are blockchain systems, where transactions are
 bundled together in blocks, which are linearly connected with hashes and distributed to all peers.
 The blockchain system, along with a consensus protocol deciding on which competing fork of the chain is to be included,
@@ -42,7 +41,7 @@ is fairly straightforward to write such programs embedded in a general-purpose
 language (in this case Haskell) and to reason about them with \textit{equational reasoning},
 it is restricted in the centralized setting and, therefore, does not suffice for our needs.
 
-Things become much more complicated when we move to the distributed setting of a blockchain~\cite{setzer,short,scilla}.
+Things become much more complicated when we move to the distributed setting of a blockchain~\cite{bitcoin,ethereum}.
 Hence, there is a growing need for methods and tools that will
 enable tractable and precise reasoning about such systems.
 
@@ -70,7 +69,11 @@ Bitcoin also provides a cryptographic protocol to make sure no adversary can tam
 e.g. by making the creation of new blocks computationally hard and invalidating the ``truthful" chain statistically impossible.
 
 A crucial aspect of Bitcoin's design is that there are no explicit addresses included in the transactions.
-Rather, transaction outputs are actually program scripts, which allow someone to claim the funds by giving the proper inputs.
+Rather, transaction outputs are actually program scripts, which allow someone to claim the funds by giving the proper inputs
+to the validator script (i.e. arguments that make the script return |true|)\footnote{
+When access to a transaction output is restricted via a validator script, we sometimes say that the output is \textit{locked}
+by the script.
+}.
 Thus, although there are no explicit user accounts in transactions, the effective available funds of a user
 are all the \textit{unspent transaction outputs} (UTxO) that he can claim (e.g. by providing a digital signature).
 
@@ -79,7 +82,7 @@ In order to write such scripts in the outputs of a transaction, Bitcoin provides
 stack-based scripting language, called \textsc{Script}.
 \textsc{Script} is intentionally not Turing-complete (e.g. it does not provide looping structures),
 in order to have more predictable behaviour.
-Moreover, only a very restricted set of ``template" programs are considered standard, i.e.
+Moreover, only a very restricted set of ``template'' programs are considered standard, i.e.
 allowed to be relayed from node to node.
 
 \newcommand\ttt[1]{\texttt{\footnotesize{#1}}}
@@ -100,7 +103,7 @@ result at the top of the stack. For instance, adding two numbers looks like this
   \Semantics{1 2 OP\_ADD} = \stack{3}
 \]
 \paragraph{P2PKH}
-The most frequent example of a 'standard' program in \textsc{Script} is the
+The most frequent example of a ``standard'' program in \textsc{Script} is the
 \textit{pay-to-pubkey-hash} (P2PKH) type of scripts. Given a hash of a public key \texttt{<pub\#>},
 a P2PKH output carries the following script:
 \[
@@ -142,7 +145,7 @@ must hold for the transaction to go through:
 \item $\Semantics{<red> OP\_HASH <red\#> OP\_EQ} = \stack{True}$
 \end{enumerate}
 Therefore, in this case the script residing in the output is simpler, but inputs can also contain arbitrary redeemer scripts
-(as long as they are of a standard ``template").
+(as long as they are of a standard ``template'').
 
 In this thesis, we will model scripts in a much more general, mathematical sense, so
 we will eschew from any further investigation of properties particular to \textsc{Script}.
@@ -151,7 +154,7 @@ we will eschew from any further investigation of properties particular to \texts
 Although Bitcoin is the most widely used blockchain to date, many aspects of it are poorly documented.
 In general, there is a scarcity of formal models, most of which are either introductory or exploratory.
 
-One of the most involved and mature previous work on formalizing the operation of Bitcoin
+Some of the most involved and mature previous work on formalizing the operation of Bitcoin
 is the Bitcoin Modelling Language (BitML)~\cite{bitml}. First, an idealistic \textit{process calculus}
 that models Bitcoin contracts is introduced, along with a detailed small-step reduction semantics that
 models how contracts interact and its non-determinism accounts for the various outcomes.
@@ -161,15 +164,17 @@ cryptographic machinery and implementation details of Bitcoin.
 Consequently, such operational semantics allow one to reason about the concurrent behaviour of
 the contracts in a \textit{symbolic} setting.
 
-The authors then provide a compiler from BitML contracts to 'standard' Bitcoin transactions, proven
+The authors then provide a compiler from BitML contracts to ``standard'' Bitcoin transactions, proven
 correct via a correspondence between the symbolic model and the computational model operating on
 the Bitcoin blockchain. We will return for a more formal treatment of BitML in Section~\ref{sec:bitml}.
 
 \subsubsection{Extended UTxO}
-In this work, we will consider the version of the UTxO model used by IOHK's Cardano blockchain\site{www.cardano.org}.
+In this work, we will consider the version of the UTxO model used by
+IOHK's Cardano blockchain\site{www.cardano.org}.
+We will refer to this variant as \textit{Extended UTxO} (eUTxO).
 In contrast to Bitcoin's \textit{proof-of-work} consensus protocol~\cite{bitcoin},
 Cardano's \textit{Ouroboros} protocol~\cite{ouroboros} is \textit{proof-of-stake}.
-This, however, does not concern our study of the abstract accounting model, thus we
+This, however, is of no concern at the scope of the abstract accounting model, thus we
 refrain from formally modelling and comparing different consensus techniques.
 
 The actual extension we care about is the inclusion of \textit{data scripts} in transaction
@@ -194,7 +199,7 @@ stateful accounting model. It goes even further to distinguish \textit{human acc
 
 This added expressiveness is also reflected in the quasi-Turing-complete low-level stack-based bytecode language
 in which contract code is written, namely the \textit{Ethereum Virtual Machine} (EVM).
-EVM is mostly designed as a target, to which other high-level user-friendly languages will compile to.
+EVM is mostly designed as a target, to which other high-level user-friendly languages will compile.
 
 \paragraph{Solidity}
 The most widely adopted language that targets the EVM is \textit{Solidity},
@@ -203,19 +208,8 @@ rather straightforward.
 
 One of Solidity's most distinguishing features is the concept of a contract's \textit{gas}; a limit to the amount
 of computational steps a contract can perform.
-At the time of the creation of a transaction, its owner specifies a certain amount of gas the contract can consume and
+When a a transaction is created, its owner specifies a certain amount of gas the contract can consume and
 pays a transaction fee proportional to it. In case of complete depletion (i.e. all gas has been consumed before the contract
 finishes its execution), all global state changes are reverted as if the contract had never been run.
 This is a necessary ingredient for smart contract languages that provide
 arbitrary looping behaviour, since non-termination of the validation phase is certainly undesirable.
-
-If time permits, we will initially provide a formal justification of Solidity and proceed to
-formally compare the extended UTxO model against it.
-Since Solidity is a fully-fledged programming language with lots of features
-(e.g. static typing, inheritance, libraries, user-defined types), it makes sense to
-restrict our formal study to a compact subset of Solidity that is easy to reason about.
-This is the approach also taken in Featherweight Java~\cite{featherweightjava}; a subset
-of Java that omits complex features such as reflection, in favour of easier behavioural reasoning
-and a more formal investigation of its semantics.
-In the same vein, we will try to introduce a lightweight version of Solidity, which we will refer to as
-\textit{Featherweight Solidity}.

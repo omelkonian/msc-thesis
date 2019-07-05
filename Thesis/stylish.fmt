@@ -62,8 +62,8 @@
 \newcommand{\HSString}[1]{\mathcolor{hsred2}{#1}}
 \newcommand{\HSSpecial}[1]{\mathcolor{hsblue4}{\ensuremath{#1}}}
 \newcommand{\HSSym}[1]{\mathcolor{hsblue4}{\ensuremath{#1}}}
-\newcommand{\HSCon}[1]{\mathcolor{hsblue3}{#1}}
-\newcommand{\HSVar}[1]{\mathcolor{hsblue5}{\mathit{\ensuremath{#1}}}}
+\newcommand{\HSCon}[1]{\mathcolor{hsblue3}{\textit{#1}}}
+\newcommand{\HSVar}[1]{\mathcolor{hsblue5}{\textit{#1}}}
 \newcommand{\HSComment}[1]{\mathcolor{hsgold2}{\textit{#1}}}
 
 %subst keyword a = "\HSKeyword{" a "}"
@@ -101,20 +101,20 @@
 %% Constructors
 %format refl       = "\HSCon{refl}"
 %format nil        = "\HSCon{[]}"
-%format ∷          = "\HSCon{::}"
 %format tt         = "\HSCon{tt}"
 %format yes        = "\HSCon{yes}"
 %format no         = "\HSCon{no}"
-%format at         = "\HSCon{@}"
 
-%format _          = "\HSSym{\anonymous} "
-%format ->         = "\HSSym{\to} "
-%format →          = "\HSSym{\to} "
-%format <-         = "\HSSym{\leftarrow} "
-%format =>         = "\HSSym{\Rightarrow} "
-%format |          = "\HSSym{\mid} "
+%format _          = "\HSSym{\anonymous}"
+%format ->         = "\HSSym{\mathbin{\to}}"
+%format →          = "\HSSym{\mathbin{\to}}"
+%format <-         = "\HSSym{\mathbin{\leftarrow}}"
+%format =>         = "\HSSym{\mathbin{\Rightarrow}}"
+%format |          = "\HSSym{\mathbin{\mid}}"
 %format =          = "\HSSym{\mathrel{=}}"
+%format ∷          = "\HSSym{\mathbin{::}}"
 %format ++         = "\HSSym{\mathbin{\plus}}"
+%format at         = "\HSSym{\mathbin{@}}"
 
 %%% Formatting
 %format DOTS     = "\HSSym{\dots}"
@@ -159,8 +159,8 @@
 %format ∈-       = "\HSSym{\in\!-}"
 %format ∉        = "\HSSym{\mathrel{\notin}}"
 %format ∋        = "\HSSym{\mathrel{\ni}}"
-%format iin      = "\HSVar{i\!\in}"
-%format xin      = "\HSVar{x\!\in}"
+%format iin      = "\HSVar{$i\!\in$}"
+%format xin      = "\HSVar{$x\!\in$}"
 %format ⊆        = "\HSSym{\mathrel{\subseteq}}"
 %format ≡        = "\HSSym{\mathrel{\equiv}}"
 %format ≢        = "\HSSym{\mathrel{\not\equiv}}"
@@ -213,6 +213,9 @@
 %format ONEB     = "\HSSym{\mathbb{A}}"
 %format TWOB     = "\HSSym{\mathbb{B}}"
 %format THREEB   = "\HSSym{\mathbb{C}}"
+
+%format BEF      = "\HSSym{\textsub{before}}"
+%format AFT      = "\HSSym{\textsub{after}}"
 
 %format BAR      = "\HSSym{\! | \!}"
 %format TRI      = "\HSSym{\vartriangleright}"

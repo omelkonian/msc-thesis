@@ -5,30 +5,30 @@
 
 We now set out to model the accounting model of a UTxO-based ledger.
 We will provide a inherently-typed model of transactions and ledgers;
-this gives rise to a notion of \textit{weakening} of available addresses, which we formalize.
+as a result of the development we can show new meta-theoretical results,
+which we formalize.
 Moreover, we showcase the reasoning abilities of our model by giving
 an example of a correct-by-construction ledger.
 All code is publicly available on Github\site{https://github.com/omelkonian/formal-utxo}.
 
 We start with the basic types, keeping them abstract since we do not care about details arising from the encoding in an
-actual implementation:
+actual implementation. In Agda, \textit{abstract data types} can be realized as \textit{parameters} to the current module:
 \begin{agda}\begin{code}
-postulate
-  Value  : Set
-  Hash   : Set
+module UTxO.Types (Value : Set) (Hash : Set) where DOTS
 \end{code}\end{agda}
 For simplicity, we can represent both cryptocurrency values and hashes as natural numbers,
 but we will later provide a more extensive datatype for values, as we shall see in Section~\ref{subsec:multicurrency}.
 
 There is also the notion of the \textit{state} of a ledger, which will be provided to transaction scripts and allow
 them to have stateful behaviour for more complicated schemes (e.g. imposing time constraints).
+The state components have not been finalized yet, but can easily be extended later when we actually investigate
+examples with expressive scripts that make use of state information, such as the current length of the ledger (\textit{height}).
+For the simple examples we will present here, the following model suffices:
 \begin{agda}\begin{code}
 record State : Set where
   field  height : ℕ
          VDOTS
 \end{code}\end{agda}
-The state components have not been finalized yet, but can easily be extended later when we actually investigate
-examples with expressive scripts that make use of state information, such as the current length of the ledger (\textit{height}).
 
 As mentioned previously, we will not dive into the verification of the cryptographic components of the model,
 hence we postulate an \textit{irreversible} hashing function which, given any value of any type,
@@ -51,7 +51,7 @@ In order to model transactions that are part of a distributed ledger, we need to
 transaction \textit{inputs} and \textit{outputs}.
 \begin{agda}\begin{code}
 record TxOutputRef : Set where
-  constructor UL at UR
+  constructor _ at _
   field  id     : Hash
          index  : ℕ
 
@@ -89,7 +89,7 @@ el  (SUM x y)      = el x ⊎ el y
 el  (LIST x)       = List (el x)
 \end{code}\end{agda}
 This construction is crucial when we later need to check equality between types,
-since functions would lead to undecidable equality.
+since function types would lead to undecidable equality.
 
 \textit{Pending transactions} are collections of hashes, which are involved in the current transaction.
 These consist of the hash of the transaction itself, as well as the hashes for all scripts residing
@@ -114,7 +114,7 @@ record PendingTx : Set where
 Transaction outputs send a bitcoin amount to a particular address, which either corresponds to a public key hash of a
 blockchain participant (P2PKH) or a hash of a next transaction's script (P2SH).
 Here, we opt to embrace the \textit{inherently-typed} philosophy of Agda and model the type of addresses as
-an \textit{abstract datatype}.
+an \textit{abstract data type}.
 That is, we package the following definitions in a module with such a parameter, hence allowing whoever
 imports the |UTxO| library to use a custom datatype,
 as long as it is equipped with a hash function and decidable equality:
@@ -157,6 +157,37 @@ runValidation ptx i o refl st = validator i st (value o) ptx (redeemer i st) (da
 Note that the intermediate types carried by the respective input and output must align, evidenced by the
 equality proof that is required as an argument.
 
+\paragraph{Example Transaction}
+Assume Alice wants to transfer \bitcoin~ 10 to Bob
+and has access to a previous transaction output of \bitcoin~ 11 that she can redeem.
+By paying a transactional fee of \bitcoin~ 1, she
+can submit a transaction that redeems the funds of the unspent output (by providing the hash of its validator, equal to 𝔸),
+and propagates the remaining funds to Bob's address |𝔹| (equal to the validator hash of |t AFT|):
+Figure~\ref{fig:utxo-transaction} shows the relevant parts of the transactions involved.
+We do not display the scripts involved here,
+but we will see their usage in a more extensive example in Section~\ref{subsec:utxo-example}.
+
+\begin{figure}[b]\begin{center}
+\begin{agda}\begin{code}
+-- 1) Previous output redeemable by Alice
+t BEF : Tx
+t BEF = record { DOTS , outputs = [ BIT 11 at 𝔸 ] , DOTS }
+
+-- 2) Alice sends {\bitcoin~ 10} to Bob
+t : Tx
+t = record  {  inputs   =  [ t BEF ♯ ^^ at 0 ]
+            ;  outputs  =  [ BIT 10 at 𝔹 ]
+            ;  forge    =  BIT 0
+            ;  fee      =  BIT 1 }
+
+-- 3) Bob spends them in a future transaction
+t AFT : Tx
+t AFT = record { inputs = [ t ♯ ^^ at 0 ] , DOTS }
+\end{code}\end{agda}
+\caption{Example transaction: Alice sends \bitcoin~ 10 to Bob.}
+\label{fig:utxo-transaction}
+\end{center}\end{figure}
+
 \subsection{Unspent Τransaction Οutputs}
 \label{subsec:utxo}
 With the basic modelling of a ledger and its transaction in place, it is fairly straightforward to
@@ -174,48 +205,54 @@ unspentOutputs (tx ∷ txs)  = (unspentOutputs txs ─ spentOutputsTx tx) ∪ un
 \subsection{Validity of Τransactions}
 In order to submit a transaction, one has to make sure it is valid with respect to the current ledger.
 We model validity as a record indexed by the transaction to be submitted and the current ledger:
+
+\begin{figure}
 \begin{agda}\begin{code}
 record IsValidTx (tx : Tx) (l : Ledger) : Set where
   field
     validTxRefs :
       ∀ i → i ∈ inputs tx ->
         Any (λ t → t ♯ ≡ id (outputRef i)) l
-##
+
     validOutputIndices :
       ∀ i → (iin : i ∈ inputs tx) ->
         index (outputRef i) <
           length (outputs (lookupTx l (outputRef i) (validTxRefs i iin)))
-##
+
     validOutputRefs :
       ∀ i → i ∈ inputs tx ->
         outputRef i ∈ unspentOutputs l
-##
+
     validDataScriptTypes :
       ∀ i → (iin : i ∈ inputs tx) ->
         D i ≡ D (lookupOutput l (outputRef i) (validTxRefs i iin) (validOutputIndices i iin))
-##
-      {-$\inferVeryLarge$-}
-##
+
+      {-$\inferLine{13cm}$-}
+
     preservesValues :
       forge tx + sum (mapWith∈ (inputs tx) λ {i} iin ->
                        lookupValue l i (validTxRefs i iin) (validOutputIndices i iin))
         ≡
       fee tx + sum (value ⟨$⟩ outputs tx)
-##
+
     noDoubleSpending :
       noDuplicates (outputRef ⟨$⟩ inputs tx)
-##
+
     allInputsValidate :
       ∀ i → (iin : i ∈ inputs tx) ->
         let  out = lookupOutput l (outputRef i) (validTxRefs i iin) (validOutputIndices i iin)
              ptx = mkPendingTx l tx validTxRefs validOutputIndices
         in   T (runValidation ptx i out (validDataScriptTypes i iin) (getState l))
-##
+
     validateValidHashes :
       ∀ i → (iin : i ∈ inputs tx) ->
         let  out = lookupOutput l (outputRef i) (validTxRefs i iin) (validOutputIndices i iin)
         in   (address out) ♯ ≡ validator i ♯
 \end{code}\end{agda}
+\caption{Validity conditions of a ledger, encoded as a dependent record.}
+\label{fig:utxo-validity}
+\end{figure}
+
 The first four conditions make sure the transaction references and types are well-formed, namely that
 inputs refer to actual transactions (\textit{validTxRefs}, \textit{validOutputIndices})
 which are unspent so far (\textit{validOutputRefs}), but also that intermediate types used in interacting
@@ -231,13 +268,11 @@ instead of modelling lookups as partial functions (i.e. returning |Maybe|), they
 proof as an argument moving the responsibility to the caller (as evidenced by their usage in the validity conditions).
 
 \paragraph{Type-safe interface}
-Users should only have a type-safe interface to construct ledgers, where
-each time a transaction is submitted along with the proof that it is valid with respect to the ledger constructed thus far.
-We provide such an interface with a proof-carrying variant of the standard list construction:
+Since we only wish to construct ledgers that are valid, i.e. submitted transactions are valid with respect to the constructed ledger, we only expose a type-safe interface as a proof-carrying variant of the standard list construction:
 \begin{agda}\begin{code}
 data ValidLedger : Ledger → Set where
 
-  ∙ : ValidLedger []
+  ∙           :  ValidLedger []
 
   _ ⊕ _ ∶- _  :  ValidLedger l
               →  (tx : Tx)
@@ -249,15 +284,16 @@ data ValidLedger : Ledger → Set where
 \subsection{Decision Procedure}
 \label{subsec:decproc}
 Intrinsically-typed ledgers are correct-by-construction, but this does not come for free;
-we now need to provide substantial proofs alongside each time we submit a new transaction.
+we now need to provide substantial proofs of validity alongside every submitted transaction.
 
 To make the proof process more ergonomic for the user of the framework,
 we prove that all involved propositions appearing in the |IsValidTx| record are \textit{decidable},
 thus defining a decision procedure for closed formulas that do not contain any free variable.
-This process is commonly referred to as \textit{proof-by-reflection}~\cite{proofbyreflection}.
+This process is commonly referred to as \textit{proof-by-reflection}~\cite[Chapter~16]{coqart}
+and has been used for proof automation both in Coq~\cite{ssreflect} and Agda~\cite{proofbyreflection}.
 
 Most operations already come with a decidable counterpart, e.g. |_ < _| can be decided by |_ <? _| that exists
-in Agda's standard library. Therefore, what we are essentially doing is copy the initial propositions and replace
+in Agda's standard library. Therefore, what we are essentially doing is copying the initial propositions and replace
 such operators with their decision procedures. Decidability is captured by the |Dec| datatype, ensuring that we
 can answer a yes/no question over the enclosed proposition:
 \begin{agda}\begin{code}
@@ -368,9 +404,11 @@ Since we allow the flexibility for arbitrary injective functions,
 our weakening result will hopefully prove resilient to such scenarios.
 
 \subsection{Combining}
-Ideally, one would wish for a modular reasoning process, where it is possible to examine subsets of
-unrelated transactions in a compositional manner.
-This has to be done in a constrained manner, since we need to preserve the proof of validity
+Ideally, one would wish for a modular reasoning process, akin to how \textit{separation logic} in concurrency is used
+for reasoning about program memory.
+In our case, we would be able to examine different ledgers of unrelated (i.e. ``separate'')
+transactions in a compositional manner.
+This has to be done carefully, since we need to preserve the proof of validity
 when combining two ledgers |l| and |l′|.
 
 First of all, the ledgers should not share any transactions with each other: |Disjoint l l′|.
@@ -405,7 +443,7 @@ _ ↔ _ ∶- _ : ∀ {l l′ l″ : Ledger}
 The proof inductively proves validity of each transaction in the interleaved ledger,
 essentially reusing the validity proofs of the ledger constituents.
 
-It is important to notice a useful interplay between weakening and combining:
+It is important to note what weakening and combining can be interleaved:
 if we wish to combine ledgers that use different addresses, we can now just apply weakening
 first and then combine in a type-safe manner.
 
@@ -638,7 +676,7 @@ this means at the current state address |THREEB| holds \bitcoin~ 999.
 \end{figure}
 
 First, we need to set things up by declaring the list of available addresses and opening our module with this parameter.
-For brevity, we view addresses immediately as hashes:
+For brevity, we identify addresses as hashes:
 \begin{agda}\begin{code}
 Address : Set
 Address = ℕ
@@ -660,22 +698,20 @@ BIT -validator (record {height = h}) _ _ _ _ = (h ≡ SB 1) ∨ (h ≡ SB 4)
 mkValidator : TxOutputRef → (State → Value → PendingTx → (ℕ × ℕ) → ℕ → Bool)
 mkValidator tin _ _ _ tin′ _ = (id tin ≡ SB proj₁ tin′) ∧ (index tin ≡ SB proj₂ tin′)
 ##
-BIT UR : ℕ → Value
+BIT _ : ℕ → Value
 BIT v = [ (BIT -validator ♯ , v) ]
 ##
 withScripts : TxOutputRef → TxInput
 withScripts tin = record  { outputRef  = tin
                           ; redeemer   = λ _ → id tin , index tin
-                          ; validator  = mkValidator tin
-                          }
+                          ; validator  = mkValidator tin }
 ##
 withPolicy : TxOutputRef → TxInput
 withPolicy tin = record  { outputRef = tin
                          ; redeemer  = λ _ → tt
-                         ; validator = BIT -validator
-                         }
+                         ; validator = BIT -validator }
 ##
-UL at UR : Value → Index addresses → TxOutput
+_ at _ : Value → Index addresses → TxOutput
 v at addr = record { value = v ; address = addr ; dataScript  = λ _ → tt }
 \end{code}\end{agda}
 |BIT -validator| models a monetary policy that allows forging only at ledger height 1 and 4;
@@ -692,38 +728,16 @@ c₀ , t₁ , t₂ , t₃ , t₄ , t₅ , t₆ : Tx
 c₀ = record  { inputs   = []
              ; outputs  = BIT 0 at (BIT -validator ♯) ∷ BIT 0 at (BIT -validator ♯) ∷ []
              ; forge    = BIT 0
-             ; fee      = BIT 0
-             }
+             ; fee      = BIT 0 }
 t₁ = record  { inputs   = [ withPolicy c₀₀ ]
              ; outputs  = [ BIT 1000 at ONEB ]
              ; forge    = BIT 1000
-             ; fee      = BIT 0
-             }
-t₂ = record  { inputs   = [ withScripts t₁₀ ]
-             ; outputs  = BIT 800 at TWOB ∷ BIT 200 at ONEB ∷ []
-             ; forge    = BIT 0
-             ; fee      = BIT 0
-             }
-t₃ = record  { inputs   = [ withScripts t₂₁ ]
-             ; outputs  = [ BIT 199 at THREEB ]
-             ; forge    = BIT 0
-             ; fee      = BIT 1
-             }
-t₄ = record  { inputs   = withScripts t₃₀ ∷ withPolicy c₀₁ ∷ []
-             ; outputs  = [ BIT 207 at TWOB ]
-             ; forge    = BIT 10
-             ; fee      = BIT 2
-             }
-t₅ = record  { inputs   = withScripts t₂₀ ∷ withScripts t₄₀ ∷ []
-             ; outputs  = BIT 500 at TWOB ∷ BIT 500 at THREEB ∷ []
-             ; forge    = BIT 0
-             ; fee      = BIT 7
-             }
+             ; fee      = BIT 0 }
+VDOTS
 t₆ = record  { inputs   = withScripts t₅₀ ∷ withScripts t₅₁ ∷ []
              ; outputs  = [ BIT 999 at THREEB ]
              ; forge    = BIT 0
-             ; fee      = BIT 1
-             }
+             ; fee      = BIT 1 }
 \end{code}\end{agda}
 
 In order for terms involving the \textit{postulated} hash function |UL ♯| to compute,
@@ -752,8 +766,7 @@ ex-ledger =
                    ; noDoubleSpending      = toWitness {Q = noDoubleSpending? DOTS} tt
                    ; allInputsValidate     = toWitness {Q = allInputsValidate? DOTS} tt
                    ; validateValidHashes   = toWitness {Q = validateValidHashes? DOTS} tt
-                   ; forging               = toWitness {Q = forging? DOTS} tt
-                   }
+                   ; forging               = toWitness {Q = forging? DOTS} tt }
   ⊕  t₂ ∶- record { DOTS }
   VDOTS
   ⊕  t₆ ∶- record { DOTS }

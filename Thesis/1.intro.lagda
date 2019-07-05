@@ -7,7 +7,7 @@
 Blockchain technology has opened a whole array of interesting new applications, such as
 multi-party computation~\cite{mpc}, fair protocol design fair~\cite{fair} and zero-knowledge proof systems~\cite{zeroproof}.
 Nonetheless, reasoning about the behaviour of such systems is an exceptionally hard task, mainly due to their distributed nature.
-Moreover, the fiscal nature of the majority of these applications requires a much higher degree of rigorousness compared to
+Moreover, the fiscal nature of the majority of these applications requires a much higher degree of rigor compared to
 conventional IT applications, hence the need for a more formal account of their behaviour.
 
 % Smart contracts create issues
@@ -28,10 +28,9 @@ in a concurrent/distributed setting.
 The aim of this thesis is to provide a mechanized formal model of an abstract distributed ledger equipped with
 smart contracts, in which one can begin to formally investigate the expressiveness of the extended UTxO model.
 Moreover, we hope to lay a foundation for a formal comparison with account-based
-models used in Ethereum. Put concisely, the research question posed is:
+models used in Ethereum. Put concisely, the broader research question posed is:
 \begin{displayquote}
-  \textit{How much expressiveness do we gain by extending the UTxO model?} \\
-  \textit{Is it as expressive as the account-based model used in Ethereum?}
+  \textit{How does the UTxO model of smart contracts compare to Ethereum's account-based one?}
 \end{displayquote}
 
 \paragraph{Overview}
