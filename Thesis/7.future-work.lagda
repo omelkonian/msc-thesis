@@ -82,7 +82,7 @@ there is still a lot of theoretical ground to be covered:
 \begin{itemize}
 \item While we currently have the symbolic model and its meta-theory in place, there are still
 various holes in the proofs; nothing major, but it is always a good idea to cover all corner cases.
-Most of these holes correspond to insignificant proof obligations that arise from our,
+Most of these holes correspond to insignificant proof obligations stemming from our heavy indexing scheme,
 such as the list equalities arising from the uses of the composition operator |_ BAR _| for BitML configurations.
 However, a few remaining holes are not as trivial and should be investigated for further confidence in the model,
 such as covering all possible cases in the meta-theoretical proofs of BitML's symbolic model

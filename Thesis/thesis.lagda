@@ -67,6 +67,17 @@
 \titleformat{\paragraph}[runin]
 {\itshape\normalsize\bfseries}{\theparagraph}{1em}{}[.]
 
+\newenvironment{dedication}
+  {\thispagestyle{empty}
+   \vspace*{\stretch{1}}
+   \itshape
+   \raggedleft
+  }
+  {\par
+   \vspace{\stretch{3}}
+   \clearpage
+  }
+
 \begin{document}
 \sloppy % for proper justification (no overflows to the right)
 

@@ -671,7 +671,7 @@ this means at the current state address |THREEB| holds \bitcoin~ 999.
   (tfour)
   ;
 \end{tikzpicture}
-\caption{Example ledger with six transactions (unspent outputs are coloured in red)}
+\caption{Example ledger with six transactions}
 \label{fig:utxo-ledger}
 \end{figure}
 
@@ -711,7 +711,7 @@ withPolicy tin = record  { outputRef = tin
                          ; redeemer  = λ _ → tt
                          ; validator = BIT -validator }
 ##
-_ at _ : Value → Index addresses → TxOutput
+_ at _ : Value → Address → TxOutput
 v at addr = record { value = v ; address = addr ; dataScript  = λ _ → tt }
 \end{code}\end{agda}
 |BIT -validator| models a monetary policy that allows forging only at ledger height 1 and 4;

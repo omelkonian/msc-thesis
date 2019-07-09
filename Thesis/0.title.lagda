@@ -43,9 +43,12 @@ Supervisors:       & Wouter Swierstra        & (Utrecht University) \\
 \par}
 \end{minipage}\end{center}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Abstract
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\begin{dedication}
+To Emilia,\\
+for her infinite love, support and devotion.
+\end{dedication}
+
 \newpage
 \section*{Abstract}
 Smart contracts -- programs that run on a blockchain -- allow for sophisticated transactional schemes,
@@ -68,6 +71,17 @@ as well as a mechanized account of BitML's symbolic model over participant strat
 
 Finally, we sketch the way towards a \textit{certified compiler} from BitML contracts to UTxO transactions,
 where all behaviours manifesting on BitML's symbolic model can safely be transported to the UTxO level.
+
+\newpage
+\section*{Acknowledgements}
+First, I would like thank my supervisors, Wouter and Manuel.
+Their constant push for excellence motivated me throughout this thesis and the result
+would not have been the same without them.
+Wouter's expertise on dependently-typed models, as well as Manuel's deep understanding of how a blockchain operates
+were invaluable and significantly shaped the approach taken in this thesis.
+
+Moreover, I would like to thank several researchers from IOHK for helpful discussion while the thesis was still in progress,
+especially Philip Wadler, James Chapman and Michael Peyton Jones.
 
 \newpage
 \tableofcontents

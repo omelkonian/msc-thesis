@@ -155,6 +155,7 @@ record Advertisement (v : Value) (vs SC vs SV vs SP : List Value) : Set where
          C      :  Contracts v vs SC
          valid  :  length vs SC ≤ length vs SV
                 ×  participants SG G ++ participants SC C ⊆ (participant ⟨$⟩ persistentDeposits G)
+                ×  v ≡ sum vs SP
 \end{code}\end{agda}
 Notice that in order to construct an advertisement, one has to also provide proof of the contract's validity with respect to
 the given preconditions, namely that all deposit references in the contract are declared in the precondition
@@ -176,13 +177,12 @@ open BitML Participant ^^ _ ≟ _ ^^ [ A ] SPLUS
 \end{code}\end{agda}
 
 We then define an advertisement, whose type already says a lot about what is going on;
-it carries \bitcoin ~5, presumes the existence of at least one deposit of \bitcoin ~200, and requires a single deposit
-of \bitcoin ~100 before stipulation.
+it carries \bitcoin ~5, presumes the existence of at least one deposit of \bitcoin ~200, and requires both participants to pay a persistent deposit beforehand.
 \begin{agda}\begin{code}
-ex-ad : Advertisement 5 [ 200 ] [ 200 ] [ 100 ]
-ex-ad =  ⟨  B :? 200 ∧ A :! 100 ^^ ⟩
+ex-ad : Advertisement 5 [ 200 ] [ 200 ] [ 3 , 2 ]
+ex-ad =  ⟨  B :? 200 ∧ B :! 3 ∧ A :! 2 ^^ ⟩
           split  (  2 ⊸ withdraw B
-                 ⊕  2 ⊸ after 100 ∶ withdraw A
+                 ⊕  2 ⊸ after 42 ∶ withdraw A
                  ⊕  1 ⊸ put [ 200 ] ⇒ B ∶ withdraw {201} A ∶- DOTS
                  )
           ∶- DOTS
@@ -283,7 +283,7 @@ can only construct actions that spend valid persistent deposits.
 BitML's small-step semantics is a state transition system, whose states we call \textit{configurations}.
 These are built from advertisements, active contracts, deposits, action authorizations and committed/revealed secrets:
 \begin{agda}\begin{code}
-data Configuration′  :  -- $\hspace{22pt}$ current $\hspace{20pt}$ $\times$ $\hspace{15pt}$ required
+data Configuration′  :  -- $\hspace{17pt}$ current $\hspace{17pt}$ $\times$ $\hspace{17pt}$ required
                         AdvertisedContracts  × AdvertisedContracts
                      →  ActiveContracts      × ActiveContracts
                      →  List Deposit         × List Deposit
@@ -729,7 +729,7 @@ All honest participants should be accompanied by such a strategy,
 so we pack all honest strategies in one single datatype:
 \begin{agda}\begin{code}
 HonestStrategies : Set
-HonestStrategies = ∀ {A} → A ∈ Hon → ParticipantStrategy A
+HonestStrategies = ∀ {A} → A ∈ Hon → HonestStrategy A
 \end{code}\end{agda}
 
 \paragraph{Adversary strategies}
@@ -901,7 +901,7 @@ When rule |C-AuthRev| is presented in the original BitML paper,
 it seems to act on an atomic configuration |⟨ A ∶ α ♯ ℕ ⟩|. This renders the rule useless in any practical scenario,
 so we extend the rule to include a surrounding context:
 \begin{agda}\begin{code}
-⟨ A ∶ s ♯ just n ⟩ ∣ Γ —→⟦ auth-rev[ A , s ] ⟧ A ∶ s ♯ n ∣ Γ
+⟨ A ∶ s ♯♯ just n ⟩ | Γ —→⟦ auth-rev[ A , s ] ⟧ A ∶ s ♯♯ n | Γ
 \end{code}\end{agda}
 
 \paragraph{Small-step Derivations as Equational Reasoning}
